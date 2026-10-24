@@ -1,0 +1,855 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style><style>
+/* Modules S7 intégrés — alignés sur les jetons du parcours (thèmes clair et sombre) */
+#s7host{font:14px/1.55 system-ui,"Segoe UI",Arial,sans-serif;color:var(--text)}
+#s7dialog{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:14px;width:min(1180px,94vw);height:90vh;max-height:94vh;padding:0;box-sizing:border-box;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:auto}
+#s7dialog::backdrop{background:rgba(5,12,20,.72)}
+#s7dialog>header,#s7dialog>p,#s7dialog>nav,#s7dialog>main{margin-left:20px;margin-right:20px}
+#s7dialog button,#s7launch button{font:inherit;cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:6px 13px;background:var(--btn);color:var(--text);font-size:13px}
+#s7dialog button:hover,#s7launch button:hover{border-color:var(--accent)}
+#s7dialog button[aria-current=page],#s7dialog button[aria-current=step]{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600;color:var(--text)}
+#s7dialog button:disabled{opacity:.5;cursor:default}
+#s7dialog :focus-visible,#s7launch :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#s7dialog h1{font-size:21px;line-height:1.25;margin:2px 0}
+#s7dialog h2{font-size:17px;line-height:1.3;margin:4px 0 8px}
+#s7dialog h3{font-size:15px;margin:12px 0 8px}
+.s7head{display:flex;justify-content:space-between;gap:14px;align-items:center;border-bottom:1px solid var(--border);padding:14px 0;margin-top:0}
+.s7head small{letter-spacing:.1em;color:var(--muted);font-size:11px;text-transform:uppercase}
+.s7intro{max-width:95ch;color:var(--muted);margin-top:12px}
+.s7tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.s7cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.s7cards article,.s7timeline,#s7exercise{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.s7cards article p{margin-bottom:0}
+.s7number{color:var(--accent);font-weight:800;font-size:13px;letter-spacing:.06em}
+.s7layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;margin-bottom:20px}
+.s7menu{display:flex;flex-direction:column;gap:6px;align-self:start}
+#s7dialog .s7menu button{text-align:left;border-radius:10px}
+.s7rule,.s7barrier{padding:9px 12px;border-left:3px solid var(--accent);background:var(--panel2,var(--panel));border-radius:0 8px 8px 0}
+.s7rule p{margin-bottom:0}
+.s7choices{display:grid;gap:8px}
+#s7dialog .s7choices button{text-align:left;border-radius:10px;padding:9px 12px;font-size:14px}
+.s7ok,.s7error{padding:12px 14px;margin-top:12px;border-radius:10px}
+.s7ok{background:rgba(64,192,87,.13);border:1px solid #40c057}
+.s7error{background:rgba(250,82,82,.12);border:1px solid #fa5252}
+.s7stages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+#s7dialog .s7stages button{display:flex;flex-direction:column;text-align:left;border-radius:10px}
+.s7stages b{font-size:18px}
+.s7controls{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:10px}
+.s7fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#s7dialog label{display:block;margin:10px 0}
+#s7dialog input,#s7dialog select,#s7dialog textarea{box-sizing:border-box;width:100%;padding:9px;font:inherit;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
+#s7dialog table{border-collapse:collapse;width:100%;background:var(--panel)}
+#s7dialog th,#s7dialog td{text-align:left;padding:8px;border:1px solid var(--border)}
+.s7table{overflow:auto}
+#s7launch{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 20px;background:var(--panel2,var(--panel));color:var(--text);border-bottom:1px solid var(--border);font-size:12.5px}
+#s7launch::before{content:"Activités S7";font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+#s7launch button{border-color:var(--accent)}
+@media(max-width:700px){#s7dialog{width:98vw;height:96vh;max-height:96vh}.s7head{align-items:flex-start;flex-direction:column}.s7cards,.s7layout,.s7fields{grid-template-columns:1fr}.s7menu{display:grid;grid-template-columns:1fr 1fr}.s7stages{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){#s7host *{scroll-behavior:auto!important}}
+</style></head><body>
+<title>Parcours déchets Andra</title>
+<style>
+/* V2.1 — consolidation du rendu desktop et du comportement */
+:root{--stage-outline:color-mix(in srgb,var(--accent) 22%,var(--border))}
+.stage{box-shadow:0 7px 24px rgba(0,0,0,.10);border-color:var(--stage-outline)}
+.nav button,.chip,.sbtn{transition:background-color .18s,border-color .18s,transform .18s}
+.nav button:hover,.chip:hover,.sbtn:hover{border-color:var(--accent)}
+.steptext{min-height:110px;line-height:1.62}
+.steptext h3{font-size:17px}
+.aside{line-height:1.57}
+.eq.dim,.part.dim,.fl.dim{pointer-events:none}
+/* Le masquage d’une étape suspend aussi ses mouvements */
+.dim .spin,.dim .spin-fast,.dim .chop,.dim .feed,.dim .fall,.dim .rise,.dim .rise-long,.dim .lift,.dim .press,.dim .crush,.dim .fillup,.dim .glow,.dim .drip,.dim .move-r,
+.dim .shear-feed,.dim .shear-blade,.dim .shear-clamp,.dim .shear-piece{animation-play-state:paused!important}
+/* Un cycle unique coordonne avance, serrage, coupe et chute. Vue pédagogique, non cinématique réelle. */
+.shear-feed{animation:shearFeed 7.2s ease-in-out infinite}
+.shear-clamp{animation:shearClamp 7.2s ease-in-out infinite}
+.shear-blade{animation:shearBlade 7.2s ease-in-out infinite}
+.shear-piece{animation:shearPiece 7.2s linear infinite;opacity:0}
+@keyframes shearFeed{0%,8%{transform:translateX(-35px)}25%,75%{transform:translateX(0)}90%,100%{transform:translateX(-35px)}}
+@keyframes shearClamp{0%,25%,75%,100%{transform:translateX(0)}34%,66%{transform:translateX(8px)}}
+@keyframes shearBlade{0%,38%,72%,100%{transform:translateY(0)}52%,58%{transform:translateY(39px)}}
+@keyframes shearPiece{0%,53%{opacity:0;transform:translateY(0)}59%{opacity:1}80%,100%{opacity:0;transform:translateY(66px)}}
+body.paused .shear-feed,body.paused .shear-clamp,body.paused .shear-blade,body.paused .shear-piece{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.shear-feed,.shear-clamp,.shear-blade,.shear-piece{animation:none!important}}
+
+/* V2.2 — Gros plans techniques R1/T1, sans modification du parcours général */
+.tech-zoom{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel)}
+.tech-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.tech-head strong{font-size:15px}.tech-tabs{display:flex;gap:6px}.tech-tabs button{border:1px solid var(--border);border-radius:8px;background:var(--btn);padding:7px 11px}.tech-tabs button.active{border-color:var(--accent);background:var(--btn-active)}
+.tech-svg{display:block;width:100%;height:auto;max-height:590px;background:radial-gradient(ellipse at 50% 40%,var(--canvas-glow),var(--canvas))}
+.tech-foot{padding:10px 14px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+.tech-label{fill:var(--label);font:15px system-ui,sans-serif}.tech-small{fill:var(--sublabel);font:12px system-ui,sans-serif}.tech-strong{fill:var(--label);font:bold 18px system-ui,sans-serif}
+.tech-cut-blade{animation:techBlade 12s ease-in-out infinite}.tech-cut-clamp{animation:techClamp 12s ease-in-out infinite}.tech-cut-feed{animation:techFeed 12s ease-in-out infinite}.tech-cut-fall{animation:techFall 12s linear infinite;opacity:0}
+@keyframes techBlade{0%,20%,38%,48%,65%,75%,92%,100%{transform:translateY(0)}27%,55%,82%{transform:translateY(105px)}}
+@keyframes techClamp{0%,18%,37%,46%,64%,73%,91%,100%{transform:translateY(0)}23%,52%,79%{transform:translateY(15px)}}
+@keyframes techFeed{0%,10%{transform:translateX(-28px)}18%,38%{transform:translateX(0)}46%,65%{transform:translateX(30px)}73%,92%{transform:translateX(60px)}100%{transform:translateX(-28px)}}
+@keyframes techFall{0%,26%,53%,80%,100%{transform:translateY(0);opacity:0}29%,56%,83%{opacity:1}35%,62%,89%{transform:translateY(115px);opacity:0}}
+.tech-wheel{animation:techWheel 28s linear infinite;transform-origin:560px 280px}
+@keyframes techWheel{to{transform:rotate(360deg)}}
+.tech-bubble{animation:techBubble 3s linear infinite;opacity:0}
+@keyframes techBubble{0%{transform:translateY(0);opacity:0}25%{opacity:.7}100%{transform:translateY(-55px);opacity:0}}
+body.paused .tech-cut-blade,body.paused .tech-cut-clamp,body.paused .tech-cut-feed,body.paused .tech-cut-fall,body.paused .tech-wheel,body.paused .tech-bubble{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.tech-cut-blade,.tech-cut-clamp,.tech-cut-feed,.tech-cut-fall,.tech-wheel,.tech-bubble{animation:none!important}}
+
+/* V2.3 : suspension des gros plans non visibles et contraste des libellés */
+.tech-zoom.hidden *, .tech-zoom[hidden] *{animation-play-state:paused!important}
+.tech-foot{line-height:1.5}
+</style>
+
+<style>
+/* ================= THÈMES ================= */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--eq:#1b2c3f;--eq-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;--focus:#ffffff;
+ --zone:rgba(92,179,230,.045);--zone-stroke:#2c4a63;--zone-text:#8fc4e3;--water:#1d5a86;--water2:#2a78ab;--glow:#ff9b4f;--warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;
+ --m-comb:#b197fc;--m-sol:#f59f00;--m-u:#ffd43b;--m-pu:#f783ac;--m-pf:#ff6b6b;--m-coq:#adb5bd;--m-eff:#4dabf7;--m-gaz:#99e9f2;--m-dt:#d4a373;--m-solv:#69db7c;--m-verre:#63e6be;--m-eau:#74c0fc;--m-air:#ced4da;--m-upu:#ffa94d;--m-emb:#b9a88d;--m-colis:#adb5bd;--m-vtc:#b197fc;--m-tfa:#74c0fc;--m-fmavc:#63e6be;--m-favl:#ffd43b;--m-mavl:#ffa94d;--m-ha:#ff6b6b;--m-beton:#ced4da;--m-argile:#d4a373;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,.node:focus-visible,.eq:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px;min-height:38px}
+.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px}
+.theme-btn svg{width:18px;height:18px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+.nav button{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 12px;font-size:12.5px}
+.nav button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.nav .sep{width:1px;background:var(--border);margin:0 4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 120px)}
+.main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:18px;overflow:auto}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:5px 11px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--mc)}
+.chip.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.stage{border:1px solid var(--border);border-radius:14px;background:radial-gradient(ellipse at 50% 30%,var(--canvas-glow),var(--canvas) 75%);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:22px;height:5px;border-radius:3px;background:var(--mc);display:inline-block}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+.steps .sbtn{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 11px;font-size:12px}
+.steps .sbtn.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:700}
+.steptext{padding:12px 16px 16px;border-top:1px solid var(--border);background:var(--panel)}
+.steptext h3{margin:0 0 6px;font-size:16px}
+.steptext p{margin:0 0 6px}
+.steptext ul{margin:4px 0 0;padding-left:20px}.steptext li{margin:3px 0}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:14px;border-radius:0 8px 8px 0}
+.aside h2{font-size:20px;margin:2px 0 4px}
+.aside h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:16px 0 6px}
+.aside ul{margin:0;padding-left:18px}.aside li{margin:4px 0}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts{display:grid;grid-template-columns:1fr;gap:6px}
+.fact{border:1px solid var(--border);background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:13px}
+.fact b{display:block;font-size:15px}
+.io{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}.io span{color:var(--muted)}
+.openbtn{width:100%;margin-top:14px}
+.footer{padding:10px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.hidden{display:none!important}
+
+/* ================= SVG ================= */
+.ttl{fill:var(--text);font-size:18px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone{fill:var(--zone);stroke:var(--zone-stroke);stroke-dasharray:6 5}
+.zt{fill:var(--zone-text);font-size:11.5px;font-weight:700;letter-spacing:.08em}
+.free{fill:var(--sublabel);font-size:11.5px}
+.node{cursor:pointer;outline:none;transition:opacity .25s}
+.n-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.n-strip{fill:var(--mc)}
+.n-t{fill:var(--label);font-size:15px;font-weight:700;text-anchor:middle;pointer-events:none}
+.n-s{fill:var(--sublabel);font-size:11px;text-anchor:middle;pointer-events:none}
+.n-go{fill:var(--accent);font-size:10.5px;font-weight:700;text-anchor:end;pointer-events:none}
+.node:hover .n-b,.node.sel .n-b{stroke:var(--focus);stroke-width:3}
+.node.dim,.fl.dim{opacity:.16}
+.fl{transition:opacity .25s}
+.fl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f-case{stroke:var(--canvas)}
+.f-base{stroke:var(--mc);opacity:.38}
+.f-dash{stroke:var(--mc);stroke-dasharray:8 10;animation:flow 1.4s linear infinite}
+.fl .f-arr{fill:var(--mc);stroke:none}
+.f-lab{fill:var(--mc);font-size:11px;font-weight:700}
+.m-gaz .f-dash,.m-air .f-dash{stroke-dasharray:2 8}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.m-comb{--mc:var(--m-comb)}.m-sol{--mc:var(--m-sol)}.m-u{--mc:var(--m-u)}.m-pu{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}.m-coq{--mc:var(--m-coq)}
+.m-eff{--mc:var(--m-eff)}.m-gaz{--mc:var(--m-gaz)}.m-dt{--mc:var(--m-dt)}.m-solv{--mc:var(--m-solv)}.m-verre{--mc:var(--m-verre)}.m-eau{--mc:var(--m-eau)}.m-air{--mc:var(--m-air)}.m-emb{--mc:var(--m-emb)}.m-upu{--mc:var(--m-upu)}
+/* Équipements des vues détaillées */
+.eq{cursor:pointer;transition:opacity .3s}
+.eq-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.eq-t{fill:var(--label);font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.eq-s{fill:var(--sublabel);font-size:10.5px;text-anchor:middle;pointer-events:none}
+.eq:hover .eq-b{stroke:var(--focus)}
+.eq.hl .eq-b{stroke:var(--accent);stroke-width:3}
+.dim{opacity:.17}
+.part{transition:opacity .3s}
+.lbl{fill:var(--label);font-size:12px}.lbl-s{fill:var(--sublabel);font-size:10.5px}
+.mid{text-anchor:middle}.end{text-anchor:end}
+.wall{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.thin{fill:none;stroke:var(--eq-stroke);stroke-width:1.4}
+.water{fill:var(--water);opacity:.55}
+.metal{fill:var(--m-coq)}
+/* Animations */
+.spin{animation:spin 10s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin-fast{animation:spin 2.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chop{animation:chop 1.6s ease-in-out infinite}
+@keyframes chop{0%,40%,100%{transform:translateY(0)}55%{transform:translateY(34px)}}
+.feed{animation:feed 3.2s ease-in-out infinite}
+@keyframes feed{0%{transform:translateX(-40px)}50%,100%{transform:translateX(0)}}
+.fall{animation:fall 1.6s linear infinite}
+@keyframes fall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+.rise{animation:rise 3s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+.rise-long{animation:riseL 4s linear infinite}
+@keyframes riseL{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(-240px);opacity:0}}
+.lift{animation:lift 4s ease-in-out infinite}
+@keyframes lift{0%,15%{transform:translateY(40px)}55%,100%{transform:translateY(0)}}
+.press{animation:press 2.8s ease-in-out infinite}
+@keyframes press{0%,30%,100%{transform:translateY(0)}60%{transform:translateY(58px)}}
+.crush{animation:crush 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes crush{0%,30%,100%{transform:scaleY(1)}60%{transform:scaleY(.2)}}
+.fillup{animation:fillup 6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes fillup{0%{transform:scaleY(.05)}80%,100%{transform:scaleY(1)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.drip{animation:drip 1.1s linear infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(40px);opacity:0}}
+.move-r{animation:mover 5s linear infinite}
+.tr-move{animation:trMove 9s ease-in-out infinite}@keyframes trMove{0%,10%{transform:translateX(0)}45%,60%{transform:translateX(230px)}95%,100%{transform:translateX(0)}}
+body.paused .tr-move{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tr-move{animation:none}}
+@keyframes mover{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(860px);opacity:0}}
+body.paused .fl .f-dash,body.paused .spin,body.paused .spin-fast,body.paused .chop,body.paused .feed,body.paused .fall,body.paused .rise,body.paused .rise-long,body.paused .lift,body.paused .press,body.paused .crush,body.paused .fillup,body.paused .glow,body.paused .drip,body.paused .move-r{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.f-dash,.spin,.spin-fast,.chop,.feed,.fall,.rise,.rise-long,.lift,.press,.crush,.fillup,.glow,.drip,.move-r{animation:none!important}}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:560px){.top h1{font-size:17px}.nav{padding:8px}}
+/* ===== Andra : matières et animations ===== */
+.m-colis{--mc:var(--m-colis)}.m-vtc{--mc:var(--m-vtc)}.m-tfa{--mc:var(--m-tfa)}.m-fmavc{--mc:var(--m-fmavc)}.m-favl{--mc:var(--m-favl)}.m-mavl{--mc:var(--m-mavl)}.m-ha{--mc:var(--m-ha)}.m-beton{--mc:var(--m-beton)}.m-argile{--mc:var(--m-argile)}
+.scan{animation:scan 2.4s ease-in-out infinite}@keyframes scan{0%,100%{transform:translateX(0)}50%{transform:translateX(88px)}}
+.crane{animation:crane 7s ease-in-out infinite}@keyframes crane{0%,10%{transform:translate(0,0)}45%,60%{transform:translate(200px,170px)}90%,100%{transform:translate(0,0)}}
+.funi{animation:funi 7s linear infinite}@keyframes funi{0%{transform:translate(450px,120px);opacity:0}8%{opacity:1}90%{opacity:1}100%{transform:translate(640px,370px);opacity:0}}
+.tz-push{animation:tzPush 8s ease-in-out infinite}@keyframes tzPush{0%{transform:translateX(30px);opacity:0}8%{opacity:1}65%,85%{transform:translateX(380px);opacity:1}100%{transform:translateX(380px);opacity:0}}
+.tz-heat{animation:tzHeat 2.4s ease-in-out infinite}@keyframes tzHeat{0%{transform:translateY(0);opacity:0}40%{opacity:.9}100%{transform:translateY(-24px);opacity:0}}
+.tz-hoist{animation:tzHoist 6s ease-in-out infinite}@keyframes tzHoist{0%,15%{transform:translate(-90px,0)}45%{transform:translate(60px,0)}60%,70%{transform:translate(60px,40px)}100%{transform:translate(-90px,0)}}
+.tz-cart{animation:tzCart 7s ease-in-out infinite}@keyframes tzCart{0%,10%{transform:translateX(0)}50%,60%{transform:translateX(250px)}100%{transform:translateX(0)}}
+.tz-esc1{animation:tzE1 6s linear infinite;opacity:0}@keyframes tzE1{0%{transform:translateX(20px);opacity:0}10%{opacity:1}100%{transform:translateX(130px);opacity:0}}
+.tz-esc2{animation:tzE2 6s linear infinite;opacity:0}@keyframes tzE2{0%{transform:translateX(20px);opacity:0}10%{opacity:1}70%{opacity:.5}100%{transform:translateX(175px);opacity:0}}
+body.paused svg *,.dim *,.tech-zoom.hidden *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){svg *{animation:none!important}}
+</style>
+<header class="top">
+ <div><h1>Andra <span>/</span> La gestion des déchets radioactifs</h1><div class="sub">Fin du cycle · synoptique cliquable et vues détaillées des filières et des centres · version 1.0</div></div>
+ <div class="bar" style="margin:0">
+  <button class="btn" id="pauseBtn" type="button">⏸ Animations</button>
+  <button id="themeBtn" class="btn theme-btn" type="button" aria-label="Basculer entre le design clair et le design sombre"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span></button>
+ </div>
+</header>
+<nav class="nav" id="nav" aria-label="Navigation entre les vues"></nav>
+<div id="s7launch"><button data-s7open="dechets">Atelier déchets — décider et agir</button><button data-s7open="recherche">Déchets : solutions et recherches</button></div>
+
+<div class="layout">
+<main class="main">
+ <div class="crumbs" id="crumbs"></div>
+
+ <!-- SYNOPTIQUE GÉNÉRAL -->
+ <section id="synSec">
+  <div class="bar">
+   <div class="grp" id="filters" role="group" aria-label="Filtrer les flux de matière"></div>
+   <div class="grp"><button class="btn" id="tourBtn" type="button">▶ Visite guidée</button></div>
+  </div>
+  <div class="stage"><svg id="syn" viewBox="0 0 1200 700" role="img" aria-label="Synoptique général de la gestion des déchets radioactifs"></svg>
+   <div class="legend" id="synLegend"></div></div>
+ </section>
+
+ <!-- VUE DÉTAILLÉE -->
+ <section id="detSec" class="hidden">
+  <div class="bar">
+   <div class="grp"><button class="btn" id="prevView" type="button">← Vue précédente</button><button class="btn" id="nextView" type="button">Vue suivante →</button></div>
+   <div class="grp"><button class="btn" id="playBtn" type="button">▶ Lecture guidée</button></div>
+  </div>
+  <div class="stage">
+   <svg id="det" viewBox="0 0 1100 520" role="img"></svg>
+   <div class="legend" id="detLegend"></div>
+   <div class="steps" id="steps"></div>
+   <div class="steptext" id="stepText" aria-live="polite"></div>
+  </div>
+  <div class="tech-zoom hidden" id="techZoom"></div>
+ </section>
+</main>
+
+<aside class="aside" id="aside"></aside>
+</div>
+<footer class="footer">Sources : Andra (Inventaire national, Les Essentiels 2026 ; brochure de visite des centres), cigeo.gouv.fr, ASNR (exposition « La radioactivité », dossiers pédagogiques), IGEDD (avis sur l’extension du Cires, 2023), Cour des comptes (2025), World Nuclear News. Schémas fonctionnels non dimensionnés ; chiffres arrondis.</footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+const MAT={colis:'Colis de déchets',vtc:'VTC · vie très courte',tfa:'TFA · très faible activité',fmavc:'FMA-VC · faible et moyenne activité, vie courte',favl:'FA-VL · faible activité, vie longue',mavl:'MA-VL · moyenne activité, vie longue',ha:'HA · haute activité',eau:'Eaux, lixiviats',beton:'Béton, mortier',argile:'Argile',air:'Air de ventilation'};
+function pts(d){const t=d.match(/[MLHV]|-?\d+(?:\.\d+)?/g);const p=[];let c='M',x=0,y=0,i=0;
+ while(i<t.length){const k=t[i];if(/[MLHV]/.test(k)){c=k;i++;continue;}
+  if(c==='M'||c==='L'){x=+t[i];y=+t[i+1];i+=2;}else if(c==='H'){x=+t[i];i++;}else{y=+t[i];i++;}p.push([x,y]);}return p;}
+function F(d,m,s,o={}){const p=pts(d),a=p[p.length-2],b=p[p.length-1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),w=o.w||6,sz=w+6;
+ const tri=`M${b[0]} ${b[1]} L${(b[0]-sz*Math.cos(ang-.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang-.45)).toFixed(1)} L${(b[0]-sz*Math.cos(ang+.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang+.45)).toFixed(1)}Z`;
+ return `<g class="fl m-${m}" data-m="${m}"${s!==''?` data-s="${s}"`:''}${o.n?` data-n="${o.n}"`:''}>${o.noCase?'':`<path class="f-case" d="${d}" stroke-width="${w+5}"/>`}<path class="f-base" d="${d}" stroke-width="${w}"/><path class="f-dash" d="${d}" stroke-width="${Math.max(2,w*.45).toFixed(1)}"/>${o.noArrow?'':`<path class="f-arr" d="${tri}"/>`}${o.lab?`<text class="f-lab" x="${o.lab[0]}" y="${o.lab[1]}"${o.lab[3]?` text-anchor="${o.lab[3]}"`:''}>${o.lab[2]}</text>`:''}</g>`;}
+function B(x,y,w,h,t,sub,s,o={}){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2;
+ const ty=o.top?y+20:(y+h/2-(L.length*13)/2+5);
+ return `<g class="eq" data-s="${s}" tabindex="0" role="button" aria-label="${t}"><rect class="eq-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx??11}"/>${o.inner||''}<text class="eq-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="eq-s" x="${cx}" y="${ty+15+i*13}">${l}</text>`).join('')}</g>`;}
+const PT=(s,inner)=>`<g class="part" data-s="${s}">${inner}</g>`;
+const TX=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+const bubbles=(xs,y,c,cls='rise')=>xs.map((x,i)=>`<circle class="${cls}" cx="${x}" cy="${y}" r="3" fill="${c}" opacity=".8" style="animation-delay:${(i*.55).toFixed(2)}s"/>`).join('');
+const cyl=(x,y,w,h,c,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" fill="var(--eq)" stroke="${c}" stroke-width="2.5"${extra}/><path d="M${x+h*.6} ${y+3} V${y+h-3} M${x+w-h*.6} ${y+3} V${y+h-3}" stroke="var(--eq-stroke)" stroke-width="1.5"/>`;
+const column=(x,y,h,s,label)=>PT(s,`<rect x="${x}" y="${y}" width="50" height="${h}" rx="22" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="${x+4}" y="${y+4}" width="42" height="${h*0.55}" rx="18" fill="var(--m-sol)" opacity=".18"/><rect x="${x+4}" y="${y+h*0.5}" width="42" height="${h*0.48}" rx="18" fill="var(--m-rea)" opacity=".16"/>${Array.from({length:Math.floor((h-40)/22)},(_,i)=>`<path d="M${x+8} ${y+24+i*22}H${x+42}" stroke="var(--eq-stroke)" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('')}${[0,.6,1.2,1.8,2.4,3.0].map((d,i)=>`<circle class="rise-long" cx="${x+12+(i%3)*13}" cy="${y+h-14}" r="3.4" fill="var(--m-sol)" style="animation-delay:${d}s"/>`).join('')}<text class="lbl mid" x="${x+25}" y="${y-8}">${label}</text>`);
+
+
+/* =====================================================================
+   2. FICHES (synoptique)
+   ===================================================================== */
+const PROD_DOES=['Le producteur trie, conditionne et caractérise ses déchets : il en reste responsable.','Il les déclare chaque année pour l’Inventaire national.','Il finance leur gestion, y compris le stockage à long terme (principe « pollueur-payeur »).'];
+const FICHE={
+edf:{t:'EDF',full:'Centrales nucléaires en exploitation et en démantèlement',m:'colis',view:'colis',role:'Les centrales produisent surtout des déchets d’exploitation et de maintenance (FMA-VC), et des déchets TFA lors des chantiers et du démantèlement.',does:['Exemples : gants, tenues, filtres, résines, outils, pièces remplacées.','Les combustibles usés ne sont pas des déchets : ils partent à La Hague.',...PROD_DOES],io:[['Sorties','Colis TFA, FMA-VC ; FA-VL (graphite des réacteurs UNGG)']]},
+orano:{t:'Orano',full:'Usines du cycle du combustible',m:'colis',view:'colis',role:'Le traitement du combustible usé à La Hague produit les déchets les plus radioactifs : produits de fission vitrifiés et coques et embouts compactés.',does:['CSD-V : colis de haute activité (HA).','CSD-C : colis de moyenne activité à vie longue (MA-VL).','Déchets technologiques FMA-VC et TFA des ateliers.',...PROD_DOES],io:[['Sorties','HA, MA-VL entreposés à La Hague ; FMA-VC, TFA vers l’Aube']]},
+cea:{t:'CEA',full:'Recherche nucléaire et démantèlement',m:'colis',view:'colis',role:'Les centres de recherche et le démantèlement d’installations anciennes produisent toutes les catégories de déchets.',does:['Déchets MA-VL anciens, en cours de reprise et de reconditionnement.','Gros volumes de TFA liés à l’assainissement des sites.',...PROD_DOES],io:[['Sorties','Toutes catégories']]},
+defense:{t:'Défense',full:'Propulsion navale et dissuasion',m:'colis',view:'colis',role:'Les activités de défense (sous-marins, porte-avions, armes) produisent aussi des déchets, gérés par les mêmes filières.',does:['Déchets d’exploitation et de démantèlement des chaufferies nucléaires embarquées.',...PROD_DOES],io:[['Sorties','Colis TFA, FMA-VC, MA-VL']]},
+petits:{t:'Petits producteurs',full:'Hôpitaux, laboratoires, industries, universités',m:'vtc',view:'cires',role:'De nombreux utilisateurs de sources radioactives produisent de faibles quantités de déchets. L’Andra assure leur collecte, mission de service public.',does:['Déchets de vie très courte (médecine nucléaire) : simple décroissance sur place.','Autres déchets : collectés par l’Andra, regroupés, triés et entreposés au Cires depuis 2012.','Objets radioactifs anciens chez les particuliers (paratonnerres, montres, fontaines au radium) : collecte gratuite.'],io:[['Sorties','Décroissance sur place ; collecte Andra → Cires']]},
+classement:{t:'Classement',full:'Activité × durée de vie',m:'colis',view:'classif',role:'Chaque déchet est classé selon deux critères : son niveau d’activité et la période de ses radionucléides. La catégorie détermine la filière de gestion.',does:['Activité : très faible, faible, moyenne ou haute.','Durée de vie : vie très courte (période < 100 jours), vie courte (≤ 31 ans), vie longue (> 31 ans).','Six catégories : VTC, TFA, FMA-VC, FA-VL, MA-VL, HA.'],io:[['Entrée','Déchets caractérisés par les producteurs'],['Sorties','Une filière par catégorie']]},
+vtc:{t:'Décroissance sur place',full:'Déchets à vie très courte (VTC)',m:'vtc',view:'classif',role:'Les déchets dont la période est inférieure à 100 jours sont simplement entreposés jusqu’à une décroissance suffisante, vérifiée par les contrôles prescrits.',does:['Principalement issus de la médecine nucléaire (diagnostic, thérapie).','Après contrôle, ils rejoignent une filière de déchets classique.','Ils ne passent pas par les centres de l’Andra.'],io:[['Entrée','Déchets VTC'],['Sortie','Filière conventionnelle après décroissance']]},
+cires:{t:'Cires',full:'Centre industriel de regroupement, d’entreposage et de stockage',m:'tfa',view:'cires',role:'Stocker en surface les déchets de très faible activité, dans des alvéoles creusées dans l’argile, à Morvilliers (Aube). Regrouper et entreposer les déchets des petits producteurs.',does:['Ouvert en 2003 pour les TFA.','Alvéoles d’environ 175 m × 26 m, creusées dans une couche d’argile d’environ 25 m.','Depuis 2012 : regroupement, tri, traitement et entreposage des déchets non électronucléaires.'],io:[['Entrées','Gravats, terres, ferrailles, plastiques TFA ; déchets des petits producteurs'],['Sortie','Stockage définitif en surface']],keys:[['650 000 m³','capacité autorisée'],['69,4 %','taux de remplissage fin 2022'],['≈ 25 000 m³','reçus en moyenne par an']]},
+csa:{t:'CSA',full:'Centre de stockage de l’Aube',m:'fmavc',view:'csa',role:'Stocker en surface les déchets de faible et moyenne activité à vie courte, dans des ouvrages en béton, à Soulaines-Dhuys (Aube).',does:['En service depuis 1992, il a pris le relais du centre de la Manche.','Ouvrages en béton armé de 25 m de côté et 8 m de haut.','Atelier de conditionnement : compactage de fûts et injection de mortier.','Surveillance prévue pendant 300 ans après la fermeture.'],io:[['Entrées','Colis FMA-VC de tous les producteurs'],['Sortie','Stockage définitif en surface']],keys:[['≈ 1 million de m³','capacité'],['36 %','taux de remplissage fin 2021'],['95 ha','surface du site']]},
+csm:{t:'CSM',full:'Centre de stockage de la Manche',m:'fmavc',view:'csm',role:'Premier centre de stockage de déchets radioactifs en France, à Digulleville (La Hague), à côté de l’usine Orano. Il a reçu des déchets de 1969 à 1994.',does:['527 225 m³ de déchets, soit près de 1,5 million de colis.','Recouvert d’une couverture étanche.','En phase de surveillance depuis 2003, pour plusieurs centaines d’années.'],io:[['Entrées','Aucune depuis 1994'],['Sortie','Eaux collectées et contrôlées']]},
+entfavl:{t:'Entreposage FA-VL',full:'Déchets en attente d’une filière',m:'favl',view:'favl',role:'Les déchets de faible activité à vie longue n’ont pas encore de stockage : ils sont entreposés sur les sites de leurs producteurs.',does:['Graphite des anciens réacteurs uranium naturel-graphite-gaz (UNGG).','Déchets radifères (industrie des terres rares, anciennes activités liées au radium).','Certains déchets bitumés anciens.'],io:[['Entrée','Déchets FA-VL des producteurs'],['Sortie','Futur stockage à faible profondeur']]},
+projfavl:{t:'Projet FA-VL',full:'Stockage à faible profondeur',m:'favl',view:'favl',role:'Un stockage à faible profondeur est étudié dans une couche argileuse de l’Aube, près de Soulaines.',does:['Il ne serait pas opérationnel avant le milieu des années 2040 (Cour des comptes, 2025).','Il ne pourrait accueillir qu’une partie des déchets FA-VL, notamment les radifères.','D’autres solutions restent à définir pour le graphite.'],io:[['Entrée','Déchets FA-VL'],['Sortie','Stockage définitif (projet)']]},
+entha:{t:'Entreposage HA · MA-VL',full:'Chez les producteurs, en attendant Cigéo',m:'mavl',view:'cigeo',role:'Les colis HA et MA-VL sont entreposés dans des installations surveillées sur leurs sites de production.',does:['La Hague : puits ventilés pour les CSD-V, entreposage des CSD-C.','Marcoule, Cadarache et d’autres sites du CEA.','L’entreposage est une solution provisoire : elle exige une surveillance et un renouvellement des installations.'],io:[['Entrée','Colis HA et MA-VL'],['Sortie','Cigéo, après sa mise en service']]},
+cigeo:{t:'Cigéo',full:'Centre industriel de stockage géologique',m:'ha',view:'cigeo',role:'Stocker les déchets HA et MA-VL à environ 500 m de profondeur, dans une couche d’argile, à la limite de la Meuse et de la Haute-Marne.',does:['Installation souterraine d’environ 15 km² et descenderie de 4,2 km.','Réversibilité pendant au moins 100 ans.','Phase industrielle pilote de 15 à 25 ans, exploitation jusque vers 2150.'],io:[['Entrées','Colis HA et MA-VL, par train'],['Sortie','Stockage définitif, puis fermeture']],keys:[['≈ 83 000 m³','volume de colis prévu'],['500 m','profondeur'],['> 140 m','épaisseur de la couche d’argile']]},
+labo:{t:'Laboratoire souterrain',full:'Centre de Meuse/Haute-Marne, à Bure',m:'argile',view:'labo',role:'Étudier sur place la couche d’argile qui accueillerait Cigéo et tester les techniques de construction et de stockage.',does:['Galeries à 490 m de profondeur, deux puits d’accès.','Mesures, essais de creusement, de chauffage et de scellement.','Le laboratoire ne reçoit aucun déchet radioactif.'],io:[['Entrée','Programmes de recherche'],['Sortie','Données pour la conception et la sûreté de Cigéo']]},
+inventaire:{t:'Inventaire national',full:'Matières et déchets radioactifs',m:'colis',view:'classif',role:'L’Andra recense toutes les matières et tous les déchets radioactifs présents en France et publie l’Inventaire national.',does:['Les producteurs déclarent leurs stocks chaque année.','Des prévisions sont faites selon plusieurs scénarios de politique énergétique.','Fin 2024 : environ 1,89 million de m³ de déchets.'],io:[['Entrées','Déclarations des producteurs'],['Sortie','Inventaire public']]},
+agrement:{t:'Agrément des colis',full:'Acceptation et contrôle',m:'colis',view:'colis',role:'L’Andra fixe des spécifications d’acceptation et agrée chaque famille de colis avant de l’accepter dans ses centres.',does:['Vérification du dossier du producteur.','Contrôles à réception et contrôles par prélèvement de colis.','Refus ou renvoi d’un colis non conforme.'],io:[['Entrée','Colis des producteurs'],['Sortie','Colis acceptés']]},
+surv:{t:'Surveillance',full:'Environnement et sûreté des centres',m:'eau',view:'surv',role:'Mesurer en continu l’impact des centres sur l’environnement : eaux, air, sols, végétaux, faune.',does:['Plusieurs milliers d’analyses par an autour des centres.','Résultats transmis aux autorités et publiés.','Contrôle par l’ASNR.'],io:[['Entrées','Prélèvements'],['Sortie','Rapports publics']]},
+memoire:{t:'Mémoire',full:'Transmettre aux générations futures',m:'colis',view:'surv',role:'Conserver et transmettre l’information sur les centres de stockage pendant des siècles.',does:['Archives sur papier permanent, conservées en plusieurs exemplaires.','Servitudes inscrites au cadastre.','Actions avec le public et le territoire pour garder la mémoire des sites.'],io:[['Entrée','Dossiers des centres'],['Sortie','Mémoire détaillée et synthétique']]},
+pngmdr:{t:'Cadre national',full:'Loi, PNGMDR, contrôle',m:'colis',view:'surv',role:'La gestion des déchets radioactifs est encadrée par la loi, le Plan national de gestion des matières et déchets radioactifs (PNGMDR) et le contrôle de l’ASNR.',does:['L’Andra est un établissement public indépendant des producteurs.','Les producteurs financent la gestion de leurs déchets.','Le PNGMDR fixe les actions à mener pour chaque catégorie.'],io:[['Acteurs','État, ASNR, Andra, producteurs, public']]}
+};
+
+/* =====================================================================
+   3. SYNOPTIQUE GÉNÉRAL
+   ===================================================================== */
+const LANES=[['vtc',130,'VTC','vie très courte'],['tfa',218,'TFA','≈ 38 % du volume'],['fmavc',306,'FMA-VC','≈ 53 % du volume'],['favl',394,'FA-VL','≈ 7 % du volume'],['ha',482,'MA-VL · HA','≈ 2 % du volume|≈ 99,9 % de la radioactivité']];
+const SYN_NODES=[
+ ['edf',30,110,170,64,'EDF','centrales'],['orano',30,190,170,64,'Orano','La Hague · Melox'],['cea',30,270,170,64,'CEA','recherche · démantèlement'],['defense',30,350,170,64,'Défense','propulsion navale'],['petits',30,430,170,64,'Petits producteurs','hôpitaux · labos · industrie'],
+ ['classement',240,110,160,384,'Classement','activité × durée de vie'],
+ ['vtc',640,100,200,60,'Décroissance','sur place'],
+ ['cires',640,188,200,60,'Cires','Morvilliers (Aube)'],
+ ['csa',640,276,200,60,'CSA','Soulaines (Aube)'],['csm',880,276,200,60,'CSM','Manche · surveillé'],
+ ['entfavl',640,364,200,60,'Entreposage FA-VL','chez les producteurs'],['projfavl',880,364,200,60,'Projet FA-VL','faible profondeur'],
+ ['entha',640,452,200,60,'Entreposage','La Hague · Marcoule…'],['cigeo',880,452,200,60,'Cigéo','500 m · Meuse/Haute-Marne'],
+ ['labo',1095,452,95,60,'Labo','Bure'],
+ ['inventaire',30,595,200,70,'Inventaire national','matières et déchets'],['agrement',250,595,200,70,'Agrément des colis','spécifications · contrôles'],['surv',470,595,200,70,'Surveillance','environnement'],['memoire',690,595,200,70,'Mémoire','archives · transmission'],['pngmdr',910,595,270,70,'Cadre national','loi · PNGMDR · ASNR']
+];
+const SYN_FLOWS=[
+ ...[142,222,302,382,462].map((y,i)=>[`M200 ${y} H240`,'colis',['edf','orano','cea','defense','petits'][i]+' classement']),
+ ['M400 130 H640','vtc','classement vtc'],['M400 218 H640','tfa','classement cires'],['M400 306 H640','fmavc','classement csa'],['M400 394 H640','favl','classement entfavl'],['M400 482 H640','ha','classement entha'],
+ ['M840 394 H880','favl','entfavl projfavl'],['M840 482 H880','ha','entha cigeo']
+];
+function N(id,x,y,w,h,t,s){const f=FICHE[id];
+ return `<g class="node" data-node="${id}" tabindex="0" role="button" aria-label="${t} — ${s}"><rect class="n-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><rect class="n-strip m-${f.m}" x="${x}" y="${y+10}" width="5" height="${h-20}" rx="2.5"/><text class="n-t" x="${x+w/2}" y="${y+h/2-2}"${w<110?' style="font-size:13px"':''}>${t}</text><text class="n-s" x="${x+w/2}" y="${y+h/2+15}">${s}</text></g>`;}
+function buildSyn(){
+ let s=`<text class="ttl" x="30" y="38">La gestion des déchets radioactifs</text><text class="subt" x="30" y="60">Cliquez sur un acteur ou un centre pour afficher sa fiche, puis ouvrez sa vue détaillée.</text><text class="subt" x="30" y="78">Une catégorie de déchets = une filière de gestion. Schéma fonctionnel, non géographique.</text>`;
+ s+=`<rect class="zone" x="15" y="90" width="200" height="420" rx="14"/><text class="zt" x="27" y="104">PRODUCTEURS</text>`;
+ s+=`<rect class="zone" x="625" y="90" width="565" height="440" rx="14"/><text class="zt" x="860" y="104">FILIÈRES ET CENTRES DE L’ANDRA</text>`;
+ s+=`<rect class="zone" x="15" y="560" width="1175" height="125" rx="14"/><text class="zt" x="27" y="580">FONCTIONS TRANSVERSES</text>`;
+ s+=SYN_FLOWS.map(([d,m,n])=>F(d,m,'',{n})).join('');
+ s+=LANES.map(([m,y,t,sub])=>`<text class="f-lab m-${m}" x="420" y="${y-10}" style="font-size:12.5px">${t}</text>${sub.split('|').map((l,i)=>`<text class="free" x="420" y="${y+20+i*13}" style="font-size:10.5px">${l}</text>`).join('')}`).join('');
+ s+=`<text class="free" x="880" y="262">fermé en 1994</text><path d="M1080 482 H1095" stroke="var(--eq-stroke)" stroke-dasharray="3 4" stroke-width="2"/>`;
+ s+=SYN_NODES.map(a=>N(...a)).join('');
+ $('syn').innerHTML=s;
+ const used=['colis','vtc','tfa','fmavc','favl','ha'];
+ $('synLegend').innerHTML=used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('')+`<span class="m-mavl"><i></i>${MAT.mavl}</span>`;
+ $('filters').innerHTML=`<button class="chip active" data-f="all" type="button">Tous les flux</button>`+['vtc','tfa','fmavc','favl','ha'].map(m=>`<button class="chip m-${m}" data-f="${m}" type="button"><i></i>${m==='ha'?'MA-VL · HA':MAT[m].split(' · ')[0]}</button>`).join('');
+}
+
+/* =====================================================================
+   4. VUES DÉTAILLÉES
+   ===================================================================== */
+const drum=(x,y,c='var(--m-colis)',w=22,h=30)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="3" fill="${c}" opacity=".9"/><path d="M${x} ${y+h*.33} H${x+w} M${x} ${y+h*.66} H${x+w}" stroke="var(--canvas)" stroke-width="1.5"/>`;
+const crate=(x,y,c='var(--m-beton)',w=30,h=30)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="${c}" opacity=".85" stroke="var(--eq-stroke)"/>`;
+const DCAT=[['TFA','tfa',35.9,0.0004],['FMA-VC','fmavc',55.7,0.12],['FA-VL','favl',5.9,0.01],['MA-VL','mavl',2.3,2.67],['HA','ha',0.2,97.2]];
+const VIEWS={
+/* ---------- Classement ---------- */
+classif:{t:'Classement des déchets radioactifs',sub:'Deux critères : l’activité et la durée de vie · volumes Andra, fin 2024',fiche:'classement',
+ intro:'Un déchet radioactif est une substance radioactive pour laquelle aucune utilisation n’est prévue. On le classe selon son niveau d’activité et la période de ses radionucléides : chaque catégorie a sa filière de gestion.',
+ steps:[
+ {t:'Deux critères',d:'<ul><li><b>Le niveau d’activité</b>, en becquerels par gramme (Bq/g) : il détermine les protections nécessaires.</li><li><b>La durée de vie</b>, donnée par la période radioactive des principaux radionucléides : elle détermine pendant combien de temps il faut isoler le déchet.</li></ul><p class="note">Au bout de 10 périodes, l’activité est divisée par environ 1 000.</p>'},
+ {t:'VTC : vie très courte',d:'<p>Période <b>inférieure à 100 jours</b>, surtout en médecine nucléaire. Les déchets sont entreposés sur place pendant leur décroissance, puis contrôlés avant toute orientation autorisée vers une filière conventionnelle.</p>'},
+ {t:'TFA : très faible activité',d:'<p>Moins de <b>100 Bq/g</b>. Ce sont surtout des gravats, terres et ferrailles issus du démantèlement et de l’assainissement. Ils sont stockés en surface au <b>Cires</b>, dans l’Aube.</p>'},
+ {t:'FMA-VC : faible et moyenne activité à vie courte',d:'<p>Période <b>inférieure ou égale à 31 ans</b>. Déchets d’exploitation et de maintenance : gants, tenues, filtres, résines, outils. Stockés en surface au <b>CSA</b> (Aube) depuis 1992, au <b>CSM</b> (Manche) de 1969 à 1994.</p><p class="note">Après 300 ans, soit environ 10 périodes de 30 ans, leur activité a fortement décru.</p>'},
+ {t:'FA-VL : faible activité à vie longue',d:'<p>Graphite des anciens réacteurs UNGG, déchets radifères. Faiblement actifs mais longtemps : ils ne peuvent pas aller en surface. Un <b>stockage à faible profondeur</b> est à l’étude.</p>'},
+ {t:'MA-VL et HA',d:'<ul><li><b>MA-VL</b> : coques et embouts compactés (CSD-C), boues, déchets technologiques, environ 1 million à 1 milliard de Bq/g.</li><li><b>HA</b> : produits de fission vitrifiés (CSD-V), plusieurs milliards de Bq/g, qui dégagent de la chaleur.</li></ul><p>Destination prévue : le stockage géologique profond <b>Cigéo</b>. En attendant, ils sont entreposés chez les producteurs.</p>'},
+ {t:'Volume et radioactivité',d:'<p>Les deux barres à droite le montrent : <b>TFA et FMA-VC</b> représentent plus de <b>90 % du volume</b> mais presque rien de la radioactivité ; <b>HA</b> ne représente que <b>0,25 % du volume</b> mais environ <b>97 % de la radioactivité</b>.</p><p class="note">Fin 2024, la France comptait environ 1,89 million de m³ de déchets radioactifs (Andra, Les Essentiels 2026).</p>'}],
+ svg:()=>{let s='';
+  const X0=170,Y0=80,CW=150,RH=78;
+  s+=TX(X0+CW*1.5,40,'Durée de vie (période des radionucléides) →','lbl','mid');
+  [['Vie très courte','période < 100 jours'],['Vie courte','période ≤ 31 ans'],['Vie longue','période > 31 ans']].forEach(([a,b],i)=>s+=`<text class="lbl mid" x="${X0+CW*i+CW/2}" y="62" style="font-weight:700">${a}</text><text class="lbl-s mid" x="${X0+CW*i+CW/2}" y="76">${b}</text>`);
+  [['Très faible','< 100 Bq/g'],['Faible','centaines de Bq/g'],['Moyenne','10⁶ à 10⁹ Bq/g'],['Haute','> 10⁹ Bq/g']].forEach(([a,b],i)=>s+=`<text class="lbl end" x="${X0-10}" y="${Y0+i*RH+RH/2-2}" style="font-weight:700">${a}</text><text class="lbl-s end" x="${X0-10}" y="${Y0+i*RH+RH/2+13}">${b}</text>`);
+  s+=`<text class="lbl mid" x="30" y="${Y0+2*RH}" transform="rotate(-90 30 ${Y0+2*RH})">← Activité</text>`;
+  const cell=(c0,r0,cw,rh,m,t,sub,st)=>PT(st,`<rect x="${X0+c0*CW+3}" y="${Y0+r0*RH+3}" width="${cw*CW-6}" height="${rh*RH-6}" rx="10" fill="var(--m-${m})" opacity=".2" stroke="var(--m-${m})" stroke-width="2"/><text class="eq-t" x="${X0+c0*CW+cw*CW/2}" y="${Y0+r0*RH+rh*RH/2-3}" style="fill:var(--m-${m})">${t}</text><text class="eq-s" x="${X0+c0*CW+cw*CW/2}" y="${Y0+r0*RH+rh*RH/2+14}">${sub}</text>`);
+  s+=cell(0,0,1,4,'vtc','VTC','décroissance sur place','2');
+  s+=cell(1,0,2,1,'tfa','TFA','Cires (Aube)','3');
+  s+=cell(1,1,1,2,'fmavc','FMA-VC','CSA (Aube) · CSM (Manche)','4');
+  s+=cell(2,1,1,1,'favl','FA-VL','stockage à l’étude','5');
+  s+=cell(2,2,1,1,'mavl','MA-VL','Cigéo (projet)','6');
+  s+=cell(1,3,2,1,'ha','HA','Cigéo (projet)','6');
+  s+=PT('1',`<rect x="${X0}" y="${Y0}" width="${3*CW}" height="${4*RH}" rx="10" fill="none" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 5"/>`);
+  // barres volume / radioactivité
+  const BX=[720,900],BY=80,BHt=380;
+  ['Volume','Radioactivité'].forEach((t,k)=>{let y=BY;s+=`<text class="lbl mid" x="${BX[k]+45}" y="${BY-14}" style="font-weight:700">${t}</text>`;
+   DCAT.forEach(([n,m,v,a])=>{const val=k?a:v,h=val/100*BHt;if(h>0.4)s+=PT('7',`<rect x="${BX[k]}" y="${y.toFixed(1)}" width="90" height="${h.toFixed(1)}" fill="var(--m-${m})"/>`);if(h>16)s+=`<text class="lbl-s mid" x="${BX[k]+45}" y="${(y+h/2+4).toFixed(1)}" style="fill:var(--canvas);font-weight:700">${n} ${String(val).replace('.',',')} %</text>`;y+=h;});
+   s+=`<rect x="${BX[k]}" y="${BY}" width="90" height="${BHt}" fill="none" stroke="var(--eq-stroke)"/>`;});
+  s+=PT('7',`<text class="lbl-s" x="815" y="470">HA : faible part du volume</text><text class="lbl-s" x="815" y="484">mais ≈ 97 % de la radioactivité</text><text class="lbl-s mid" x="855" y="505">Andra, répartition : édition 2023</text>`);
+  s+=B(20,420,620,80,'Inventaire national',['≈ 1,89 million de m³ de déchets radioactifs','Les volumes évoluent avec la production et les opérations de gestion'],'1 7',{top:true});
+  return s;}},
+
+/* ---------- Colis ---------- */
+colis:{t:'Conditionnement, agrément et transport des colis',sub:'Le producteur conditionne, l’Andra fixe les règles et contrôle',fiche:'agrement',
+ intro:'Avant d’être stocké, un déchet est conditionné en colis : il est immobilisé dans une matrice et placé dans un conteneur. Le colis est la première barrière entre le déchet et l’environnement.',
+ steps:[
+ {t:'Tri et réduction du volume',d:'<p>Le producteur <b>trie</b> ses déchets par catégorie, puis réduit leur volume : <b>compactage</b>, découpe, fusion des métaux ou incinération pour certains déchets (installations spécialisées).</p>'},
+ {t:'Immobilisation dans une matrice',d:'<ul><li><b>Ciment ou mortier</b> : déchets technologiques, boues, concentrats.</li><li><b>Bitume</b> : boues de traitement d’effluents (procédé ancien).</li><li><b>Verre</b> : produits de fission (CSD-V).</li></ul><p class="note">La matrice empêche la dispersion des radionucléides.</p>'},
+ {t:'Les familles de colis',d:'<p>Fûts métalliques, caissons et coques en béton, conteneurs en acier inoxydable (CSD-V, CSD-C), grands sacs (« big bags ») et casiers pour les TFA. Chaque famille a ses spécifications.</p>'},
+ {t:'Agrément par l’Andra',d:'<p>L’Andra fixe des <b>spécifications d’acceptation</b> pour chaque centre (activité, radionucléides, résistance, absence de liquides…). Chaque famille de colis doit être <b>agréée</b> avant les premières livraisons.</p>'},
+ {t:'Contrôles',d:'<p>À réception : vérification du dossier, contrôle de la <b>non-contamination</b> et du <b>débit de dose</b>. Des colis sont aussi prélevés pour des <b>contrôles approfondis</b> (mesures, radiographie, expertise). Un colis non conforme peut être refusé.</p>'},
+ {t:'Transport',d:'<p>Les colis voyagent par <b>route</b> ou par <b>rail</b>, dans le respect de la réglementation du transport des matières radioactives. Cigéo serait desservi principalement par le train.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,40,170,120,'Producteur',['déchets bruts','tri par catégorie'],'1',{top:true,inner:[0,1,2].map(i=>`<path d="M${50+i*40} 140 l12 -18 l12 18z" fill="var(--m-colis)" opacity=".7"/>`).join('')});
+  s+=F('M190 100 H230','colis','1 2',{w:6});
+  s+=B(230,40,170,120,'Compactage',['réduction du volume'],'1',{top:true,inner:`<g class="press"><rect x="290" y="70" width="50" height="14" rx="2" fill="var(--m-coq)"/></g><rect x="295" y="120" width="40" height="30" rx="2" fill="var(--m-colis)" opacity=".8"/>`});
+  s+=F('M400 100 H440','colis','2',{w:6});
+  s+=B(440,40,190,120,'Immobilisation',['ciment · bitume · verre'],'2',{top:true,inner:`<rect x="490" y="95" width="90" height="55" rx="6" fill="var(--m-beton)" opacity=".35" stroke="var(--eq-stroke)"/><g class="spin"><path d="M535 105 V140 M520 122 H550" stroke="var(--eq-stroke)" stroke-width="3"/></g>`});
+  s+=F('M535 160 V200','colis','2 3',{w:6});
+  // familles
+  s+=PT('3',`<rect x="20" y="200" width="1060" height="130" rx="12" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="220">FAMILLES DE COLIS</text>
+   ${drum(60,245)}${drum(88,245)}<text class="lbl-s mid" x="85" y="300">fût métallique</text><text class="lbl-s mid" x="85" y="314">FMA-VC</text>
+   ${crate(190,240,'var(--m-beton)',50,44)}<text class="lbl-s mid" x="215" y="300">caisson béton</text><text class="lbl-s mid" x="215" y="314">FMA-VC</text>
+   <path d="M320 240 h50 l-4 44 h-42z" fill="var(--m-tfa)" opacity=".7"/><text class="lbl-s mid" x="345" y="300">big bag · casier</text><text class="lbl-s mid" x="345" y="314">TFA</text>
+   <rect x="455" y="238" width="40" height="48" rx="20" fill="var(--m-beton)" stroke="var(--eq-stroke)"/><text class="lbl-s mid" x="475" y="300">coque béton</text><text class="lbl-s mid" x="475" y="314">FMA-VC · MA-VL</text>
+   <rect x="590" y="232" width="26" height="56" rx="3" fill="var(--m-mavl)"/><text class="lbl-s mid" x="603" y="300">CSD-C</text><text class="lbl-s mid" x="603" y="314">MA-VL</text>
+   <rect x="700" y="232" width="26" height="56" rx="3" fill="var(--m-ha)"/><rect class="glow" x="696" y="228" width="34" height="64" rx="5" fill="none" stroke="var(--glow)" stroke-width="2"/><text class="lbl-s mid" x="713" y="300">CSD-V</text><text class="lbl-s mid" x="713" y="314">HA, verre</text>
+   <rect x="810" y="250" width="40" height="36" rx="4" fill="var(--m-favl)" opacity=".8"/><text class="lbl-s mid" x="830" y="300">conteneurs divers</text><text class="lbl-s mid" x="830" y="314">FA-VL (en attente)</text>
+   <text class="lbl-s" x="905" y="252">même diamètre pour</text><text class="lbl-s" x="905" y="266">CSD-V et CSD-C :</text><text class="lbl-s" x="905" y="280">« conteneur universel »</text>`);
+  s+=B(660,40,200,120,'Agrément Andra',['spécifications d’acceptation','par centre et par famille'],'4',{top:true,inner:`<rect x="725" y="100" width="70" height="50" rx="4" fill="var(--panel2)" stroke="var(--eq-stroke)"/><path d="M738 125 l10 10 l22 -22" fill="none" stroke="var(--m-fmavc)" stroke-width="4"/>`});
+  s+=F('M630 100 H660','colis','4',{w:4});
+  s+=B(880,40,200,120,'Contrôles',['dossier · débit de dose','contamination · expertises'],'5',{top:true,inner:`<rect x="930" y="105" width="100" height="44" rx="6" fill="var(--panel2)" stroke="var(--eq-stroke)"/><rect class="scan" x="934" y="108" width="4" height="38" fill="var(--accent)"/>`});
+  s+=F('M860 100 H880','colis','4 5',{w:4});
+  s+=PT('6',`<path d="M20 470 H1080" stroke="var(--eq-stroke)" stroke-width="3"/><g class="tr-move"><rect x="60" y="410" width="180" height="40" rx="5" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>${drum(75,416,'var(--m-colis)',20,28)}${drum(100,416,'var(--m-colis)',20,28)}${crate(130,416,'var(--m-beton)',30,28)}${crate(165,416,'var(--m-beton)',30,28)}<rect x="240" y="418" width="44" height="32" rx="5" fill="var(--eq-stroke)"/>${[85,135,215,265].map(x=>`<circle cx="${x}" cy="458" r="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')}</g><text class="lbl" x="520" y="400">Transport par route ou par rail vers les centres de l’Andra</text>`);
+  return s;}},
+
+/* ---------- Cires ---------- */
+cires:{t:'Cires — stockage des déchets TFA et regroupement',sub:'Morvilliers (Aube) · centre industriel de regroupement, d’entreposage et de stockage, ouvert en 2003',fiche:'cires',
+ intro:'Les déchets de très faible activité sont stockés en surface, dans de longues alvéoles creusées dans une couche d’argile. Le Cires regroupe aussi les déchets des petits producteurs.',
+ steps:[
+ {t:'Réception et contrôle',d:'<p>Les déchets arrivent en <b>grands sacs</b>, casiers ou caissons. Ils sont contrôlés (radioactivité, conformité), puis éventuellement <b>compactés</b> (déchets de faible densité) ou <b>solidifiés</b>.</p>'},
+ {t:'L’alvéole dans l’argile',d:'<p>Chaque alvéole mesure environ <b>175 m de long et 26 m de large</b>, sur plusieurs mètres de profondeur. Elle est creusée dans une couche d’argile d’environ <b>25 m d’épaisseur</b>, la barrière naturelle. Le fond reçoit une <b>géomembrane</b>, une couche drainante et un puits de collecte des eaux.</p>'},
+ {t:'Remplissage sous toit mobile',d:'<p>Les colis sont rangés en couches, les vides comblés par du sable. Un <b>toit mobile</b> en forme de tunnel protège l’alvéole de la pluie pendant l’exploitation ; il avance au fur et à mesure.</p>'},
+ {t:'Couverture',d:'<p>L’alvéole pleine est fermée par une géomembrane, puis recouverte d’une <b>couverture définitive</b> : couche drainante, argile, remblai de protection et au moins 30 cm de terre végétale engazonnée.</p>'},
+ {t:'Regroupement des petits producteurs',d:'<p>Depuis 2012, les déchets non électronucléaires (hôpitaux, laboratoires, universités, objets radioactifs anciens) sont <b>regroupés, triés, traités</b> et <b>entreposés</b> au Cires, dans des bâtiments dédiés, en attendant leur filière.</p>'},
+ {t:'Capacité',d:'<p>Capacité autorisée : <b>650 000 m³</b>, remplie à <b>69,4 %</b> fin 2022, avec environ 25 000 m³ reçus par an. L’extension Acaci doit porter la capacité à environ <b>950 000 m³</b> sur la même emprise.</p><p class="note">Les volumes de TFA vont fortement augmenter avec le démantèlement : le recyclage de métaux très faiblement radioactifs est aussi étudié.</p>'}],
+ svg:()=>{let s='';
+  s+=`<rect x="20" y="230" width="1060" height="270" fill="var(--m-argile)" opacity=".2"/><text class="lbl-s" x="30" y="490">couche d’argile ≈ 25 m</text><path d="M20 230 H1080" stroke="var(--eq-stroke)" stroke-width="2"/>`;
+  s+=B(20,40,200,110,'Réception',['contrôles · compactage','solidification'],'1',{top:true,inner:`${drum(70,100)}${drum(96,100)}<path d="M130 132 h40 l-4 -30 h-32z" fill="var(--m-tfa)" opacity=".7"/>`});
+  s+=F('M220 95 H300 V190','tfa','1 3',{w:6});
+  // alvéole en exploitation
+  s+=PT('2 3',`<path d="M250 230 L280 330 H600 L630 230" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M282 326 H598" stroke="var(--m-eau)" stroke-width="5" opacity=".7"/><path d="M276 318 L254 236 M604 318 L626 236" stroke="var(--accent)" stroke-width="3"/><text class="lbl-s" x="460" y="350">géomembrane · couche drainante</text>`);
+  s+=PT('3',`${Array.from({length:3},(_,r)=>Array.from({length:8-r},(_,i)=>`<path d="M${300+i*36+r*18} ${318-r*28} h32 l-3 -26 h-26z" fill="var(--m-tfa)" opacity="${.55+r*.12}"/>`).join('')).join('')}<g class="lift"><path d="M560 230 h32 l-3 -26 h-26z" fill="var(--m-tfa)"/></g><path d="M240 230 Q440 90 640 230" fill="var(--eq)" fill-opacity=".35" stroke="var(--eq-stroke)" stroke-width="3"/><text class="lbl mid" x="440" y="150">toit mobile</text>`);
+  s+=PT('2',`<rect x="640" y="250" width="12" height="90" fill="var(--m-eau)" opacity=".6"/><text class="lbl-s" x="658" y="300">puits de collecte</text><text class="lbl-s" x="658" y="313">des eaux</text>`);
+  s+=F('M610 328 H646','eau','2',{w:3,noCase:true});
+  // alvéole fermée
+  s+=PT('4',`<path d="M760 230 L780 300 H1040 L1060 230 Z" fill="var(--m-tfa)" opacity=".45"/><path d="M750 230 Q910 170 1070 230" fill="var(--m-argile)" opacity=".6"/><path d="M750 230 Q910 178 1070 230" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M752 226 Q910 160 1068 226" fill="none" stroke="var(--m-fmavc)" stroke-width="5" opacity=".8"/><text class="lbl-s mid" x="910" y="268">alvéole pleine</text>`);
+  s+=B(780,40,300,90,'Couverture définitive',['géomembrane · drainage · argile','remblai · terre végétale ≥ 30 cm'],'4',{top:true});
+  s+=B(340,40,320,70,'Regroupement · tri · entreposage',['déchets des petits producteurs (depuis 2012)'],'5');
+  s+=B(20,380,220,80,'Capacité autorisée',['950 000 m³ autorisés','extension → ≈ 950 000 m³'],'6');
+  s+=PT('2',`<path d="M700 246 V480" stroke="var(--label)"/><path d="M694 252 L700 246 L706 252 M694 474 L700 480 L706 474" fill="none" stroke="var(--label)"/><text class="lbl-s" x="708" y="440">≈ 25 m d’argile</text>`);
+  s+=PT('2',`<text class="lbl-s" x="330" y="222">≈ 175 m × 26 m</text>`);
+  return s;}},
+
+/* ---------- CSA ---------- */
+csa:{t:'CSA — Centre de stockage de l’Aube',sub:'Soulaines-Dhuys · déchets FMA-VC en surface depuis 1992',fiche:'csa',
+ intro:'Les déchets de faible et moyenne activité à vie courte sont stockés en surface, dans des ouvrages en béton armé. Après environ 300 ans, leur radioactivité aura fortement décru.',
+ steps:[
+ {t:'Réception et contrôle',d:'<p>Les colis arrivent par camion, ou par train jusqu’à une gare proche. Ils sont contrôlés : <b>débit de dose</b>, <b>non-contamination</b>, conformité au dossier d’agrément.</p>'},
+ {t:'Atelier de conditionnement',d:'<p>Certains déchets sont conditionnés sur place : les fûts sont <b>compactés</b> par une presse de forte puissance, puis les galettes obtenues sont placées dans un conteneur métallique où l’on <b>injecte du mortier</b>.</p>'},
+ {t:'Mise en ouvrage',d:'<p>Un pont roulant place les colis dans l’<b>ouvrage</b>, une case en béton armé de <b>25 m de côté et 8 m de haut</b>. Les colis métalliques sont bloqués par du <b>béton</b> ; les colis en béton sont entourés de <b>gravillons</b>.</p>'},
+ {t:'Fermeture de l’ouvrage',d:'<p>Une fois plein, l’ouvrage est fermé par une <b>dalle de béton</b>, puis rendu étanche. L’ouvrage devient un monolithe.</p>'},
+ {t:'Drainage et contrôle des eaux',d:'<p>Sous les ouvrages, un <b>réseau de drainage gravitaire</b> recueille les eaux qui pourraient s’infiltrer. Elles sont collectées et analysées.</p>'},
+ {t:'Couverture et surveillance',d:'<p>À la fin de l’exploitation, les ouvrages seront recouverts d’une <b>couverture argileuse</b>. Le centre sera ensuite <b>surveillé pendant 300 ans</b>.</p><p class="note">Capacité : environ 1 million de m³, remplie à 36 % fin 2021.</p>'}],
+ svg:()=>{let s='';
+  s+=`<path d="M20 430 H1080" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="20" y="430" width="1060" height="70" fill="var(--m-argile)" opacity=".18"/>`;
+  s+=B(20,40,180,110,'Réception',['camion · contrôles'],'1',{top:true,inner:`${drum(60,100)}${crate(90,100)}${drum(128,100)}`});
+  s+=F('M200 95 H240','fmavc','1 2',{w:6});
+  s+=B(240,40,220,140,'Atelier de conditionnement',['compactage · injection de mortier'],'2',{top:true,inner:`<g class="press"><rect x="280" y="92" width="40" height="12" rx="2" fill="var(--m-coq)"/></g><rect x="282" y="130" width="36" height="34" fill="var(--m-colis)" opacity=".8"/><rect x="360" y="105" width="70" height="60" rx="4" fill="var(--m-beton)" opacity=".3" stroke="var(--eq-stroke)"/><rect class="fillup" x="364" y="120" width="62" height="42" fill="var(--m-beton)" opacity=".6"/>`});
+  s+=F('M460 110 H520','fmavc','2 3',{w:6});
+  // ouvrage en remplissage
+  s+=PT('3',`<path d="M520 70 H860" stroke="var(--eq-stroke)" stroke-width="5"/><g class="crane"><rect x="560" y="64" width="40" height="12" fill="var(--eq-stroke)"/><path d="M580 76 V180" stroke="var(--eq-stroke)" stroke-width="2"/>${drum(569,180)}</g><text class="lbl-s" x="870" y="74">pont roulant</text>`);
+  s+=PT('3 4',`<rect x="530" y="230" width="320" height="200" fill="none" stroke="var(--eq-stroke)" stroke-width="6"/>${Array.from({length:4},(_,r)=>Array.from({length:9},(_,i)=>r<3||i<5?drum(545+i*33,392-r*40,'var(--m-colis)',24,34):'').join('')).join('')}<rect x="533" y="${232+80}" width="314" height="116" fill="var(--m-coq)" opacity=".18"/><text class="lbl mid" x="690" y="222">ouvrage en béton armé · 25 m × 25 m × 8 m</text>`);
+  s+=PT('4',`<rect x="900" y="230" width="170" height="200" fill="var(--m-beton)" opacity=".4" stroke="var(--eq-stroke)" stroke-width="6"/><rect x="895" y="218" width="180" height="14" fill="var(--m-beton)" stroke="var(--eq-stroke)"/><text class="lbl mid" x="985" y="210">ouvrage fermé (dalle)</text><text class="lbl-s mid" x="985" y="335">monolithe</text>`);
+  s+=PT('5',`<path d="M530 452 H1070" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="8 8"/><text class="lbl-s" x="540" y="474">réseau de drainage gravitaire sous les ouvrages</text>${[600,700,800].map((x,i)=>`<circle class="drip" cx="${x}" cy="436" r="3" fill="var(--m-eau)" style="animation-delay:${i*.35}s"/>`).join('')}`);
+  s+=F('M1070 452 V480 H1092','eau','5',{w:3,noCase:true});
+  s+=B(20,230,460,180,'Après l’exploitation',['couverture argileuse sur les ouvrages','surveillance pendant 300 ans','capacité ≈ 1 million de m³ · 36 % fin 2021'],'6',{top:true,inner:`<path d="M60 380 Q250 300 440 380 Z" fill="var(--m-argile)" opacity=".55"/><path d="M60 380 Q250 290 440 380" fill="none" stroke="var(--m-fmavc)" stroke-width="5"/><rect x="120" y="355" width="60" height="25" fill="var(--m-beton)" opacity=".6"/><rect x="200" y="350" width="60" height="30" fill="var(--m-beton)" opacity=".6"/><rect x="280" y="355" width="60" height="25" fill="var(--m-beton)" opacity=".6"/>`});
+  return s;}},
+
+/* ---------- CSM ---------- */
+csm:{t:'CSM — Centre de stockage de la Manche',sub:'Digulleville (La Hague) · exploité de 1969 à 1994 · en surveillance depuis 2003',fiche:'csm',
+ intro:'Premier centre de stockage de déchets radioactifs en France, voisin de l’usine Orano. Il ne reçoit plus de déchets : l’Andra le surveille et prépare la transmission de sa mémoire.',
+ steps:[
+ {t:'Un centre pionnier',d:'<p>De <b>1969 à 1994</b>, le centre a reçu <b>527 225 m³</b> de déchets de faible et moyenne activité, soit près de <b>1,5 million de colis</b>. Les techniques ont évolué pendant ces 25 ans ; l’expérience acquise a servi à concevoir le CSA.</p>'},
+ {t:'Les ouvrages',d:'<p>Les colis sont empilés en <b>tumulus</b> sur des plateformes ou dans des ouvrages en béton, puis les tumulus sont recouverts. L’ensemble forme une colline artificielle.</p>'},
+ {t:'La couverture',d:'<p>Après la fin des livraisons, le centre a été recouvert d’une <b>couverture étanche multicouche</b> (matériaux drainants, couche imperméable, terre végétale), pour empêcher l’eau de pluie d’atteindre les déchets.</p>'},
+ {t:'Collecte et contrôle des eaux',d:'<p>Un réseau de drainage recueille séparément les eaux de la couverture et les eaux qui ont pu traverser les ouvrages. Elles sont <b>contrôlées</b> avant rejet.</p>'},
+ {t:'Surveillance et mémoire',d:'<p>Depuis <b>2003</b>, le centre est en <b>phase de surveillance</b> pour plusieurs centaines d’années : prélèvements dans les eaux souterraines, les rivières et l’environnement, suivi de la couverture. Les archives du centre sont conservées pour les générations futures.</p>'}],
+ svg:()=>{let s='';
+  s+=`<path d="M20 400 H1080" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="20" y="400" width="1060" height="100" fill="var(--m-argile)" opacity=".15"/><text class="lbl-s" x="30" y="490">sous-sol schisteux et granitique de La Hague</text>`;
+  s+=PT('2',`${Array.from({length:4},(_,r)=>Array.from({length:14-2*r},(_,i)=>`<rect x="${230+i*44+r*44}" y="${360-r*36}" width="38" height="32" rx="2" fill="${r%2?'var(--m-beton)':'var(--m-colis)'}" opacity=".75"/>`).join('')).join('')}<rect x="220" y="392" width="640" height="8" fill="var(--m-beton)"/><text class="lbl mid" x="540" y="414">plateforme et ouvrages en béton</text>`);
+  s+=PT('3',`<path d="M170 400 Q540 30 910 400" fill="none" stroke="var(--m-fmavc)" stroke-width="10" opacity=".75"/><path d="M160 400 Q540 10 920 400" fill="none" stroke="var(--m-argile)" stroke-width="14" opacity=".6"/><path d="M150 400 Q540 -8 930 400" fill="none" stroke="var(--m-solv)" stroke-width="6" opacity=".8"/><text class="lbl mid" x="540" y="168">couverture étanche multicouche</text><text class="lbl-s mid" x="540" y="184">terre végétale · couche imperméable · drainage</text>`);
+  s+=PT('3',`${[300,420,540,660,780].map((x,i)=>`<path class="drip" d="M${x} 60 v14" stroke="var(--m-eau)" stroke-width="2" style="animation-delay:${i*.3}s"/>`).join('')}<text class="lbl-s mid" x="540" y="54">pluie</text>`);
+  s+=F('M150 400 V440 H60','eau','4',{w:4,lab:[70,432,'eaux de couverture']});
+  s+=F('M540 404 V460 H1000','eau','4',{w:4,lab:[700,452,'eaux du réseau sous les ouvrages']});
+  s+=B(1000,430,80,50,'Contrôle','','4 5');
+  s+=B(20,40,260,90,'1969 – 1994',['527 225 m³ · ≈ 1,5 million de colis','≈ une douzaine d’hectares'],'1',{top:true});
+  s+=B(820,40,260,110,'Surveillance depuis 2003',['eaux souterraines · rivières','couverture · environnement','pour plusieurs centaines d’années'],'5',{top:true});
+  s+=PT('5',`${[960,1000,1040].map((x,i)=>`<rect x="${x}" y="300" width="10" height="100" fill="var(--eq)" stroke="var(--eq-stroke)"/><circle class="rise" cx="${x+5}" cy="390" r="3" fill="var(--m-eau)" style="animation-delay:${i*.5}s"/>`).join('')}<text class="lbl-s mid" x="1005" y="292">piézomètres</text>`);
+  return s;}},
+
+/* ---------- FA-VL ---------- */
+favl:{t:'FA-VL — des déchets en attente de solution',sub:'Graphite, radifères, bitumes anciens · entreposés chez les producteurs',fiche:'projfavl',
+ intro:'Les déchets FA-VL sont peu radioactifs, mais pendant très longtemps : on ne peut pas les stocker en surface comme les TFA ou les FMA-VC. Aucune solution de stockage n’est encore opérationnelle.',
+ steps:[
+ {t:'Le graphite',d:'<p>Les réacteurs de la première génération française, <b>uranium naturel-graphite-gaz (UNGG)</b>, utilisaient de grands empilements de graphite comme modérateur. Leur démantèlement produira des dizaines de milliers de tonnes de graphite contenant notamment du carbone 14 et du chlore 36, à vie longue.</p>'},
+ {t:'Les déchets radifères',d:'<p>Ils contiennent du <b>radium</b> et du thorium : résidus de l’industrie des terres rares, d’anciennes activités utilisant le radium, assainissement de sites pollués.</p>'},
+ {t:'Entreposage chez les producteurs',d:'<p>En attendant, ces déchets sont <b>entreposés</b> sur les sites du CEA, d’EDF, d’Orano et d’industriels. Fin 2024, l’Andra en recensait environ <b>125 000 m³</b>.</p>'},
+ {t:'Le projet de stockage à faible profondeur',d:'<p>L’Andra étudie un stockage à <b>faible profondeur</b> dans une couche argileuse de l’Aube, près de Soulaines. Selon la Cour des comptes (2025), il ne serait pas opérationnel avant le <b>milieu des années 2040</b> et ne pourrait recevoir qu’une partie des déchets FA-VL.</p>'},
+ {t:'Un enjeu national',d:'<p>Le PNGMDR demande de définir des solutions pour chaque famille de déchets FA-VL. La Cour des comptes a souligné en 2025 l’urgence de trouver des sites et des modes de gestion adaptés.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,40,260,170,'Graphite UNGG',['carbone 14 · chlore 36'],'1',{top:true,inner:`${Array.from({length:4},(_,r)=>Array.from({length:6},(_,i)=>`<rect x="${60+i*30}" y="${90+r*26}" width="26" height="22" rx="2" fill="var(--eq-stroke)" opacity=".7"/><circle cx="${73+i*30}" cy="${101+r*26}" r="4" fill="var(--canvas)"/>`).join('')).join('')}`});
+  s+=B(300,40,240,170,'Déchets radifères',['radium · thorium'],'2',{top:true,inner:`${drum(340,110,'var(--m-favl)')}${drum(368,110,'var(--m-favl)')}${drum(396,110,'var(--m-favl)')}${drum(424,110,'var(--m-favl)')}${drum(452,110,'var(--m-favl)')}<text class="lbl-s mid" x="420" y="168">terres rares · sites pollués</text>`});
+  s+=F('M150 210 V260 H580','favl','1 3',{w:6});s+=F('M420 210 V260','favl','2 3',{w:6,noArrow:true});
+  s+=B(580,220,240,90,'Entreposage',['sur les sites des producteurs','≈ 125 000 m³ fin 2024'],'3',{top:true});
+  s+=F('M820 265 H860 V330','favl','4',{w:6});
+  s+=PT('4',`<rect x="560" y="360" width="520" height="140" fill="var(--m-argile)" opacity=".3"/><path d="M560 360 H1080" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="760" y="330" width="200" height="90" rx="6" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="2"/>${[0,1,2,3].map(i=>drum(775+i*45,385,'var(--m-favl)')).join('')}<path d="M760 340 H960" stroke="var(--m-argile)" stroke-width="12" opacity=".6"/><text class="lbl" x="575" y="385">couche argileuse</text><text class="lbl mid" x="860" y="450">stockage à faible profondeur (projet)</text><text class="lbl-s mid" x="860" y="468">projet soumis à autorisation</text>`);
+  s+=B(20,330,500,110,'Un enjeu national',['aucune solution de stockage opérationnelle aujourd’hui','le projet ne recevrait qu’une partie des déchets','PNGMDR : définir une solution par famille de déchets'],'5',{top:true});
+  return s;}},
+
+/* ---------- Cigéo ---------- */
+cigeo:{t:'Cigéo — stockage géologique profond',sub:'Meuse / Haute-Marne · déchets HA et MA-VL à environ 500 m de profondeur',fiche:'cigeo',
+ intro:'Les déchets les plus radioactifs et à vie longue seraient stockés dans une couche d’argile très peu perméable et stable depuis des millions d’années. La sûreté à long terme ne doit plus dépendre de l’homme après la fermeture.',
+ steps:[
+ {t:'Arrivée des colis',d:'<p>Les colis HA et MA-VL, aujourd’hui entreposés à La Hague, Marcoule ou Cadarache, arriveraient <b>principalement par train</b> dans la <b>zone descenderie</b> (environ 296 ha en surface).</p>'},
+ {t:'Préparation en surface',d:'<p>Dans le bâtiment nucléaire de surface, les colis sont <b>contrôlés</b> puis placés dans des <b>conteneurs de stockage</b> adaptés à leur alvéole.</p>'},
+ {t:'Descente par la descenderie',d:'<p>Un <b>funiculaire</b> automatique descend les colis par une <b>descenderie de 4,2 km</b> en pente de 12 %, jusqu’à l’installation souterraine. Cinq <b>puits</b> verticaux, dans la zone puits, servent au personnel, aux matériaux et à la ventilation.</p>'},
+ {t:'Alvéoles MA-VL',d:'<p>Galeries horizontales d’environ <b>500 m de long</b> et une <b>dizaine de mètres de diamètre</b>, où les colis sont empilés par des engins télécommandés.</p>'},
+ {t:'Alvéoles HA',d:'<p>Micro-tunnels d’environ <b>80 cm de diamètre</b> et une centaine de mètres de long, chemisés d’acier. Les colis HA dégagent de la chaleur : ils sont espacés pour que l’argile ne chauffe pas trop.</p>'},
+ {t:'Réversibilité et phase pilote',d:'<p>Le stockage doit rester <b>réversible pendant au moins 100 ans</b> : on doit pouvoir récupérer des colis et adapter le projet. Il commence par une <b>phase industrielle pilote</b> de 15 à 25 ans.</p><p class="note">Demande d’autorisation de création déposée en janvier 2023, avis de l’ASNR fin 2025, enquête publique en 2026.</p>'},
+ {t:'Fermeture et barrières',d:'<p>À la fin de l’exploitation, vers 2150, les alvéoles, galeries, puits et descenderies seront <b>scellés</b>. La sûreté repose alors sur plusieurs barrières : le colis, l’alvéole et surtout la <b>couche d’argile</b> de plus de 140 m, qui retient les radionucléides pendant des centaines de milliers d’années.</p>'}],
+ svg:()=>{let s='';
+  // géologie
+  s+=`<rect x="20" y="130" width="1060" height="170" fill="var(--m-dt)" opacity=".12"/><rect x="20" y="300" width="1060" height="150" fill="var(--m-argile)" opacity=".32"/><rect x="20" y="450" width="1060" height="50" fill="var(--m-dt)" opacity=".12"/><path d="M20 130 H1080" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl-s" x="30" y="150">calcaires et marnes</text><text class="lbl" x="30" y="322">argile (argilite) > 140 m</text><text class="lbl-s" x="30" y="470">calcaires</text>`;
+  s+=PT('3',`<path d="M1050 130 V370" stroke="var(--label)"/><path d="M1044 136 L1050 130 L1056 136 M1044 364 L1050 370 L1056 364" fill="none" stroke="var(--label)"/><text class="lbl end" x="1042" y="250">≈ 500 m</text>`);
+  // surface
+  s+=PT('1',`<path d="M20 118 H330" stroke="var(--eq-stroke)" stroke-width="3"/><path d="M20 118 H330" stroke="var(--label)" stroke-dasharray="10 8" opacity=".5"/><g class="tr-move"><rect x="30" y="98" width="70" height="16" rx="3" fill="var(--eq)" stroke="var(--m-ha)" stroke-width="2"/><rect x="104" y="98" width="70" height="16" rx="3" fill="var(--eq)" stroke="var(--m-mavl)" stroke-width="2"/></g><text class="lbl-s" x="30" y="90">train de colis</text>`);
+  s+=B(340,40,220,80,'Zone descenderie',['réception · contrôle','mise en conteneur de stockage'],'1 2',{top:true});
+  s+=B(700,40,200,80,'Zone puits',['5 puits · creusement','ventilation · personnel'],'3',{top:true});
+  // descenderie
+  s+=PT('3',`<path d="M450 120 L640 370" stroke="var(--eq-stroke)" stroke-width="12" opacity=".7"/><g class="funi"><rect x="-10" y="-6" width="20" height="12" rx="2" fill="var(--m-ha)" transform="rotate(53)"/></g><text class="lbl" x="575" y="218" transform="rotate(53 575 218)">descenderie 4,2 km · 12 %</text>`);
+  s+=PT('3',`${[740,780,820,860].map(x=>`<rect x="${x}" y="120" width="10" height="250" fill="var(--eq-stroke)" opacity=".7"/>`).join('')}`);
+  // galeries
+  s+=`<path d="M380 370 H900" stroke="var(--eq-stroke)" stroke-width="10" opacity=".7"/>`;
+  s+=PT('4',`${[0,1,2].map(i=>`<rect x="${110+i*90}" y="${340}" width="70" height="56" rx="26" fill="var(--canvas)" stroke="var(--m-mavl)" stroke-width="2.5"/>${[0,1].map(r=>[0,1,2].map(c=>`<rect x="${120+i*90+c*17}" y="${350+r*20}" width="14" height="16" rx="2" fill="var(--m-mavl)" opacity=".85"/>`).join('')).join('')}`).join('')}<path d="M180 370 H380" stroke="var(--eq-stroke)" stroke-width="6" opacity=".7"/><text class="lbl mid" x="240" y="416">alvéoles MA-VL</text><text class="lbl-s mid" x="240" y="430">≈ 500 m de long · ≈ 10 m de diamètre</text>`);
+  s+=PT('5',`${[0,1,2,3,4,5,6].map(i=>`<rect x="${680+i*46}" y="378" width="12" height="60" rx="5" fill="var(--canvas)" stroke="var(--m-ha)" stroke-width="2"/><rect class="glow" x="${682+i*46}" y="${392}" width="8" height="40" rx="3" fill="var(--m-ha)" style="animation-delay:${i*.2}s"/>`).join('')}<text class="lbl mid" x="830" y="460">alvéoles HA (micro-tunnels)</text><text class="lbl-s mid" x="830" y="474">≈ 80 cm de diamètre · ≈ 100 m de long</text>`);
+  s+=B(20,466,300,40,'Réversibilité ≥ 100 ans',[],'6',{rx:8});
+  s+=B(930,40,150,80,'Calendrier',['DAC 2023','phase pilote','fermeture ≈ 2150'],'6 7',{top:true});
+  s+=PT('7',`<path d="M610 300 H1080" stroke="var(--m-fmavc)" stroke-width="3" stroke-dasharray="4 4"/><text class="lbl-s" x="905" y="294">scellements (après fermeture)</text>`);
+  return s;}},
+
+/* ---------- Laboratoire ---------- */
+labo:{t:'Laboratoire souterrain de Meuse/Haute-Marne',sub:'Bure · galeries à 490 m dans la couche d’argile · aucun déchet radioactif',fiche:'labo',
+ intro:'Avant de construire Cigéo, il faut connaître parfaitement la roche qui l’accueillerait. Le laboratoire souterrain de l’Andra permet de l’étudier directement à 490 m de profondeur.',
+ steps:[
+ {t:'Accès',d:'<p>Deux puits de <b>5 et 6 m de diamètre</b> descendent jusqu’à <b>490 m</b>. Les galeries creusées dans l’argile représentaient environ 1,7 km en 2019.</p>'},
+ {t:'Connaître l’argile',d:'<p>Des centaines de capteurs mesurent les propriétés de la roche : <b>perméabilité</b> très faible, diffusion très lente des éléments, pression de l’eau, déformation. L’argile se serait déposée il y a environ 160 millions d’années.</p>'},
+ {t:'Tester le creusement',d:'<p>On teste les méthodes de creusement et de soutènement, et l’on observe comment la roche se fissure et se referme autour des galeries.</p>'},
+ {t:'Chauffer et sceller',d:'<p>Des essais <b>chauffent</b> la roche pour simuler la chaleur des colis HA. D’autres testent les <b>scellements</b> en argile gonflante qui fermeraient Cigéo, et des prototypes d’alvéoles HA.</p>'},
+ {t:'Pourquoi l’argile ?',d:'<ul><li>Elle est <b>très peu perméable</b> : l’eau n’y circule presque pas.</li><li>Elle <b>retient</b> de nombreux radionucléides à sa surface.</li><li>La région est <b>géologiquement stable</b>, sans ressource exploitable particulière.</li></ul>'}],
+ svg:()=>{let s='';
+  s+=`<rect x="20" y="120" width="1060" height="170" fill="var(--m-dt)" opacity=".12"/><rect x="20" y="290" width="1060" height="170" fill="var(--m-argile)" opacity=".32"/><path d="M20 120 H1080" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl-s" x="30" y="140">calcaires</text><text class="lbl" x="30" y="310">argile du Callovo-Oxfordien</text>`;
+  s+=PT('1',`<rect x="300" y="60" width="16" height="360" fill="var(--eq-stroke)" opacity=".8"/><rect x="380" y="60" width="18" height="360" fill="var(--eq-stroke)" opacity=".8"/><path d="M290 60 L308 20 L326 60 M370 60 L389 20 L408 60" fill="none" stroke="var(--eq-stroke)" stroke-width="3"/><text class="lbl-s mid" x="350" y="14">2 puits · 5 et 6 m</text><path d="M240 120 V420" stroke="var(--label)"/><text class="lbl end" x="234" y="270">490 m</text>`);
+  s+=`<path d="M300 420 H1000 M600 420 V380 H900 M700 420 V460 H1000" stroke="var(--eq-stroke)" stroke-width="10" opacity=".7" fill="none"/>`;
+  s+=PT('2',`${[480,520,560].map((x,i)=>`<circle cx="${x}" cy="420" r="5" fill="var(--accent)"/><path d="M${x} 420 V${370-i*10}" stroke="var(--accent)" stroke-width="1.5" stroke-dasharray="3 3"/>`).join('')}<text class="lbl-s" x="450" y="350">capteurs</text>`);
+  s+=PT('3',`<path d="M920 380 H1000" stroke="var(--m-coq)" stroke-width="16" opacity=".5"/><text class="lbl-s mid" x="960" y="365">front de creusement</text>`);
+  s+=PT('4',`<rect class="glow" x="760" y="452" width="160" height="12" rx="6" fill="var(--glow)" opacity=".6"/><text class="lbl-s mid" x="840" y="486">essai de chauffage · prototype d’alvéole HA</text><rect x="610" y="378" width="30" height="16" fill="var(--m-fmavc)" opacity=".7"/><text class="lbl-s" x="612" y="370">scellement</text>`);
+  s+=B(700,40,380,60,'Aucun déchet radioactif dans le laboratoire',[],'1 2 3 4 5',{rx:8});
+  s+=B(20,40,200,60,'Pourquoi l’argile ?',['peu perméable · stable'],'5');
+  return s;}},
+
+/* ---------- Surveillance ---------- */
+surv:{t:'Surveillance, mémoire et cadre national',sub:'Des fonctions qui s’étendent sur des siècles',fiche:'surv',
+ intro:'Gérer des déchets radioactifs, c’est aussi surveiller les centres, rendre compte au public et transmettre l’information aux générations futures.',
+ steps:[
+ {t:'Surveiller l’environnement',d:'<p>Autour de chaque centre, l’Andra prélève et analyse régulièrement l’<b>eau</b> (nappes, rivières), l’<b>air</b>, les <b>sols</b>, les <b>végétaux</b> et certains produits agricoles. Les résultats sont publiés.</p>'},
+ {t:'Le contrôle',d:'<p>L’<b>ASNR</b> contrôle la sûreté et la radioprotection des centres de l’Andra et rend des avis sur ses projets. Des commissions locales d’information (CLI) associent élus, associations et riverains.</p>'},
+ {t:'La mémoire',d:'<p>Les dossiers des centres sont conservés sur <b>papier permanent</b>, en plusieurs exemplaires. Une mémoire de synthèse est prévue pour transmettre l’essentiel. L’objectif : qu’on sache encore dans plusieurs siècles ce qui est stocké et où.</p>'},
+ {t:'Le cadre national',d:'<p>La loi organise la gestion des déchets radioactifs. Le <b>Plan national de gestion des matières et déchets radioactifs (PNGMDR)</b> fixe les actions par catégorie. L’Andra, établissement public, est indépendante des producteurs.</p>'},
+ {t:'Le financement',d:'<p>Les producteurs paient la gestion de leurs déchets, y compris le stockage futur : c’est le principe <b>pollueur-payeur</b>. Ils doivent constituer des provisions pour leurs charges de long terme.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,40,330,200,'Surveillance de l’environnement',['eau · air · sols · végétaux'],'1',{top:true,inner:`<path d="M40 210 H330" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M60 210 Q100 150 140 210" fill="var(--m-fmavc)" opacity=".4"/><rect x="190" y="150" width="10" height="60" fill="var(--eq)" stroke="var(--eq-stroke)"/>${[0,1,2].map(i=>`<circle class="rise" cx="195" cy="200" r="3" fill="var(--m-eau)" style="animation-delay:${i*.6}s"/>`).join('')}<rect x="225" y="170" width="100" height="40" rx="4" fill="var(--panel2)" stroke="var(--eq-stroke)"/><rect class="scan" x="229" y="174" width="4" height="32" fill="var(--accent)"/>`});
+  s+=B(385,40,330,200,'Contrôle et information',['ASNR · commissions locales (CLI)'],'2',{top:true,inner:`<circle cx="470" cy="170" r="26" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M458 170 l9 9 l17 -19" fill="none" stroke="var(--accent)" stroke-width="3"/>${[0,1,2].map(i=>`<circle cx="${570+i*30}" cy="160" r="9" fill="var(--eq-stroke)"/><rect x="${561+i*30}" y="172" width="18" height="22" rx="6" fill="var(--eq-stroke)"/>`).join('')}`});
+  s+=B(750,40,330,200,'Mémoire',['papier permanent · plusieurs siècles'],'3',{top:true,inner:`${[0,1,2,3,4].map(i=>`<rect x="${800+i*46}" y="140" width="36" height="70" rx="3" fill="var(--m-favl)" opacity="${.4+i*.1}" stroke="var(--eq-stroke)"/>`).join('')}`});
+  s+=B(20,280,510,200,'Cadre national',['loi · PNGMDR · ASNR · Andra établissement public'],'4',{top:true,inner:`${['Loi','PNGMDR','ASNR','Andra'].map((t,i)=>`<rect x="${50+i*118}" y="350" width="100" height="44" rx="8" fill="var(--panel2)" stroke="var(--eq-stroke)"/><text class="lbl mid" x="${100+i*118}" y="377">${t}</text>`).join('')}`});
+  s+=B(570,280,510,200,'Financement',['pollueur-payeur','provisions des producteurs'],'5',{top:true,inner:`<path d="M690 400 H960" stroke="var(--m-favl)" stroke-width="6"/><circle cx="700" cy="400" r="22" fill="var(--m-favl)" opacity=".8"/><text class="lbl mid" x="700" y="405" style="font-weight:700">€</text><text class="lbl-s mid" x="700" y="440">producteurs</text><rect x="930" y="378" width="70" height="44" rx="8" fill="var(--panel2)" stroke="var(--eq-stroke)"/><text class="lbl mid" x="965" y="405">Andra</text>`});
+  return s;}}
+};
+const VIEW_ORDER=['classif','colis','cires','csa','csm','favl','cigeo','labo','surv'];
+const NAV_LABEL={classif:'Classement',colis:'Colis',cires:'Cires · TFA',csa:'CSA · FMA-VC',csm:'CSM · Manche',favl:'FA-VL',cigeo:'Cigéo',labo:'Laboratoire',surv:'Surveillance · mémoire'};
+
+/* =====================================================================
+   5. FICHE DANS LE PANNEAU LATÉRAL
+   ===================================================================== */
+function renderFiche(id,inDetail){const f=FICHE[id];if(!f)return;
+ $('aside').innerHTML=`<div class="kicker">Fiche</div><h2>${f.t}</h2><p style="margin:0 0 8px;color:var(--muted)">${f.full}</p><p>${f.role}</p>
+ <h3>Ce qui s’y passe</h3><ul>${f.does.map(d=>`<li>${d}</li>`).join('')}</ul>
+ ${f.keys?`<h3>Repères chiffrés</h3><div class="facts">${f.keys.map(([a,b])=>`<div class="fact"><b>${a}</b>${b}</div>`).join('')}</div>`:''}
+ ${f.io?`<h3>Entrées et sorties</h3><div class="io">${f.io.map(([a,b])=>`<span>${a}</span><div>${b}</div>`).join('')}</div>`:''}
+ ${!inDetail&&f.view?`<button class="btn primary openbtn" type="button" id="openView">Ouvrir la vue détaillée →</button>`:''}
+ <div class="warning">Schémas de principe. Chiffres arrondis d’après l’Andra, l’ASNR, l’IGEDD et la Cour des comptes (2019-2026).</div>`;
+ const b=$('openView');if(b)b.onclick=()=>openView(f.view);}
+function asideHome(){$('aside').innerHTML=`<div class="kicker">Mode d’emploi</div><h2>Synoptique général</h2><p>Le schéma suit les déchets radioactifs de leurs producteurs jusqu’à leur centre de stockage, catégorie par catégorie.</p><ul><li><b>Cliquez sur un acteur ou un centre</b> pour afficher sa fiche et ses flux.</li><li><b>Filtrez une catégorie</b> (TFA, FMA-VC…) pour suivre sa filière.</li><li><b>Ouvrez la vue détaillée</b> pour une lecture guidée étape par étape.</li><li>La <b>visite guidée</b> enchaîne automatiquement toutes les étapes.</li></ul><h3>Volume et activité</h3><p>Les déchets HA représentent une faible part du volume et concentrent une grande part de la radioactivité. La filière dépend aussi de leur durée de vie et de leur conditionnement.</p><div class="warning">Schémas fonctionnels non géographiques. Autres parcours : <a href="amont.html">cycle amont</a> · <a href="lahague.html">La Hague (aval)</a>.</div>`;}
+
+/* =====================================================================
+   6. NAVIGATION
+   ===================================================================== */
+let cur='syn',step=0,playTimer=null,tourTimer=null,selNode=null,filter='all';
+function buildNav(){$('nav').innerHTML=`<button type="button" data-go="syn">Synoptique général</button><span class="sep"></span>`+VIEW_ORDER.map(v=>`<button type="button" data-go="${v}">${NAV_LABEL[v]}</button>`).join('');
+ $('nav').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='syn'?showSyn():openView(b.dataset.go));}
+function markNav(){$('nav').querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===cur));}
+function crumbs(){$('crumbs').innerHTML=cur==='syn'?'<span>Synoptique général</span>':`<a id="toSyn">Synoptique général</a><span>›</span><span>${NAV_LABEL[cur]}</span>`;const a=$('toSyn');if(a)a.onclick=showSyn;}
+function showSyn(){stopTour();stopPlay();cur='syn';$('synSec').classList.remove('hidden');$('detSec').classList.add('hidden');markNav();crumbs();if(selNode)renderFiche(selNode);else asideHome();window.scrollTo({top:0,behavior:'smooth'});}
+function openView(v){stopTour();stopPlay();cur=v;const V=VIEWS[v];step=0;
+ $('synSec').classList.add('hidden');$('detSec').classList.remove('hidden');
+ $('det').setAttribute('aria-label',V.t);
+ $('det').innerHTML=V.svg();
+ $('det').setAttribute('viewBox','0 0 1100 520');
+ const used=[...new Set([...$('det').querySelectorAll('.fl')].map(g=>g.dataset.m))];
+ $('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>&nbsp;·&nbsp;`+used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('');
+ $('steps').innerHTML=`<button class="sbtn" type="button" data-step="0">Vue d’ensemble</button>`+V.steps.map((st,i)=>`<button class="sbtn" type="button" data-step="${i+1}">${i+1} · ${st.t}</button>`).join('');
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>{stopPlay();setStep(+b.dataset.step);});
+ $('det').querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+ const i=VIEW_ORDER.indexOf(v);$('prevView').disabled=i<=0;$('nextView').disabled=i>=VIEW_ORDER.length-1;
+ markNav();crumbs();renderFiche(V.fiche,true);setStep(0);renderTechZoom();window.scrollTo({top:0,behavior:'smooth'});}
+function setStep(n){const V=VIEWS[cur];step=n;
+ $('det').querySelectorAll('[data-s]').forEach(e=>{const on=n===0||e.dataset.s.split(' ').includes(String(n));e.classList.toggle('dim',!on);if(e.classList.contains('eq'))e.classList.toggle('hl',n>0&&on);});
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===n));
+ if(cur==='r1'){const z=$('techZoom');if(z)z.dataset.currentStep=String(n);}
+ $('stepText').innerHTML=n===0?`<h3>${V.t}</h3><p>${V.intro}</p><p class="note">${V.sub}. Choisissez une étape ou lancez la lecture guidée ; cliquez sur un équipement pour afficher l’étape correspondante.</p>`:`<h3>Étape ${n} / ${V.steps.length} — ${V.steps[n-1].t}</h3>${V.steps[n-1].d}`;}
+$('prevView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i>0)openView(VIEW_ORDER[i-1]);};
+$('nextView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i<VIEW_ORDER.length-1)openView(VIEW_ORDER[i+1]);};
+function stopPlay(){if(playTimer){clearInterval(playTimer);playTimer=null;}$('playBtn').textContent='▶ Lecture guidée';}
+$('playBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(playTimer){stopPlay();return;}const V=VIEWS[cur];$('playBtn').textContent='⏸ Arrêter la lecture';setStep(step>=V.steps.length?1:step+1);
+ playTimer=setInterval(()=>{if(step>=VIEWS[cur].steps.length){stopPlay();return;}setStep(step+1);},9000);};
+
+/* Synoptique : sélection, filtre, visite guidée */
+function applySyn(){const syn=$('syn');
+ syn.querySelectorAll('.node').forEach(n=>{const id=n.dataset.node;let on=true;
+  if(selNode)on=id===selNode||[...syn.querySelectorAll('.fl')].some(f=>(f.dataset.n||'').split(' ').includes(selNode)&&(f.dataset.n||'').split(' ').includes(id));
+  if(filter!=='all')on=on&&[...syn.querySelectorAll(`.fl[data-m="${filter}"]`)].some(f=>(f.dataset.n||'').split(' ').includes(id));
+  n.classList.toggle('dim',!on);n.classList.toggle('sel',id===selNode);});
+ syn.querySelectorAll('.fl').forEach(f=>{const ns=(f.dataset.n||'').split(' ');let on=true;if(selNode)on=ns.includes(selNode);if(filter!=='all')on=on&&f.dataset.m===filter;f.classList.toggle('dim',!on);});}
+function selectNode(id){selNode=selNode===id&&!tourTimer?null:id;applySyn();if(selNode)renderFiche(selNode);else asideHome();}
+function stopTour(){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}$('tourBtn').textContent='▶ Visite guidée';}
+const TOUR=['edf','orano','cea','defense','petits','classement','vtc','cires','csa','csm','entfavl','projfavl','entha','cigeo','labo','inventaire','agrement','surv','memoire','pngmdr'];
+$('tourBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(tourTimer){stopTour();return;}filter='all';markFilters();let i=0;$('tourBtn').textContent='⏸ Arrêter la visite';selNode=null;selectNode(TOUR[0]);
+ tourTimer=setInterval(()=>{i++;if(i>=TOUR.length){stopTour();selNode=null;applySyn();asideHome();return;}selNode=null;selectNode(TOUR[i]);},7000);};
+function markFilters(){$('filters').querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===filter));}
+
+/* =====================================================================
+   7. THÈME ET ANIMATIONS
+   ===================================================================== */
+const root=document.documentElement;
+const SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t,set=true){if(set){root.dataset.theme=t;try{localStorage.setItem('andra-theme',t)}catch(e){}}const d=t==='dark';$('themeIcon').innerHTML=d?SUN:MOON;$('themeTxt').textContent=d?'Thème clair':'Thème sombre';$('themeBtn').setAttribute('aria-pressed',String(!d));}
+const curTheme=()=>root.dataset.theme||((()=>{try{return matchMedia('(prefers-color-scheme: light)').matches}catch(e){return false}})()?'light':'dark');
+try{const saved=localStorage.getItem('andra-theme');if(saved==='light'||saved==='dark')root.dataset.theme=saved;}catch(e){}
+setTheme(curTheme(),false);
+$('themeBtn').onclick=()=>setTheme(curTheme()==='dark'?'light':'dark');
+function setPaused(p){if(p){stopPlay();stopTour();}document.body.classList.toggle('paused',p);$('pauseBtn').textContent=p?'▶ Animations':'⏸ Animations';$('pauseBtn').classList.toggle('active',p);}
+$('pauseBtn').onclick=()=>setPaused(!document.body.classList.contains('paused'));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+
+/* =====================================================================
+   GROS PLANS TECHNIQUES (Cigéo)
+   ===================================================================== */
+let techMode={cigeo:'ha'};
+function haTechSVG(){
+ const placed=[0,1,2,3].map(i=>{const x=860-i*120;return `<g><rect x="${x}" y="232" width="100" height="56" rx="6" fill="var(--eq)" stroke="var(--m-ha)" stroke-width="2.5"/><rect class="glow" x="${x+10}" y="242" width="80" height="36" rx="4" fill="var(--m-ha)" opacity=".7" style="animation-delay:${i*.3}s"/></g>`;}).join('');
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="Alvéole HA de Cigéo en coupe longitudinale">
+ <rect x="0" y="120" width="1100" height="290" fill="var(--m-argile)" opacity=".3"/>
+ <text class="tech-strong" x="40" y="50">Alvéole HA : un micro-tunnel chemisé d’acier</text>
+ <text class="tech-label" x="40" y="80">≈ 80 cm de diamètre · ≈ 100 m de long · creusé dans l’argile à ≈ 500 m</text>
+ <rect x="120" y="222" width="880" height="76" rx="8" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="5"/>
+ <text class="tech-small" x="560" y="214" text-anchor="middle">chemisage en acier</text>
+ ${placed}
+ <g class="tz-push"><rect x="0" y="232" width="100" height="56" rx="6" fill="var(--eq)" stroke="var(--m-ha)" stroke-width="2.5"/><rect x="10" y="242" width="80" height="36" rx="4" fill="var(--m-ha)" opacity=".7"/><rect x="-90" y="244" width="90" height="32" rx="4" fill="var(--eq-stroke)"/><circle cx="-70" cy="282" r="6" fill="var(--eq-stroke)"/><circle cx="-20" cy="282" r="6" fill="var(--eq-stroke)"/></g>
+ <rect x="20" y="200" width="100" height="120" rx="8" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="tech-small" x="70" y="340" text-anchor="middle">galerie d’accès</text>
+ <rect x="985" y="226" width="12" height="68" fill="var(--m-fmavc)"/><text class="tech-small" x="990" y="320" text-anchor="middle">fond</text>
+ ${[0,1,2,3].map(i=>`<path class="tz-heat" d="M${910-i*120} 222 v-30" stroke="var(--glow)" stroke-width="3" style="animation-delay:${i*.4}s"/>`).join('')}
+ <text class="tech-small" x="720" y="168" text-anchor="middle" style="fill:var(--glow)">chaleur dégagée par les colis</text>
+ <circle cx="230" cy="460" r="38" fill="var(--m-argile)" opacity=".45"/><circle cx="230" cy="460" r="28" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="4"/><circle cx="230" cy="460" r="20" fill="var(--eq)" stroke="var(--m-ha)" stroke-width="2"/><circle cx="230" cy="460" r="13" fill="var(--m-ha)" opacity=".75"/>
+ <text class="tech-small" x="280" y="440">coupe : argile · chemisage · conteneur de stockage · verre (CSD-V)</text>
+ <text class="tech-small" x="280" y="460">Un robot pousse les colis un à un jusqu’au fond de l’alvéole.</text>
+ <text class="tech-small" x="280" y="480">Les colis sont espacés pour limiter l’échauffement de l’argile.</text>
+ </svg>`;}
+function mavlTechSVG(){
+ let stack='';for(let r=0;r<4;r++)for(let c=0;c<7-(r===3?2:0);c++)stack+=`<rect x="${620+c*38+(r===3?38:0)}" y="${360-r*34}" width="34" height="30" rx="3" fill="var(--m-mavl)" opacity=".85"/>`;
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="Alvéole MA-VL de Cigéo">
+ <rect x="0" y="100" width="1100" height="360" fill="var(--m-argile)" opacity=".3"/>
+ <text class="tech-strong" x="40" y="50">Alvéole MA-VL : une grande galerie de stockage</text>
+ <text class="tech-label" x="40" y="80">≈ 10 m de diamètre · ≈ 500 m de long · revêtement en béton</text>
+ <circle cx="250" cy="290" r="150" fill="var(--canvas)" stroke="var(--m-beton)" stroke-width="16"/>
+ ${Array.from({length:4},(_,r)=>Array.from({length:5},(_,c)=>`<rect x="${150+c*40}" y="${370-r*38}" width="36" height="34" rx="3" fill="var(--m-mavl)" opacity=".85"/>`).join('')).join('')}
+ <path d="M110 230 H390" stroke="var(--eq-stroke)" stroke-width="6"/><g class="tz-hoist"><rect x="230" y="224" width="40" height="12" fill="var(--eq-stroke)"/><path d="M250 236 V262" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="232" y="262" width="36" height="30" rx="3" fill="var(--m-mavl)"/></g>
+ <text class="tech-small" x="250" y="470" text-anchor="middle">coupe transversale</text><text class="tech-small" x="480" y="148">revêtement en béton</text>
+ <rect x="470" y="160" width="610" height="250" rx="10" fill="var(--canvas)" stroke="var(--m-beton)" stroke-width="10"/>
+ ${stack}
+ <g class="tz-cart"><rect x="480" y="356" width="80" height="34" rx="4" fill="var(--eq-stroke)"/><rect x="490" y="322" width="34" height="30" rx="3" fill="var(--m-mavl)"/><circle cx="495" cy="396" r="7" fill="var(--eq)"/><circle cx="545" cy="396" r="7" fill="var(--eq)"/></g>
+ <text class="tech-small" x="775" y="440" text-anchor="middle">coupe longitudinale : les colis sont empilés par des engins télécommandés</text>
+ <text class="tech-small" x="775" y="458" text-anchor="middle">ventilation pendant l’exploitation · colis récupérables (réversibilité)</text>
+ </svg>`;}
+function barrTechSVG(){
+ let p='';for(let i=0;i<22;i++){const a=i/22*6.283,cls=i%3===0?'tz-esc2':'tz-esc1';p+=`<g transform="translate(550 290) rotate(${(a*57.3).toFixed(0)})"><circle class="${cls}" cx="0" cy="0" r="5" fill="var(--m-pf)" style="animation-delay:${(i*.37%6).toFixed(2)}s"/></g>`;}
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="Le principe multibarrière">
+ <text class="tech-strong" x="40" y="50">Le principe multibarrière</text>
+ <text class="tech-label" x="40" y="78">Chaque barrière retarde la migration des radionucléides ; pendant ce temps, leur radioactivité décroît.</text>
+ <circle cx="550" cy="290" r="210" fill="var(--m-dt)" opacity=".12"/>
+ <circle cx="550" cy="290" r="185" fill="var(--m-argile)" opacity=".38"/>
+ <circle cx="550" cy="290" r="70" fill="var(--m-beton)" opacity=".35"/>
+ <circle cx="550" cy="290" r="44" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="4"/>
+ <circle cx="550" cy="290" r="30" fill="var(--m-verre)" opacity=".7"/>
+ ${p}
+ <text class="tech-small" x="550" y="294" text-anchor="middle" style="fill:var(--canvas);font-weight:700">verre</text>
+ <path d="M568 250 H780" stroke="var(--label)" stroke-width="1"/><circle cx="568" cy="250" r="3" fill="var(--label)"/><text class="tech-label" x="790" y="255">1. Colis : verre et conteneur en acier</text>
+ <path d="M619 300 H780" stroke="var(--label)" stroke-width="1"/><circle cx="619" cy="300" r="3" fill="var(--label)"/><text class="tech-label" x="790" y="305">2. Alvéole : chemisage, scellements</text>
+ <path d="M721 360 H780" stroke="var(--label)" stroke-width="1"/><circle cx="721" cy="360" r="3" fill="var(--label)"/><text class="tech-label" x="790" y="365">3. Argile > 140 m : très peu perméable,</text><text class="tech-label" x="810" y="387">elle retient les radionucléides</text>
+ <text class="tech-small" x="60" y="140">Ordre de grandeur</text>
+ <text class="tech-small" x="60" y="160">des échelles de temps :</text>
+ <text class="tech-label" x="60" y="195">≈ 100 ans · réversibilité</text>
+ <text class="tech-label" x="60" y="222">≈ 1 000 ans · forte décroissance</text>
+ <text class="tech-label" x="80" y="242">des produits de fission</text>
+ <text class="tech-label" x="60" y="269">≥ 100 000 ans · confinement</text>
+ <text class="tech-label" x="80" y="289">par l’argile</text>
+ <text class="tech-small" x="60" y="480">Les points rouges figurent des radionucléides : la plupart restent piégés dans l’argile et s’effacent en décroissant.</text>
+ </svg>`;}
+const TECH={
+ cigeo:{title:'Gros plans · Cigéo',tabs:[['ha','Alvéole HA',haTechSVG],['mavl','Alvéole MA-VL',mavlTechSVG],['barr','Multibarrière',barrTechSVG]],foot:'Schémas de principe d’après l’Andra et le site cigeo.gouv.fr : dimensions arrondies, nombre de colis réduit, mouvements ralentis.'}
+};
+function renderTechZoom(){const box=$('techZoom');if(!box)return;const T=TECH[cur];box.classList.toggle('hidden',!T);if(!T){box.innerHTML='';return;}
+ const mode=techMode[cur],tab=T.tabs.find(t=>t[0]===mode)||T.tabs[0];
+ box.innerHTML=`<div class="tech-head"><strong>${T.title} — animations schématiques</strong><div class="tech-tabs">${T.tabs.map(t=>`<button type="button" data-tech="${t[0]}" class="${t[0]===tab[0]?'active':''}">${t[1]}</button>`).join('')}</div></div>${tab[2]()}<div class="tech-foot">${T.foot}</div>`;
+ box.querySelectorAll('[data-tech]').forEach(b=>b.onclick=()=>{techMode[cur]=b.dataset.tech;renderTechZoom();});
+}
+
+/* =====================================================================
+   8. INITIALISATION
+   ===================================================================== */
+
+FICHE.vtc.role="Les déchets à vie très courte sont gérés par décroissance lorsque cette voie est applicable. L’orientation ultérieure dépend des contrôles et des critères autorisés ; la radioactivité ne disparaît pas brutalement.";
+FICHE.edf.does=["Les centrales produisent des déchets d’exploitation, de maintenance et de démantèlement.", "Le combustible usé destiné à un traitement est géré dans une filière distincte des déchets d’exploitation.", "Le producteur caractérise, conditionne et finance la gestion de ses déchets."];
+FICHE.cires.keys=[["950 000 m³", "capacité autorisée — arrêté du 12 juillet 2024"]];
+VIEWS.cires.steps[5].d="<p>L’arrêté préfectoral du 12 juillet 2024 autorise une capacité de stockage de 950 000 m³ au Cires. Le Cires relève du régime des installations classées pour la protection de l’environnement (ICPE). Une capacité autorisée est différente d’un volume déjà stocké.</p>";
+FICHE.csa.keys=[];
+FICHE.cigeo.keys=[];
+FICHE.surv.does=["Prélèvements et analyses selon les programmes de surveillance.", "Résultats publiés et transmis aux autorités compétentes.", "ASNR pour les INB ; contrôle préfectoral et inspection des installations classées pour le Cires."];
+FICHE.cigeo.role="Projet de stockage profond des déchets HA et MA-VL en couche argileuse, vers 500 m de profondeur. Il ne reçoit pas de déchets à ce stade.";
+FICHE.cigeo.does=["Demande d’autorisation de création déposée en janvier 2023.", "Enquête publique de la DAC organisée du 18 mai au 2 juillet 2026.", "Construction et mise en service restent subordonnées aux autorisations correspondantes."];
+FICHE.projfavl.does=["Des solutions adaptées aux différentes familles de FA-VL sont étudiées.", "Le graphite et les déchets radifères ne présentent pas les mêmes caractéristiques.", "Ne pas confondre un projet avec une filière déjà disponible."];
+FICHE.entha.io=[["Entrée", "Colis HA et MA-VL"], ["Perspective", "Stockage adapté après autorisation et acceptation"]];
+VIEWS.classif.steps[2].d="<p>Les TFA sont principalement des déchets faiblement contaminés ou activés, issus notamment du démantèlement. L’orientation vers le Cires dépend de leur caractérisation et des spécifications d’acceptation : une valeur d’activité isolée ne suffit pas à décider de la filière.</p>";
+VIEWS.classif.steps[6].d="<p>Les déchets HA représentent une très faible part du volume, mais concentrent l’essentiel de l’activité. Les proportions évoluent avec l’inventaire et sa date. Comparer volume et activité permet de comprendre pourquoi les protections et les filières diffèrent.</p>";
+VIEWS.classif.sub="Deux critères : activité et durée de vie ; comparaison qualitative des catégories";
+FICHE.inventaire.does=["Les producteurs déclarent les stocks.", "L’inventaire distingue matières et déchets et publie des données datées.", "Les prévisions dépendent des scénarios de gestion."];
+FICHE.cires.does=["Stockage TFA en surface dans des alvéoles protégées.", "Regroupement et entreposage de déchets de petits producteurs.", "Surveillance des eaux et contrôle de conformité des colis."];
+FICHE.csa.does=["Stockage des FMA-VC en ouvrages de béton.", "Compactage et injection de mortier selon les colis.", "Surveillance après fermeture sur une durée adaptée à la décroissance et aux exigences du centre."];
+VIEWS.surv.steps[1].d="<p>L’ASNR contrôle les centres relevant du régime des INB. Le Cires relève du régime ICPE, sous contrôle préfectoral avec l’inspection des installations classées. Les instances locales d’information contribuent au suivi et à l’information du public, sans se substituer aux autorités.</p>";
+VIEWS.cigeo.steps[0].d="<p>Les colis HA et MA-VL aujourd’hui entreposés chez les producteurs seraient réceptionnés en surface puis contrôlés. Le transport et l’acceptation nécessitent des conditions et autorisations spécifiques.</p>";
+VIEWS.cigeo.steps[2].d="<p>La liaison surface-fond prévue comprend une descenderie pour transférer les colis et des puits affectés aux autres fonctions. Les transports souterrains, la ventilation et les accès sont organisés selon les besoins de sûreté.</p>";
+VIEWS.cigeo.steps[3].d="<p>Les colis MA-VL seraient disposés dans des alvéoles souterraines avec des moyens de manutention télécommandés. Le conditionnement et les ouvrages contribuent au confinement.</p>";
+VIEWS.cigeo.steps[4].d="<p>Les colis HA seraient placés dans des alvéoles adaptées. Leur dégagement thermique impose un espacement et une gestion du refroidissement préalable pour limiter l’échauffement de la roche.</p>";
+VIEWS.favl.steps[3].d="<p>Un stockage à faible profondeur est étudié pour une partie des déchets FA-VL. La destination doit être adaptée aux différentes familles ; il ne s’agit pas d’une filière déjà disponible pour l’ensemble des FA-VL.</p>";
+VIEWS.cigeo.steps[5].d="<p>La réversibilité permet aux générations successives de poursuivre le projet ou de réévaluer les choix ; elle comprend des possibilités de récupération des colis. Une phase pilote doit permettre de vérifier le fonctionnement. La demande d’autorisation de création a été déposée en janvier 2023 ; son enquête publique s’est tenue du 18 mai au 2 juillet 2026. Cigéo reste un projet, soumis aux décisions et autorisations prévues.</p>";
+VIEWS.cigeo.steps[6].d="<p>La fermeture définitive suppose le scellement des ouvrages selon les décisions prévues. Le colis, les ouvrages et la roche contribuent à limiter la migration des radionucléides. La démonstration porte sur le long terme et ne repose pas sur une surveillance active indéfinie.</p>";
+VIEWS.labo.steps[0].d="<p>Les puits permettent d’accéder aux galeries profondes pour étudier la roche, les méthodes de creusement et les équipements. Le laboratoire n’est pas un stockage de déchets.</p>";
+VIEWS.classif.steps[6].d="<p>Le graphique compare volume et activité à partir de la même série : édition 2023 de l’Inventaire national, reproduite dans Les Essentiels 2026, p. 19. Les HA représentent 0,2 % du volume et 97,2 % de l’activité dans cette série. Le bilan des stocks à fin 2024, distinct, atteint environ 1,89 million de m³ pour les déchets déjà stockés ou destinés à une prise en charge par l’Andra ; il exclut notamment les VTC gérés en décroissance et certains déchets à gestion spécifique.</p>";
+VIEWS.csa.steps[5].d="<p>Après l’exploitation, les ouvrages sont recouverts et le centre entre dans une phase de surveillance. L’objectif est de maintenir le confinement et de contrôler le comportement du stockage pendant la décroissance des radionucléides.</p>";
+VIEWS.favl.steps[4].d="<p>La gestion des FA-VL nécessite des solutions adaptées aux différentes familles et à leurs caractéristiques. Le choix d’un site et d’un mode de stockage suppose une démonstration de sûreté et les autorisations requises.</p>";
+VIEWS.cires.steps[1].d="<p>Les alvéoles sont implantées dans une formation argileuse et comportent une géomembrane, un drainage et une collecte des eaux. La protection contre les infiltrations contribue à limiter la migration des substances.</p>";
+VIEWS.csa.steps[2].d="<p>Un pont roulant place les colis dans l’ouvrage de béton armé. Les colis métalliques sont bloqués par du béton ; les colis en béton sont entourés de gravillons.</p>";
+buildSyn();buildNav();
+$('syn').addEventListener('click',e=>{const n=e.target.closest('.node');if(n){stopTour();selectNode(n.dataset.node);}});
+$('syn').addEventListener('dblclick',e=>{const n=e.target.closest('.node');if(n&&FICHE[n.dataset.node].view)openView(FICHE[n.dataset.node].view);});
+$('syn').addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();stopTour();selectNode(n.dataset.node);}});
+$('filters').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;filter=c.dataset.f;selNode=null;markFilters();applySyn();asideHome();});
+showSyn();
+</script>
+
+
+<script>const S7DATA={"dechets": {"title": "Atelier déchets — décider et agir", "intro": "Situations fictives pour s’entraîner. Les consignes ci-dessous sont pédagogiques et génériques : elles ne sont pas utilisables pour intervenir sur une installation réelle. Sur site, seules les procédures validées, les habilitations et les instructions de l’exploitant s’appliquent.", "cards": [{"title": "Zonage déchets et zonage radiologique", "body": "Le zonage déchets distingue les zones à déchets conventionnels (ZDC) et les zones à production possible de déchets nucléaires (ZppDN). Il prend en compte l’historique et les risques de contamination ou d’activation. Le zonage radiologique organise la protection des personnes contre l’exposition. Une mesure faible ne change pas, à elle seule, l’origine ou la filière d’un déchet."}, {"title": "Caractériser avant de choisir", "body": "Identifier l’origine, la nature solide ou liquide, les radionucléides et les risques chimiques ou mécaniques. Vérifier la compatibilité du contenant et les spécifications de la filière. « TFA » est une catégorie de déchets, pas une autorisation de sortie vers les déchets ordinaires. Ne jamais diluer pour satisfaire un critère."}, {"title": "Sortie de zone et traçabilité", "body": "Une sortie de zone contrôlée n’est ni un déclassement du déchet ni une acceptation automatique au stockage. Préparation, intégrité, identification, contrôles prescrits, enregistrement et autorisation sont des points distincts. Un résultat absent ou un écart entraîne la mise en attente et l’alerte selon l’organisation prévue."}, {"title": "Rondes et conditionnement", "body": "Une ronde vérifie l’état des colis, les identifiants, les rétentions, les séparations et l’accès aux moyens de sécurité. Le compactage réduit un volume ; l’injection d’une matrice immobilise les déchets compatibles. Aucun de ces procédés ne supprime la radioactivité. La conformité reste à démontrer."}], "activities": [{"title": "1 · Affecter les déchets à leur circuit", "context": "Plan de l’atelier fictif : A = bureau en ZDC ; B = maintenance en ZppDN ; C = sas de contrôle. Les sacs ne doivent pas être mélangés.", "rule": "Consigne D-01 : conserver la provenance. Toute origine inconnue ou contradiction impose une mise en attente identifiée.", "steps": [{"prompt": "Le carton A-01 provient du bureau A, sans passage en B ni indice de contamination. Quel circuit retenir ?", "options": ["Déchets conventionnels selon le tri du bureau", "TFA automatiquement", "Déchets HA"], "answer": 0, "why": "Le circuit conventionnel repose ici sur une origine connue en ZDC et l’absence d’anomalie."}, {"prompt": "Le chiffon B-02 provient de B. Le contrôle n’indique pas de contamination détectable. Que faire ?", "options": ["Le jeter avec A-01", "Maintenir le circuit déchets nucléaires prévu", "Effacer son origine"], "answer": 1, "why": "Une mesure non détectable ne suffit pas à changer le zonage déchets ni la filière."}, {"prompt": "Un sac sans étiquette est déposé dans le sas C. Quelle décision ?", "options": ["Déduire sa filière de sa couleur", "Ouvrir et trier à la main", "Mettre en attente identifiée et faire rechercher son origine"], "answer": 2, "why": "Sans provenance et caractérisation, la filière ne peut pas être décidée."}]}, {"title": "2 · Trier et choisir un contenant", "context": "Trois lots caractérisés : S-11 = gravats TFA secs ; L-12 = liquide aqueux à collecter séparément ; X-13 = bidon de composition inconnue.", "rule": "Consigne D-02 : contenant prescrit et intact ; rétention pour les liquides ; aucun mélange de compositions inconnues ; pas de liquide libre dans le colis de gravats.", "steps": [{"prompt": "Destination de S-11 ?", "options": ["Colis TFA compatible avec les gravats et sa spécification", "Sac de déchets ordinaires", "Réservoir des liquides"], "answer": 0, "why": "La caractérisation TFA et la spécification du colis guident le choix, pas l’apparence."}, {"prompt": "Comment préparer L-12 ?", "options": ["Avec les gravats pour absorber le liquide", "Dans un récipient compatible, identifié, fermé, sur rétention", "Dans n’importe quel fût vide"], "answer": 1, "why": "Compatibilité chimique, fermeture et rétention sont nécessaires avant transfert autorisé."}, {"prompt": "Que faire de X-13 ?", "options": ["Le mélanger à L-12", "Le compacter fermé", "Le maintenir séparé, en attente de caractérisation"], "answer": 2, "why": "Un contenu inconnu peut produire une réaction, une fuite ou un surcroît d’exposition."}]}, {"title": "3 · Préparer une sortie de zone contrôlée", "context": "Colis C-24 : origine connue, destination prévue, emballage intact. La fiche de contrôle n’est pas encore renseignée.", "rule": "Consigne D-03 : préparer → identifier → réaliser et enregistrer les contrôles prescrits → obtenir la validation → transférer. Toute anomalie suspend le transfert.", "steps": [{"prompt": "Quelle action avant la mesure ?", "options": ["Vérifier le dossier et l’identité physique C-24", "Transférer puis compléter", "Changer la destination"], "answer": 0, "why": "La mesure doit être reliée sans ambiguïté au colis et au contrôle demandé."}, {"prompt": "La mesure demandée est absente. Peut-on valider ?", "options": ["Oui, car le colis est intact", "Non : faire réaliser et enregistrer le contrôle prescrit", "Oui si un autre colis est conforme"], "answer": 1, "why": "L’absence de résultat ne prouve pas la conformité du colis."}, {"prompt": "Le résultat porte une mention « écart ». Quelle suite ?", "options": ["Nettoyer sans autorisation et sortir", "Modifier le résultat", "Suspendre, identifier la mise en attente et alerter"], "answer": 2, "why": "L’écart doit être traité par les personnes compétentes avant toute reprise autorisée."}, {"prompt": "Après traitement documenté de l’écart, tous les contrôles sont conformes et la validation est signée. Que reste-t-il ?", "options": ["Transférer vers la destination prévue en conservant la traçabilité", "Déclasser en conventionnel", "Retirer l’identifiant"], "answer": 0, "why": "La validation de sortie n’efface ni l’origine ni le classement du déchet."}]}, {"title": "4 · Contrôler une fiche et le balisage", "context": "Fiche F-31 : colis P-031 ; origine B ; gravats TFA secs ; destination : entreposage TFA ; contrôle référencé CT-31 ; statut en attente de validation. Sur le colis, l’étiquette indique P-013.", "rule": "Consigne D-04 : identifiant unique identique sur colis, fiche et contrôle ; statut et destination lisibles ; aire d’attente balisée sans obstruer les accès. Le balisage local n’est pas l’étiquetage réglementaire du transport.", "steps": [{"prompt": "Quel écart empêche le rapprochement ?", "options": ["Le colis est sec", "P-031 sur la fiche et P-013 sur le colis", "La présence d’un numéro de contrôle"], "answer": 1, "why": "Les deux identifiants ne concordent pas : la mesure et la destination ne sont plus attribuables sans ambiguïté."}, {"prompt": "Comment traiter l’écart ?", "options": ["Réécrire au hasard le numéro", "Retirer les deux étiquettes", "Faire vérifier l’identité et corriger avec traçabilité avant validation"], "answer": 2, "why": "La correction doit conserver la piste documentaire ; elle ne s’improvise pas."}, {"prompt": "Où placer le colis en attendant ?", "options": ["Dans l’aire d’attente identifiée et balisée prévue", "Devant une issue", "Dans le lot des colis acceptés"], "answer": 0, "why": "Le statut d’attente doit rester visible et les colis ne doivent pas être confondus."}]}, {"title": "5 · Réaliser une ronde déchets", "context": "Ronde R-05 : un liquide dans une rétention ; un fût à étiquette illisible ; un colis solide intact ; une issue encombrée.", "rule": "Consigne D-05 : ne pas toucher une fuite de nature inconnue ; protéger les personnes selon les consignes et alerter ; consigner lieu, identifiant, observation et action. Une absence d’anomalie se trace aussi.", "steps": [{"prompt": "La rétention contient du liquide non identifié. Première décision ?", "options": ["Vidanger à l’égout", "Maintenir à distance, signaler et alerter selon la consigne", "Essuyer sans protection"], "answer": 1, "why": "Il faut d’abord éviter l’exposition et la dispersion. La nature et l’origine du liquide sont inconnues."}, {"prompt": "Une étiquette est illisible. Que noter ?", "options": ["Rien : le fût paraît fermé", "« Colis conforme »", "Localisation précise, identifiant disponible, anomalie et signalement"], "answer": 2, "why": "La ronde produit une trace exploitable pour retrouver le colis et traiter l’écart."}, {"prompt": "Une issue est obstruée. Est-ce un écart de ronde ?", "options": ["Oui : signaler et faire rétablir l’accès suivant les consignes", "Non : seule la radioactivité compte", "Non si l’emballage est intact"], "answer": 0, "why": "Les risques conventionnels et les accès de sécurité font aussi partie des contrôles."}]}, {"title": "6 · Conduire un compactage", "context": "Poste fictif : presse fermée, contrôle d’accès à la zone mobile, lot de solides compressibles accepté. Une bombe aérosol est découverte dans le lot.", "rule": "Consigne D-06 : lot accepté et contrôlé ; absence de récipient sous pression et de liquide libre ; protections actives ; cycle autorisé ; contrôle final et traçabilité. Jamais de neutralisation d’un interverrouillage.", "steps": [{"prompt": "Que faire de l’aérosol ?", "options": ["Lancer pour le casser", "Suspendre et faire requalifier le lot", "Le percer sur place"], "answer": 1, "why": "Un récipient sous pression est incompatible avec ce scénario de compactage et peut éclater."}, {"prompt": "Le lot a été requalifié. La protection de porte ne valide pas. Quelle action ?", "options": ["Forcer l’entrée automate", "Maintenir la porte à la main", "Ne pas lancer et signaler le défaut"], "answer": 2, "why": "La protection conditionne l’autorisation du mouvement. Le contournement est exclu."}, {"prompt": "Protections validées, cycle autorisé et terminé. Peut-on évacuer immédiatement ?", "options": ["Non : contrôler intégrité, conformité, identifier et enregistrer", "Oui sans contrôle", "Oui en supprimant le numéro du lot"], "answer": 0, "why": "La réduction de volume n’est pas une preuve de conformité du colis final."}]}, {"title": "7 · Conduire une injection de matrice", "context": "Poste fictif : colis accepté, matrice compatible prévue dans la fiche de fabrication, circuit contrôlé. Pendant l’injection, une fuite est observée.", "rule": "Consigne D-07 : vérifier colis, recette autorisée, circuit et confinement ; lancer uniquement si conforme ; suivre les paramètres prescrits ; arrêter sur fuite ; respecter la prise de la matrice ; contrôler et tracer. Aucun dosage industriel n’est fourni.", "steps": [{"prompt": "Avant de lancer, la référence de matrice diffère de celle de la fiche. Que faire ?", "options": ["Prendre celle disponible", "Ajouter de l’eau", "Suspendre et vérifier la recette autorisée"], "answer": 2, "why": "La compatibilité et les caractéristiques de la matrice sont des exigences de conditionnement."}, {"prompt": "L’injection autorisée est en cours et une fuite apparaît. Quelle décision ?", "options": ["Arrêter selon la consigne, sécuriser et alerter", "Accélérer pour finir", "Masquer la fuite"], "answer": 0, "why": "Continuer pourrait disperser des matières et rendre le colis non conforme."}, {"prompt": "Après traitement de l’écart, injection achevée : le délai de prise prescrit n’est pas atteint. Quelle suite ?", "options": ["Expédier pour gagner du temps", "Maintenir dans les conditions prévues, puis contrôler et tracer", "Compacter le colis"], "answer": 1, "why": "L’immobilisation et les contrôles finaux font partie de la qualification du colis."}]}]}, "recherche": {"title": "Déchets : solutions et recherches", "intro": "Entreposer permet de reprendre les colis ; stocker vise leur isolement durable. Ces deux fonctions répondent à des exigences différentes.", "cards": [{"title": "Cigéo et le laboratoire", "body": "Cigéo est un projet de stockage profond des déchets HA et MA-VL dans une couche argileuse, vers 500 m. Ce n’est pas un centre de stockage en service. Le laboratoire souterrain de Meuse/Haute-Marne étudie la roche et les techniques ; il ne stocke pas de déchets radioactifs. La demande d’autorisation de création a été déposée en 2023. Une autorisation de création et une autorisation de mise en service sont des étapes distinctes."}, {"title": "Transmutation", "body": "Sous irradiation neutronique, certains noyaux peuvent être transformés en d’autres noyaux ; la fission de certains actinides peut réduire leur inventaire à vie longue. Il faut au préalable séparer les éléments ciblés et fabriquer des matières adaptées aux systèmes étudiés. Les contraintes de radioprotection, de fabrication et de séparation restent fortes. Cette recherche ne traite pas tous les déchets et ne supprime pas le besoin d’un stockage."}, {"title": "Entreposage de longue durée", "body": "Un entreposage exige surveillance, maintien des fonctions de refroidissement et de confinement selon les colis, contrôles de vieillissement et possibilité de reprise. Allonger sa durée demande de réexaminer ces fonctions et les renouvellements nécessaires. Ce n’est pas un abandon sans surveillance ni un stockage géologique."}, {"title": "Choisir une filière", "body": "La catégorie donne une orientation ; l’acceptabilité dépend aussi des radionucléides, de la chaleur, de la chimie, du conditionnement et des spécifications du centre. Les déchets FA-VL ne forment pas un ensemble homogène : des solutions adaptées à leurs différentes familles sont étudiées."}], "activities": []}};</script><script>(() => {
+'use strict';
+const host=document.createElement('div');host.id='s7host';document.body.append(host);
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let active=null,taskIndex=0,stage=0,attempts=0,answers=[],scores={},returnFocus=null;
+const standalone=document.body.dataset.s7;
+function open(key){active=S7DATA[key];if(!active)return;returnFocus=document.activeElement;host.innerHTML=`<dialog id="s7dialog" aria-labelledby="s7title"><header class="s7head"><div><small>INSTALLATIONS NUCLÉAIRES · TIIN</small><h1 id="s7title">${escape(active.title)}</h1></div><button id="s7close">${standalone?'Accueil des parcours':'Revenir au synoptique'}</button></header><p class="s7intro">${escape(active.intro)}</p><nav class="s7tabs" aria-label="Rubriques"><button data-section="learn">Comprendre</button>${active.timelines?'<button data-section="timeline">Chronologies</button>':''}${active.activities.length?'<button data-section="work">Mises en situation</button><button data-section="results">Mon bilan</button>':''}${key==='dechets'?'<button data-section="record">Fiche de contrôle</button>':''}</nav><main id="s7body"></main></dialog>`;
+host.querySelector('#s7close').onclick=()=>{if(standalone)window.top.location.href='index.html';else host.querySelector('dialog').close();};
+host.querySelector('dialog').addEventListener('cancel',e=>{if(standalone){e.preventDefault();window.top.location.href='index.html';}});
+host.querySelector('dialog').addEventListener('close',()=>returnFocus?.focus());
+host.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>section(b.dataset.section));
+host.querySelector('dialog').showModal();section(key==='dechets'?'work':'learn');}
+function section(kind){host.querySelectorAll('[data-section]').forEach(b=>b.setAttribute('aria-current',b.dataset.section===kind?'page':'false'));const body=host.querySelector('#s7body');
+if(kind==='learn'){body.innerHTML=`<div class="s7cards">${active.cards.map((c,i)=>`<article><span class="s7number">${String(i+1).padStart(2,'0')}</span><h2>${escape(c.title)}</h2><p>${escape(c.body)}</p></article>`).join('')}</div>`;}
+if(kind==='work'){body.innerHTML=`<div class="s7layout"><aside class="s7menu">${active.activities.map((t,i)=>`<button data-task="${i}">${escape(t.title)}</button>`).join('')}</aside><section id="s7exercise" aria-live="polite"></section></div>`;body.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>start(+b.dataset.task));start(0);}
+if(kind==='timeline'){let chosen=0,pos=0;const render=()=>{const a=active.timelines[chosen],s=a.steps[pos];body.innerHTML=`<div class="s7tabs">${active.timelines.map((t,i)=>`<button data-case="${i}" aria-current="${i===chosen?'page':'false'}">${escape(t.title.split(' · ')[0])}</button>`).join('')}</div><article class="s7timeline"><small>${escape(a.type)}</small><h2>${escape(a.title)}</h2><div class="s7stages">${a.steps.map((t,i)=>`<button data-stage="${i}" aria-current="${i===pos?'step':'false'}"><b>${i+1}</b>${escape(t[0])}</button>`).join('')}</div><h3>${escape(s[0])}</h3><p>${escape(s[1])}</p><div class="s7barrier"><b>Fonctions et barrières</b><p>${escape(s[2])}</p></div><div class="s7controls"><button id="s7prev" ${pos===0?'disabled':''}>Précédent</button><span>Étape ${pos+1} / 4</span><button id="s7next" ${pos===3?'disabled':''}>Suivant</button></div></article>`;body.querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{chosen=+b.dataset.case;pos=0;render()});body.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>{pos=+b.dataset.stage;render()});body.querySelector('#s7prev').onclick=()=>{pos--;render()};body.querySelector('#s7next').onclick=()=>{pos++;render()};};render();}
+if(kind==='results'){const rows=active.activities.map((t,i)=>{const r=scores[active.title+'|'+i];return `<tr><td>${escape(t.title)}</td><td>${r?r.correct+' / '+r.total:'Non terminé'}</td><td>${r?r.attempts:'—'}</td></tr>`}).join('');body.innerHTML=`<h2>Mon bilan de séance</h2><p>Le résultat compte les décisions justes au premier essai. Les réponses erronées doivent être corrigées pour poursuivre. Le bilan reste dans cette page jusqu’à sa fermeture ou son rechargement.</p><div class="s7table"><table><thead><tr><th>Situation</th><th>Premier essai</th><th>Choix effectués</th></tr></thead><tbody>${rows}</tbody></table></div><label>Ce que je dois vérifier avant d’agir<textarea id="s7reflection" rows="4" placeholder="Une règle, une erreur comprise, une question à reprendre…"></textarea></label><button id="s7export">Télécharger mon bilan</button>`;body.querySelector('#s7export').onclick=()=>{const text=active.title+'\n\n'+active.activities.map((t,i)=>{const r=scores[active.title+'|'+i];return t.title+': '+(r?r.correct+'/'+r.total+' au premier essai ; '+r.attempts+' choix':'non terminé')}).join('\n')+'\n\nRéflexion :\n'+body.querySelector('#s7reflection').value;download('bilan_seance.txt',text)};}
+if(kind==='record')record(body);
+}
+function start(i){taskIndex=i;stage=0;attempts=0;answers=[];host.querySelectorAll('[data-task]').forEach(b=>b.setAttribute('aria-current',+b.dataset.task===i?'page':'false'));renderTask();}
+function renderTask(){const t=active.activities[taskIndex],s=t.steps[stage],box=host.querySelector('#s7exercise');if(!s){const result={correct:answers.filter(x=>x===1).length,total:t.steps.length,attempts};scores[active.title+'|'+taskIndex]=result;box.innerHTML=`<h2>Situation terminée</h2><p>${result.correct} / ${result.total} décisions justes au premier essai.</p><p>Chaque décision a été justifiée et les écarts ont été corrigés.</p><button id="s7again">Recommencer</button><button id="s7balance">Voir mon bilan</button>`;box.querySelector('#s7again').onclick=()=>start(taskIndex);box.querySelector('#s7balance').onclick=()=>section('results');return;}
+box.innerHTML=`<small>DÉCISION ${stage+1} / ${t.steps.length}</small><h2>${escape(t.title)}</h2><p>${escape(t.context)}</p><details open class="s7rule"><summary>Consigne à appliquer</summary><p>${escape(t.rule)}</p></details><h3>${escape(s.prompt)}</h3><div class="s7choices">${s.options.map((o,i)=>`<button data-answer="${i}">${escape(o)}</button>`).join('')}</div><div id="s7feedback" role="status"></div>`;let tries=0;
+box.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{tries++;attempts++;const good=+b.dataset.answer===s.answer;const feedback=box.querySelector('#s7feedback');feedback.className=good?'s7ok':'s7error';feedback.innerHTML=good?`<b>Décision validée.</b><p>${escape(s.why)}</p><button id="s7continue">${stage+1===t.steps.length?'Terminer la situation':'Décision suivante'}</button>`:`<b>Décision à reprendre.</b><p>${escape(s.why)}</p><p>Relisez la consigne et choisissez une autre action.</p>`;if(good){answers.push(tries===1?1:0);box.querySelectorAll('[data-answer]').forEach(x=>x.disabled=true);feedback.querySelector('button').onclick=()=>{stage++;renderTask()};feedback.querySelector('button').focus();}else{b.disabled=true;}});
+}
+function record(body){body.innerHTML=`<h2>Rapprocher le colis et sa fiche</h2><p class="s7rule">Dossier fictif : colis <b>P-042</b> ; lot <b>B-17</b> ; gravats TFA secs ; origine ZppDN ; contenant intact ; contrôle <b>CT-042</b> réalisé et conforme ; validation de transfert <b>absente</b>. Consigne : aucune sortie sans validation. Conservez l’identité du colis et son statut.</p><form id="s7form"><div class="s7fields"><label>Identifiant du colis<input name="id" required autocomplete="off"></label><label>Lot d’origine<input name="lot" required autocomplete="off"></label><label>Référence de contrôle<input name="control" required autocomplete="off"></label><label>Décision<select name="decision"><option value="">Choisir…</option><option value="wait">Maintien en attente de validation</option><option value="go">Transfert immédiat</option><option value="ordinary">Déchets conventionnels</option></select></label></div><label>Observation de ronde<textarea name="note" required rows="3" placeholder="Localisation, état, contrôle manquant, action demandée…"></textarea></label><button>Vérifier ma fiche</button></form><div id="s7recordFeedback" role="status"></div>`;body.querySelector('form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),ok=['id','lot','control','decision'].every((k,i)=>String(f.get(k)).trim().toUpperCase()===['P-042','B-17','CT-042','WAIT'][i]);const out=body.querySelector('#s7recordFeedback');out.className=ok?'s7ok':'s7error';out.innerHTML=ok?'<b>Rapprochement correct : transfert bloqué jusqu’à validation.</b><p>Votre observation libre est à comparer avec la situation : la validation manque, pas le contrôle radiologique.</p><button id="s7saveRecord">Télécharger la fiche</button>':'<b>Fiche à reprendre.</b><p>Vérifiez P-042, B-17, CT-042 et le maintien en attente. Un contrôle conforme ne vaut pas validation du transfert.</p>';if(ok)out.querySelector('button').onclick=()=>download('fiche_exercice.txt','EXERCICE FICTIF — SANS VALEUR OPÉRATIONNELLE\n'+Array.from(f).map(([k,v])=>k+' : '+v).join('\n'));};}
+function download(name,text){const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+window.S7open=open;
+document.querySelectorAll('[data-s7open]').forEach(b=>b.onclick=()=>open(b.dataset.s7open));
+if(standalone)open(standalone);
+})();
+</script></body></html>

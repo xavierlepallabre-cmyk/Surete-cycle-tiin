@@ -1,0 +1,808 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+
+<title>Accidents nucléaires</title>
+<style>:root{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* V2.1 — consolidation du rendu desktop et du comportement */
+:root{--stage-outline:color-mix(in srgb,var(--accent) 22%,var(--border))}
+.stage{box-shadow:0 7px 24px rgba(0,0,0,.10);border-color:var(--stage-outline)}
+.nav button,.chip,.sbtn{transition:background-color .18s,border-color .18s,transform .18s}
+.nav button:hover,.chip:hover,.sbtn:hover{border-color:var(--accent)}
+.steptext{min-height:110px;line-height:1.62}
+.steptext h3{font-size:17px}
+.aside{line-height:1.57}
+.eq.dim,.part.dim,.fl.dim{pointer-events:none}
+/* ================= THÈMES ================= */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--eq:#1b2c3f;--eq-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;--focus:#ffffff;
+ --zone:rgba(92,179,230,.045);--zone-stroke:#2c4a63;--zone-text:#8fc4e3;--water:#1d5a86;--water2:#2a78ab;--glow:#ff9b4f;--warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;
+ --m-comb:#b197fc;--m-sol:#f59f00;--m-u:#ffd43b;--m-pu:#f783ac;--m-pf:#ff6b6b;--m-coq:#adb5bd;--m-eff:#4dabf7;--m-gaz:#99e9f2;--m-dt:#d4a373;--m-solv:#69db7c;--m-verre:#63e6be;--m-eau:#74c0fc;--m-air:#ced4da;--m-upu:#ffa94d;--m-emb:#b9a88d;--m-colis:#adb5bd;--m-vtc:#b197fc;--m-tfa:#74c0fc;--m-fmavc:#63e6be;--m-favl:#ffd43b;--m-mavl:#ffa94d;--m-ha:#ff6b6b;--m-beton:#ced4da;--m-argile:#d4a373;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,.node:focus-visible,.eq:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px;min-height:38px}
+.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px}
+.theme-btn svg{width:18px;height:18px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+.nav button{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 12px;font-size:12.5px}
+.nav button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.nav .sep{width:1px;background:var(--border);margin:0 4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 120px)}
+.main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:18px;overflow:auto}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:5px 11px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--mc)}
+.chip.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.stage{border:1px solid var(--border);border-radius:14px;background:radial-gradient(ellipse at 50% 30%,var(--canvas-glow),var(--canvas) 75%);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:22px;height:5px;border-radius:3px;background:var(--mc);display:inline-block}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+.steps .sbtn{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 11px;font-size:12px}
+.steps .sbtn.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:700}
+.steptext{padding:12px 16px 16px;border-top:1px solid var(--border);background:var(--panel)}
+.steptext h3{margin:0 0 6px;font-size:16px}
+.steptext p{margin:0 0 6px}
+.steptext ul{margin:4px 0 0;padding-left:20px}.steptext li{margin:3px 0}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:14px;border-radius:0 8px 8px 0}
+.aside h2{font-size:20px;margin:2px 0 4px}
+.aside h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:16px 0 6px}
+.aside ul{margin:0;padding-left:18px}.aside li{margin:4px 0}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts{display:grid;grid-template-columns:1fr;gap:6px}
+.fact{border:1px solid var(--border);background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:13px}
+.fact b{display:block;font-size:15px}
+.io{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}.io span{color:var(--muted)}
+.openbtn{width:100%;margin-top:14px}
+.footer{padding:10px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.hidden{display:none!important}
+
+/* ================= SVG ================= */
+.ttl{fill:var(--text);font-size:18px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone{fill:var(--zone);stroke:var(--zone-stroke);stroke-dasharray:6 5}
+.zt{fill:var(--zone-text);font-size:11.5px;font-weight:700;letter-spacing:.08em}
+.free{fill:var(--sublabel);font-size:11.5px}
+.node{cursor:pointer;outline:none;transition:opacity .25s}
+.n-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.n-strip{fill:var(--mc)}
+.n-t{fill:var(--label);font-size:15px;font-weight:700;text-anchor:middle;pointer-events:none}
+.n-s{fill:var(--sublabel);font-size:11px;text-anchor:middle;pointer-events:none}
+.n-go{fill:var(--accent);font-size:10.5px;font-weight:700;text-anchor:end;pointer-events:none}
+.node:hover .n-b,.node.sel .n-b{stroke:var(--focus);stroke-width:3}
+.node.dim,.fl.dim{opacity:.16}
+.fl{transition:opacity .25s}
+.fl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f-case{stroke:var(--canvas)}
+.f-base{stroke:var(--mc);opacity:.38}
+.f-dash{stroke:var(--mc);stroke-dasharray:8 10;animation:flow 1.4s linear infinite}
+.fl .f-arr{fill:var(--mc);stroke:none}
+.f-lab{fill:var(--mc);font-size:11px;font-weight:700}
+.m-gaz .f-dash,.m-air .f-dash{stroke-dasharray:2 8}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.m-comb{--mc:var(--m-comb)}.m-sol{--mc:var(--m-sol)}.m-u{--mc:var(--m-u)}.m-pu{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}.m-coq{--mc:var(--m-coq)}
+.m-eff{--mc:var(--m-eff)}.m-gaz{--mc:var(--m-gaz)}.m-dt{--mc:var(--m-dt)}.m-solv{--mc:var(--m-solv)}.m-verre{--mc:var(--m-verre)}.m-eau{--mc:var(--m-eau)}.m-air{--mc:var(--m-air)}.m-emb{--mc:var(--m-emb)}.m-upu{--mc:var(--m-upu)}
+/* Équipements des vues détaillées */
+.eq{cursor:pointer;transition:opacity .3s}
+.eq-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.eq-t{fill:var(--label);font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.eq-s{fill:var(--sublabel);font-size:10.5px;text-anchor:middle;pointer-events:none}
+.eq:hover .eq-b{stroke:var(--focus)}
+.eq.hl .eq-b{stroke:var(--accent);stroke-width:3}
+.dim{opacity:.17}
+.part{transition:opacity .3s}
+.lbl{fill:var(--label);font-size:12px}.lbl-s{fill:var(--sublabel);font-size:10.5px}
+.mid{text-anchor:middle}.end{text-anchor:end}
+.wall{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.thin{fill:none;stroke:var(--eq-stroke);stroke-width:1.4}
+.water{fill:var(--water);opacity:.55}
+.metal{fill:var(--m-coq)}
+/* Animations */
+.spin{animation:spin 10s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin-fast{animation:spin 2.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chop{animation:chop 1.6s ease-in-out infinite}
+@keyframes chop{0%,40%,100%{transform:translateY(0)}55%{transform:translateY(34px)}}
+.feed{animation:feed 3.2s ease-in-out infinite}
+@keyframes feed{0%{transform:translateX(-40px)}50%,100%{transform:translateX(0)}}
+.fall{animation:fall 1.6s linear infinite}
+@keyframes fall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+.rise{animation:rise 3s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+.rise-long{animation:riseL 4s linear infinite}
+@keyframes riseL{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(-240px);opacity:0}}
+.lift{animation:lift 4s ease-in-out infinite}
+@keyframes lift{0%,15%{transform:translateY(40px)}55%,100%{transform:translateY(0)}}
+.press{animation:press 2.8s ease-in-out infinite}
+@keyframes press{0%,30%,100%{transform:translateY(0)}60%{transform:translateY(58px)}}
+.crush{animation:crush 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes crush{0%,30%,100%{transform:scaleY(1)}60%{transform:scaleY(.2)}}
+.fillup{animation:fillup 6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes fillup{0%{transform:scaleY(.05)}80%,100%{transform:scaleY(1)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.drip{animation:drip 1.1s linear infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(40px);opacity:0}}
+.move-r{animation:mover 5s linear infinite}
+.tr-move{animation:trMove 9s ease-in-out infinite}@keyframes trMove{0%,10%{transform:translateX(0)}45%,60%{transform:translateX(230px)}95%,100%{transform:translateX(0)}}
+body.paused .tr-move{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tr-move{animation:none}}
+@keyframes mover{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(860px);opacity:0}}
+body.paused .fl .f-dash,body.paused .spin,body.paused .spin-fast,body.paused .chop,body.paused .feed,body.paused .fall,body.paused .rise,body.paused .rise-long,body.paused .lift,body.paused .press,body.paused .crush,body.paused .fillup,body.paused .glow,body.paused .drip,body.paused .move-r{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.f-dash,.spin,.spin-fast,.chop,.feed,.fall,.rise,.rise-long,.lift,.press,.crush,.fillup,.glow,.drip,.move-r{animation:none!important}}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:560px){.top h1{font-size:17px}.nav{padding:8px}}
+
+/* ===== Compléments S7 (sûreté, accidents) — mêmes jetons que les parcours ===== */
+:root{--ok:#51cf66;--deg:#fcc419;--ko:#ff6b6b;--na:#7d8fa1;--ok-bg:rgba(81,207,102,.13);--deg-bg:rgba(252,196,25,.13);--ko-bg:rgba(255,107,107,.14);
+ --z-bleu:#4dabf7;--z-vert:#51cf66;--z-jaune:#ffd43b;--z-orange:#ff922b;--z-rouge:#ff6b6b;--hot:#ff6b3d;--steam:#dfe8f0;--sea:#1d5a86;--ground:#3a3428;--concrete:#5b6b7a}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--ok:#2b8a3e;--deg:#c77700;--ko:#d6262b;--na:#7b8a99;--ok-bg:#e6f4ea;--deg-bg:#fdf1dc;--ko-bg:#fde7e7;
+ --z-bleu:#1c7ed6;--z-vert:#2f9e44;--z-jaune:#e8b500;--z-orange:#e8590c;--z-rouge:#d6262b;--hot:#e8590c;--steam:#8fa3b5;--sea:#4f94c8;--ground:#c9b99a;--concrete:#aab6c2}}
+:root[data-theme="light"]{--ok:#2b8a3e;--deg:#c77700;--ko:#d6262b;--na:#7b8a99;--ok-bg:#e6f4ea;--deg-bg:#fdf1dc;--ko-bg:#fde7e7;
+ --z-bleu:#1c7ed6;--z-vert:#2f9e44;--z-jaune:#e8b500;--z-orange:#e8590c;--z-rouge:#d6262b;--hot:#e8590c;--steam:#8fa3b5;--sea:#4f94c8;--ground:#c9b99a;--concrete:#aab6c2}
+.m-conseil{--mc:var(--m-verre)}.m-colis{--mc:var(--m-emb)}.m-norme{--mc:var(--m-comb)}.m-autor{--mc:var(--m-u)}.m-ctrl{--mc:var(--m-eff)}.m-surv{--mc:var(--m-solv)}.m-info{--mc:var(--m-gaz)}.m-alerte{--mc:var(--m-pf)}.m-regle{--mc:var(--m-upu)}
+.m-eau{--mc:var(--m-eau)}.m-vap{--mc:var(--steam)}.m-elec{--mc:var(--m-u)}.m-h2{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}
+/* Bandeau d’état des fonctions et des barrières */
+.status{display:flex;flex-wrap:wrap;gap:8px 22px;padding:10px 14px;border-top:1px solid var(--border);background:var(--panel2);font-size:12px}
+.status .sg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.status .sg>b{color:var(--muted);font-weight:600;margin-right:2px;text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;border:1px solid var(--border);background:var(--panel);white-space:nowrap}
+.pill i{width:9px;height:9px;border-radius:50%;background:var(--na)}
+.pill.o{border-color:var(--ok);background:var(--ok-bg)}.pill.o i{background:var(--ok)}
+.pill.d{border-color:var(--deg);background:var(--deg-bg)}.pill.d i{background:var(--deg)}
+.pill.x{border-color:var(--ko);background:var(--ko-bg)}.pill.x i{background:var(--ko)}
+.pill.n{opacity:.75}.pill em{font-style:normal;color:var(--muted);font-size:11px}
+.status .clock{margin-left:auto;font:600 12px ui-monospace,Consolas,monospace;color:var(--text)}
+/* Mises en situation */
+.quiz{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;padding:14px}
+.quiz .qmenu{display:flex;flex-direction:column;gap:6px}
+.quiz .qmenu button{text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:8px 11px;font-size:13px}
+.quiz .qmenu button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.qcard{border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:16px;min-width:0}
+.qcard h3{margin:2px 0 6px;font-size:17px}.qcard h4{margin:14px 0 8px;font-size:15px}
+.qrule{border-left:3px solid var(--accent);background:var(--panel2);padding:8px 11px;border-radius:0 8px 8px 0;font-size:13px}
+.qopts{display:grid;gap:8px}.qopts button{text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:9px 12px}
+.qopts button:hover:not(:disabled){border-color:var(--accent)}.qopts button:disabled{opacity:.55;cursor:default}
+.qfb{margin-top:12px;border-radius:10px;padding:10px 12px;font-size:13px}.qfb:empty{display:none}
+.qfb.ok{background:var(--ok-bg);border:1px solid var(--ok)}.qfb.ko{background:var(--ko-bg);border:1px solid var(--ko)}
+.qfb p{margin:4px 0}.qtable{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}.qtable th,.qtable td{border:1px solid var(--border);padding:6px 8px;text-align:left}
+.qcard textarea{width:100%;min-height:70px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);padding:8px;font:inherit}
+.qrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media(max-width:700px){.quiz{grid-template-columns:1fr}.quiz .qmenu{display:grid;grid-template-columns:1fr 1fr}}
+/* SVG complémentaires */
+.hd{fill:var(--label);font-size:13px;font-weight:700}
+.tag{fill:var(--sublabel);font-size:10.5px;font-weight:700;letter-spacing:.06em}
+.wire{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.pipe-hot{fill:none;stroke:var(--hot);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.pipe-cold{fill:none;stroke:var(--m-eau);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.pipe-sec{fill:none;stroke:var(--m-eff);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.flowdash{fill:none;stroke:var(--panel);stroke-width:2;stroke-dasharray:4 9;animation:flow 1.2s linear infinite;opacity:.8}
+.cross{stroke:var(--ko);stroke-width:5;stroke-linecap:round}
+.callout{fill:var(--panel);stroke:var(--accent);stroke-width:1.4}
+.num{fill:var(--accent);font-size:13px;font-weight:800;text-anchor:middle}
+.ko-t{fill:var(--ko);font-weight:700}.ok-t{fill:var(--ok);font-weight:700}.deg-t{fill:var(--deg);font-weight:700}
+.blink{animation:blink 1s steps(2,start) infinite}@keyframes blink{to{visibility:hidden}}
+.pulse{animation:pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes pulse{50%{transform:scale(1.12);opacity:.6}}
+.drop{animation:drop 3.5s ease-in infinite}@keyframes drop{0%,20%{transform:translateY(-70px)}60%,100%{transform:translateY(0)}}
+.drop-slow{animation:dropS 6s linear infinite}@keyframes dropS{0%,15%{transform:translateY(-120px)}85%,100%{transform:translateY(0)}}
+.wave{animation:wave 5s ease-in-out infinite}@keyframes wave{0%,100%{transform:translateX(-30px)}50%{transform:translateX(30px)}}
+.wave-in{animation:waveIn 6s ease-in-out infinite}@keyframes waveIn{0%{transform:translateX(-120px)}60%,100%{transform:translateX(0)}}
+.puff{animation:puff 2.4s ease-out infinite;opacity:0}@keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:0}25%{opacity:.85}100%{transform:translate(28px,-46px) scale(1.4);opacity:0}}
+.boom{animation:boom 3s ease-out infinite;transform-box:fill-box;transform-origin:center}@keyframes boom{0%{transform:scale(.3);opacity:0}15%{opacity:.6}60%,100%{transform:scale(1.25);opacity:0}}
+.siren{animation:siren 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center;opacity:0}@keyframes siren{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.8);opacity:0}}
+.travel{animation:travel 7s linear infinite}@keyframes travel{0%{transform:translateX(0);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateX(var(--dx,600px));opacity:0}}
+.shake{animation:shake .35s linear infinite}@keyframes shake{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,1px)}75%{transform:translate(3px,-1px)}}
+.lift-up{animation:liftUp 4s ease-out infinite}@keyframes liftUp{0%,30%{transform:translateY(0) rotate(0)}60%,100%{transform:translateY(-38px) rotate(-8deg)}}
+.flame{animation:flame .9s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:bottom}@keyframes flame{to{transform:scaleY(1.25);opacity:.75}}
+.truck{animation:truck 12s ease-in-out infinite}@keyframes truck{0%,8%{transform:translateX(-40px)}45%,55%{transform:translateX(40px)}92%,100%{transform:translateX(-40px)}}
+body.paused svg *,.dim *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){svg *{animation:none!important}}
+.k-hide{display:none}
+
+</style>
+</head><body>
+<header class="top">
+ <div><h1>Accidents nucléaires <span>/</span> Comprendre pour progresser</h1><div class="sub">S7 · échelle INES, Three Mile Island, Tchernobyl, Fukushima, Blayais, retour d’expérience · synoptique cliquable et chronologies schématisées · version 2.0</div></div>
+ <div class="bar" style="margin:0">
+  <button class="btn" id="pauseBtn" type="button">⏸ Animations</button>
+  <button id="themeBtn" class="btn theme-btn" type="button" aria-label="Basculer entre le thème clair et le thème sombre"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span></button>
+ </div>
+</header>
+<nav class="nav" id="nav" aria-label="Navigation entre les vues"></nav>
+
+<div class="layout">
+<main class="main">
+ <div class="crumbs" id="crumbs"></div>
+ <section id="synSec">
+  <div class="bar">
+   <div class="grp" id="filters" role="group" aria-label="Filtrer les liens"></div>
+   <div class="grp"><button class="btn" id="tourBtn" type="button">▶ Visite guidée</button></div>
+  </div>
+  <div class="stage"><svg id="syn" viewBox="0 0 1200 700" role="img" aria-label="Échelle INES et comparaison des accidents"></svg>
+   <div class="legend" id="synLegend"></div></div>
+ </section>
+ <section id="detSec" class="hidden">
+  <div class="bar">
+   <div class="grp"><button class="btn" id="prevView" type="button">← Vue précédente</button><button class="btn" id="nextView" type="button">Vue suivante →</button></div>
+   <div class="grp"><button class="btn" id="playBtn" type="button">▶ Lecture guidée</button></div>
+  </div>
+  <div class="stage">
+   <svg id="det" viewBox="0 0 1100 520" role="img"></svg>
+   <div class="quiz hidden" id="quiz"></div>
+   <div class="legend" id="detLegend"></div>
+   <div class="status hidden" id="status"></div>
+   <div class="steps" id="steps"></div>
+   <div class="steptext" id="stepText" aria-live="polite"></div>
+  </div>
+ </section>
+</main>
+<aside class="aside" id="aside"></aside>
+</div>
+<footer class="footer">Sources : AIEA / AEN (brochure INES), NRC (Backgrounder on the Three Mile Island Accident), OCDE-AEN (Chernobyl, chapitre I), ASNR (Cahiers de l’ASN n° 3 « 10 ans après Fukushima », noyau dur, accident de Fukushima), OPECST (rapport n° 2331, avril 2000, sur l’incident du Blayais, avec l’analyse de l’IPSN). Chronologies simplifiées ; schémas de principe non dimensionnés.</footer>
+<script>
+"use strict";
+const THEME_KEY='accidents-theme';
+/* =====================================================================
+   ACCIDENTS — données du parcours (S7.3.6)
+   ===================================================================== */
+const MAT={};
+const SYN_LABEL='INES et comparaison',SYN_VB='0 0 1200 700',SYN_NOTE='<span>Cliquez sur un événement pour afficher sa fiche, puis ouvrez sa chronologie schématisée.</span>',SYN_FILTER_TEXT='<span class="note">Échelle INES à gauche · ce que chaque accident a fait perdre à droite</span>';
+const WARN='Chronologies simplifiées et schémas de principe, non dimensionnés. Ils servent à comprendre les mécanismes, pas à reconstituer les événements dans le détail.';
+const STATUS_DEF=[['Fonctions',['Réactivité','Refroidissement','Confinement']],['Barrières',['Gaine','Circuit primaire','Enceinte']]];
+
+/* ---------------- Synoptique : INES + comparaison ---------------- */
+function SYN(){let s='';
+ s+=`<text class="ttl" x="24" y="32">Classer, comparer, comprendre</text><text class="subt" x="24" y="50">L’échelle INES communique la gravité d’un événement ; la comparaison montre quelle fonction de sûreté a été perdue.</text>`;
+ s+=ZONE(20,62,710,620,'ÉCHELLE INES · AIEA / AEN');
+ const lv=[[7,'Accident majeur','var(--z-rouge)',1],[6,'Accident grave','var(--z-rouge)',.85],[5,'Accident à conséquences étendues','var(--z-rouge)',.7],[4,'Accident à conséquences locales','var(--z-orange)',.75],[3,'Incident grave','var(--z-orange)',.5],[2,'Incident','var(--z-jaune)',.55],[1,'Anomalie','var(--z-jaune)',.35],[0,'Écart · sans importance pour la sûreté','var(--na)',.25]];
+ lv.forEach(([n,t,c,o],i)=>{const y=92+i*66,w=300-i*14;
+  s+=`<g data-for="${n===7?'tch fuk ines':n===5?'tmi ines':n===4?'sla ines':n===2?'bla ines':'ines'}"><rect x="40" y="${y}" width="${w}" height="56" rx="10" fill="${c}" opacity="${o*0.55}" stroke="${c}" stroke-width="1.5"/><text x="58" y="${y+36}" style="font-size:26px;font-weight:800;fill:var(--label)">${n}</text><text class="lbl" x="92" y="${y+33}" style="font-weight:700">${t}</text></g>`;});
+ s+=`<path d="M352 92 V${92+3*66+56}" stroke="var(--z-rouge)" stroke-width="3"/><text class="tag" x="360" y="${92+2*66}" transform="rotate(90 360 ${92+2*66})" style="fill:var(--z-rouge)">ACCIDENTS</text>`;
+ s+=`<path d="M352 ${92+4*66} V${92+6*66+56}" stroke="var(--z-orange)" stroke-width="3"/><text class="tag" x="360" y="${92+5*66-20}" transform="rotate(90 360 ${92+5*66-20})" style="fill:var(--z-orange)">INCIDENTS</text>`;
+ s+=N('tch',388,92,160,56,'Tchernobyl','1986 · RBMK','var(--z-rouge)');
+ s+=N('fuk',556,92,160,56,'Fukushima','2011 · REB','var(--z-rouge)');
+ s+=N('tmi',388,224,160,56,'Three Mile Island','1979 · REP','var(--z-rouge)');
+ s+=N('sla',388,290,160,56,'Saint-Laurent','1980 · UNGG','var(--z-orange)');
+ s+=N('bla',388,422,160,56,'Blayais','1999 · REP','var(--z-jaune)');
+ s+=N('ines',388,560,328,56,'Lire l’échelle INES','chaque niveau ≈ 10 fois plus grave','var(--accent)');
+ s+=TX(560,640,'Événements sans importance pour la sûreté : niveau 0, hors échelle.','lbl-s','mid')+TX(560,656,'INES n’est pas une consigne d’urgence ni une mesure de probabilité.','lbl-s','mid');
+ /* matrice de comparaison */
+ s+=ZONE(750,62,430,620,'CE QUE CHAQUE ACCIDENT A FAIT PERDRE');
+ const cols=['Réactivité','Refroidis-','Confine-'],cols2=['','sement','ment'];
+ cols.forEach((c,i)=>s+=TX(905+i*92,110,c,'hd','mid')+TX(905+i*92,126,cols2[i],'hd','mid'));
+ const rows=[['tmi','Three Mile Island','REP · 1979','oxd','enceinte intègre : rejets faibles'],['tch','Tchernobyl','RBMK · 1986','xxx','pas d’enceinte : rejets massifs'],['fuk','Fukushima','REB · 2011','oxx','3 cœurs fondus, rejets importants'],['bla','Blayais','REP · 1999','odo','pas de fusion, pas de rejet']];
+ const C={o:['var(--ok)','assurée'],d:['var(--deg)','dégradée'],x:['var(--ko)','perdue']};
+ rows.forEach((r,i)=>{const y=146+i*118;
+  s+=`<g data-for="${r[0]}"><rect x="760" y="${y}" width="410" height="106" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(772,y+28,r[1],'hd')+TX(772,y+46,r[2],'lbl-s')+[...r[3]].map((c,j)=>`<rect x="${862+j*92}" y="${y+14}" width="86" height="44" rx="10" fill="${C[c][0]}" opacity=".22" stroke="${C[c][0]}" stroke-width="2"/><text class="lbl" x="${905+j*92}" y="${y+41}" text-anchor="middle" style="font-weight:700;fill:${C[c][0]}">${C[c][1]}</text>`).join('')+TX(772,y+88,r[4],'lbl')+`</g>`;});
+ s+=TX(772,650,'Réactivité : arrêter la réaction en chaîne · Refroidissement : évacuer','lbl-s')+TX(772,666,'la puissance résiduelle · Confinement : retenir les produits radioactifs','lbl-s');
+ return s;}
+
+const TOUR=['ines','tmi','tch','sla','bla','fuk'];
+const HOME_ASIDE=`<div class="kicker">Mode d’emploi</div><h2>Classer, comparer, comprendre</h2><p>Chaque accident est raconté comme un enchaînement : un événement initiateur, des défaillances qui s’ajoutent, des fonctions de sûreté perdues, des barrières qui tiennent ou cèdent.</p><ul><li><b>Cliquez sur un accident</b> pour afficher sa fiche.</li><li><b>Ouvrez sa chronologie</b> : le schéma de l’installation évolue à chaque étape.</li><li>Le <b>bandeau d’état</b> sous le schéma indique, étape par étape, les fonctions de sûreté et les barrières.</li><li>La vue <b>Retour d’expérience</b> relie chaque accident aux évolutions de la sûreté.</li></ul><h3>Repères</h3><div class="facts"><div class="fact"><b>INES 7</b>Tchernobyl (1986), Fukushima (2011)</div><div class="fact"><b>INES 5</b>Three Mile Island (1979)</div><div class="fact"><b>INES 2</b>Blayais (1999), incident sans rejet</div></div><div class="warning">${WARN}</div>`;
+
+/* ---------------- Fiches ---------------- */
+const FICHE={
+ines:{t:'Échelle INES',full:'International Nuclear and Radiological Event Scale · AIEA et AEN, 1990',
+ role:'L’échelle INES sert à communiquer rapidement et de façon cohérente la gravité d’un événement nucléaire ou radiologique. Les niveaux 1 à 3 sont des incidents, les niveaux 4 à 7 des accidents. Chaque niveau correspond à une gravité environ dix fois supérieure au précédent.',
+ does:['Trois critères : conséquences pour les personnes et l’environnement, état des barrières et des protections radiologiques sur le site, dégradation de la défense en profondeur.','Niveau 0 : écart sans importance pour la sûreté, hors échelle.','Ce n’est ni une consigne d’urgence, ni une mesure de probabilité, ni un bilan sanitaire.'],
+ keys:[['1990','création après Tchernobyl'],['0 → 7','huit niveaux, de l’écart à l’accident majeur']]},
+tmi:{t:'Three Mile Island',full:'Réacteur TMI-2 · Pennsylvanie, États-Unis · 28 mars 1979',view:'tmi',
+ role:'Un incident banal côté secondaire se transforme en perte de réfrigérant primaire mal diagnostiquée. Environ la moitié du cœur fond, mais l’enceinte de confinement tient : les rejets restent faibles.',
+ does:['Initiateur : arrêt des pompes alimentaires des GV.','Une soupape du pressuriseur reste bloquée ouverte ; le voyant indique « fermée ».','Un niveau haut au pressuriseur fait croire que le cœur est noyé ; l’injection de sécurité est réduite.'],
+ keys:[['INES 5','accident à conséquences étendues'],['≈ 50 %','du cœur fondu, constaté plusieurs années après']]},
+tch:{t:'Tchernobyl',full:'Réacteur n° 4, RBMK-1000 · Ukraine (alors URSS) · 26 avril 1986',view:'tch',
+ role:'Lors d’un essai mené dans un état instable, le réacteur subit une excursion de puissance. Les défauts de conception du RBMK, l’absence d’enceinte et les écarts de conduite aboutissent à la destruction du réacteur et à des rejets massifs.',
+ does:['Réacteur modéré au graphite et refroidi par eau bouillante : il n’existe pas de RBMK en France.','Coefficient de vide positif : plus de vapeur → plus de réactivité dans ces conditions.','Barres d’arrêt dont l’insertion commence par ajouter de la réactivité en bas du cœur.'],
+ keys:[['INES 7','accident majeur'],['30 km','zone d’exclusion autour du site']]},
+fuk:{t:'Fukushima Daiichi',full:'Réacteurs à eau bouillante · Japon · à partir du 11 mars 2011',view:'fuk',
+ role:'Un séisme puis un tsunami très supérieur aux hypothèses de protection privent le site d’électricité et de source froide. Sans refroidissement, trois cœurs fondent ; l’hydrogène produit provoque des explosions dans les bâtiments.',
+ does:['Les réacteurs 1 à 3, en fonctionnement, s’arrêtent automatiquement au séisme.','Le tsunami noie diesels et tableaux électriques : perte quasi totale d’alimentation.','Les explosions sont chimiques (hydrogène), pas nucléaires.'],
+ keys:[['INES 7','accident majeur'],['14 à 15 m','hauteur du tsunami sur le site']]},
+bla:{t:'Blayais',full:'Centrale EDF · Gironde · nuit du 27 au 28 décembre 1999',view:'bla',
+ role:'Tempête, surcote et vagues font franchir la digue. L’eau envahit les galeries et noie des pompes de sauvegarde des tranches 1 et 2. Le refroidissement par les générateurs de vapeur n’a jamais été interrompu : pas de fusion, pas de rejet, mais une faiblesse face à l’inondation.',
+ does:['Niveau mesuré 4,50 m NGF pour 2,40 m prévus ; vagues d’au moins 5,5 m sur une digue de 5,20 m.','Tranche 1 : pompes SEC de la voie A perdues.','Tranches 1 et 2 : pompes d’injection de sécurité basse pression et d’aspersion de l’enceinte noyées.','Route d’accès coupée, relève impossible, PUI déclenché tardivement.'],
+ keys:[['INES 2','incident'],['> 10 h','marge estimée par l’IPSN avant fusion en cas de perte de l’ASG'],['≈ 90 000 m³','d’eau pompée et rejetée après contrôle']]},
+reb:{t:'Réacteur à eau bouillante',full:'REB · technologie de Fukushima Daiichi',view:'reb',
+ role:'Un seul circuit : l’eau bout dans la cuve et la vapeur va directement à la turbine. L’enceinte Mark I associe une enceinte sèche compacte et un tore de condensation.',
+ does:['≈ 70 bar dans la cuve, contre 155 bar dans un REP.','Barres de commande insérées par le bas.','Piscine du combustible en haut du bâtiment réacteur.','Aucun REB en France.'],
+ keys:[['6 REB','à Fukushima Daiichi'],['≈ 70 bar','pression de la cuve']]},
+sla:{t:'Saint-Laurent-des-Eaux',full:'Réacteur A2, filière UNGG · Loir-et-Cher · 13 mars 1980',view:'rex',
+ role:'Repère français : la fusion de deux éléments combustibles dans un réacteur uranium naturel graphite gaz, à la suite d’un défaut de refroidissement local. Événement classé 4, sans conséquence à l’extérieur comparable aux accidents étudiés.',
+ does:['Filière UNGG aujourd’hui arrêtée et en démantèlement.','Rappelle que le refroidissement doit être assuré localement, canal par canal.'],
+ keys:[['INES 4','accident à conséquences locales']]},
+rexf:{t:'Retour d’expérience',full:'Apprendre des événements, partout dans le monde',
+ role:'Chaque accident a conduit à renforcer un ou plusieurs niveaux de la défense en profondeur. Le retour d’expérience ne se limite pas aux accidents : les événements significatifs, même mineurs, sont analysés et partagés.',
+ does:['Facteurs humains et organisationnels, conduite, formation.','Coopération internationale et culture de sûreté.','Agressions externes et moyens ultimes.']},
+situ:{t:'Mises en situation',full:'Relier mécanisme, fonction perdue et enseignement',role:'Trois situations à résoudre à partir des chronologies.',does:['Lisez la consigne avant de choisir.','Une erreur se corrige avant de continuer.']}
+};
+
+/* ---------------- Aides de dessin ---------------- */
+const rodsIn=(xs,y1,y2)=>xs.map(x=>`<rect x="${x-2.5}" y="${y1}" width="5" height="${y2-y1}" rx="2" fill="var(--label)"/>`).join('');
+const X_=(x,y,r=12)=>`<path class="cross" d="M${x-r} ${y-r} L${x+r} ${y+r} M${x+r} ${y-r} L${x-r} ${y+r}"/>`;
+const valve=(x,y,c)=>`<path d="M${x-11} ${y-8} L${x+11} ${y+8} V${y-8} L${x-11} ${y+8} Z" fill="${c}" stroke="var(--label)" stroke-width="1.2"/>`;
+const puffs=(x,y,n=5,c='var(--steam)')=>Array.from({length:n},(_,i)=>`<circle class="puff" cx="${x}" cy="${y}" r="${6+i%3*2}" fill="${c}" style="animation-delay:${(i*.45).toFixed(2)}s"/>`).join('');
+const panel=(x,y,w,h,t)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(x+14,y+22,t,'hd');
+const gauge=(x,y,w,frac,c,lab)=>`<rect x="${x}" y="${y}" width="${w}" height="14" rx="7" fill="var(--panel2)" stroke="var(--border)"/><rect x="${x}" y="${y}" width="${Math.max(6,w*frac)}" height="14" rx="7" fill="${c}"/>`+(lab?TX(x+w+8,y+12,lab,'lbl-s'):'');
+const lamp=(x,y,c,txt)=>`<circle cx="${x}" cy="${y}" r="8" fill="${c}"/>`+TX(x+14,y+4,txt,'lbl');
+
+/* ---------------- Vues détaillées ---------------- */
+const VIEW_ORDER=['tmi','tch','reb','fuk','bla','rex','situations'];
+const NAV_LABEL={tmi:'Three Mile Island · 1979',tch:'Tchernobyl · 1986',reb:'Le REB',fuk:'Fukushima · 2011',bla:'Blayais · 1999',rex:'Retour d’expérience',situations:'Mises en situation'};
+
+const VIEWS={
+/* =============== THREE MILE ISLAND =============== */
+tmi:{t:'Three Mile Island · 28 mars 1979',sub:'REP de 900 MWe environ · Pennsylvanie · INES 5',fiche:'tmi',status:true,st0:'ooo|ooo',clk0:'avant 4 h 00',
+ intro:'Un réacteur à eau sous pression proche des REP français. L’accident commence par une panne classique côté secondaire ; c’est l’enchaînement avec une soupape bloquée et un diagnostic trompé par les indications qui conduit à la fusion partielle du cœur.',
+ steps:[
+ {t:'Perte de l’eau alimentaire',clk:'28 mars · 4 h 00',st:'odo|ooo',d:'<p>Une défaillance arrête les <b>pompes alimentaires</b> des générateurs de vapeur. La turbine puis le réacteur s’arrêtent automatiquement : les grappes chutent. Les GV ne reçoivent plus d’eau, la chaleur n’est plus évacuée et la <b>pression primaire monte</b>.</p><p class="note">Les vannes de l’alimentation de secours des GV étaient restées fermées après un essai ; elles sont rouvertes au bout de 8 minutes environ.</p>'},
+ {t:'La soupape reste ouverte',clk:'4 h 00 + 13 s',st:'odo|odo',d:'<p>La <b>soupape de décharge du pressuriseur</b> s’ouvre pour limiter la pression, comme prévu. Elle aurait dû se refermer : elle reste <b>bloquée ouverte</b>. L’eau du circuit primaire s’échappe en vapeur vers le réservoir de décharge, qui finit par déborder dans l’enceinte.</p><p>En salle de commande, le voyant indique « fermée » : il signale l’<b>ordre envoyé</b>, pas la position réelle.</p>'},
+ {t:'Un diagnostic trompé',clk:'≈ 4 h 05 → 5 h 00',st:'odo|odo',d:'<p>La vapeur formée dans le circuit pousse l’eau vers le pressuriseur : son <b>niveau monte</b>. Les opérateurs, formés à éviter un pressuriseur plein, y voient la preuve que le circuit est plein d’eau et <b>réduisent l’injection de sécurité</b>. En réalité, le circuit se vide.</p><p class="note">Il n’existait pas de mesure du niveau d’eau dans la cuve.</p>'},
+ {t:'Le cœur se découvre',clk:'5 h 14 → 6 h 22',st:'oxd|xdo',d:'<p>Les <b>pompes primaires</b> vibrent ; elles sont arrêtées (dernière à 5 h 41). L’eau ne circule plus dans le cœur, qui se <b>découvre</b> et surchauffe. Les gaines se rompent, le combustible commence à fondre et de l’hydrogène se forme.</p><p>À 6 h 22, une vanne d’isolement en amont de la soupape est fermée : la fuite s’arrête, mais le cœur est déjà gravement endommagé.</p>'},
+ {t:'L’enceinte tient',clk:'jours suivants',st:'odd|xoo',d:'<p>Le refroidissement est rétabli progressivement. L’<b>enceinte de confinement</b> a retenu l’essentiel des produits radioactifs : les rejets sont restés <b>faibles</b> (de l’ordre de 0,01 mSv en moyenne pour la population voisine, selon la NRC).</p><p>On découvrira en filmant l’intérieur de la cuve, plusieurs années plus tard, qu’environ <b>la moitié du cœur</b> avait fondu.</p>'},
+ {t:'Ce qui a changé',clk:'après 1979',st:'odd|xoo',d:'<ul><li>Indications fiables : position réelle des vannes, mesures adaptées au diagnostic.</li><li><b>Facteurs humains</b> : ergonomie des salles de commande, formation sur simulateur.</li><li>Conduite accidentelle fondée sur l’<b>état réel de l’installation</b> (en France : approche par états) plutôt que sur la recherche de l’événement initiateur.</li><li>Prise en compte des accidents graves et renforcement des plans d’urgence.</li></ul>'}],
+ svg:()=>{let s='';
+  s+=PT('5',`<path d="M40 492 V200 Q40 52 315 52 Q590 52 590 200 V492" fill="none" stroke="var(--m-pu)" stroke-width="6" stroke-dasharray="14 7"/>`+TX(505,140,'Enceinte de confinement','lbl','mid'));
+  /* boucle primaire */
+  s+=PT('3 4',`<path class="pipe-hot" d="M222 250 H330 V100 H390 V122"/><path class="pipe-cold" d="M390 420 V458 H250 V420 H222"/>`);
+  s+=K('0 1 2 3',`<path class="flowdash" d="M222 250 H330 V100 H390 V122"/><path class="flowdash" d="M390 420 V458 H250 V420 H222"/>`);
+  s+=B(360,120,62,302,'GV','',1,{rx:28,top:true});
+  s+=B(268,440,52,36,'','',4,{rx:16,inner:`<circle cx="294" cy="458" r="10" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`});
+  s+=TX(294,494,'pompe primaire','lbl-s','mid');
+  s+=K('4 5 6',X_(294,458,14));
+  /* cuve */
+  s+=PT('4 5',`<rect x="110" y="200" width="112" height="240" rx="46" fill="var(--eq)" stroke="var(--hot)" stroke-width="4"/>`+TX(166,190,'cuve','lbl','mid'));
+  s+=K('0 1 2 3',`<rect x="116" y="206" width="100" height="228" rx="40" fill="var(--water)" opacity=".7"/>`);
+  s+=K('4',`<rect x="116" y="375" width="100" height="59" rx="30" fill="var(--water)" opacity=".7"/>`+TX(166,290,'cœur découvert','ko-t','mid'));
+  s+=K('5 6',`<rect x="116" y="206" width="100" height="228" rx="40" fill="var(--water)" opacity=".55"/>`);
+  s+=`<rect x="134" y="300" width="64" height="104" rx="6" fill="var(--hot)" opacity=".28"/>`;
+  s+=K('0',[146,160,174,188].map(x=>`<line x1="${x}" x2="${x}" y1="300" y2="404" stroke="var(--hot)" stroke-width="3"/>`).join('')+rodsIn([153,167,181],240,300));
+  s+=K('1 2 3',[146,160,174,188].map(x=>`<line x1="${x}" x2="${x}" y1="300" y2="404" stroke="var(--hot)" stroke-width="3"/>`).join('')+`<g class="drop">${rodsIn([153,167,181],300,400)}</g>`);
+  s+=K('4',[146,160,174,188].map(x=>`<line x1="${x}" x2="${x}" y1="300" y2="404" stroke="var(--ko)" stroke-width="4" class="glow"/>`).join('')+bubbles([140,160,180,195],370,'var(--m-pu)','rise',3));
+  s+=K('5 6',`<path d="M134 404 Q140 360 166 368 Q190 352 198 404 Z" fill="var(--ko)" opacity=".75"/>`+[146,188].map(x=>`<line x1="${x}" x2="${x}" y1="300" y2="350" stroke="var(--hot)" stroke-width="3"/>`).join('')+TX(166,420,'cœur fondu ≈ 50 %','ko-t','mid'));
+  /* pressuriseur */
+  s+=PT('2 3',`<rect x="236" y="96" width="48" height="140" rx="22" fill="var(--eq)" stroke="var(--hot)" stroke-width="3"/><path d="M260 236 V250" stroke="var(--hot)" stroke-width="6"/>`+TX(260,262,'pressuriseur','lbl-s','mid'));
+  s+=K('0 1 5 6',`<rect x="241" y="160" width="38" height="71" rx="16" fill="var(--water)" opacity=".75"/>`);
+  s+=K('2',`<rect x="241" y="180" width="38" height="51" rx="16" fill="var(--water)" opacity=".75"/>`);
+  s+=K('3 4',`<rect x="241" y="104" width="38" height="127" rx="16" fill="var(--water)" opacity=".75"/>`+TX(230,130,'niveau haut','deg-t','end'));
+  /* soupape et réservoir */
+  s+=PT('2 3 4',`<path d="M260 96 V64 H480 V392" fill="none" stroke="var(--eq-stroke)" stroke-width="4"/>`+B(430,392,104,46,'Réservoir','de décharge',2,{rx:10}).replace('class="eq"','class="eq" '));
+  s+=K('0 1 5 6',valve(260,64,'var(--ok)'));
+  s+=K('2 3 4',valve(260,64,'var(--ko)')+`<g>${Array.from({length:6},(_,i)=>`<circle class="travel" cx="275" cy="64" r="4" fill="var(--steam)" style="--dx:200px;animation-delay:${(i*1.1).toFixed(1)}s"/>`).join('')}</g>`+TX(276,52,'soupape bloquée ouverte','ko-t'));
+  s+=K('3 4 5',`<rect x="50" y="480" width="530" height="10" rx="4" fill="var(--water)" opacity=".55"/>`+TX(470,476,'eau répandue dans l’enceinte','lbl-s','mid'));
+  /* secondaire */
+  s+=PT('1',`<path class="pipe-sec" d="M422 160 H660"/><path class="pipe-sec" d="M660 325 H422"/>`);
+  s+=B(660,130,120,56,'Turbine','',1);
+  s+=B(660,214,120,50,'Condenseur','',1);
+  s+=B(660,300,120,50,'Pompes','alimentaires (ARE)',1);
+  s+=K('1 2 3 4 5 6',X_(772,306,9));
+  s+=B(660,372,120,46,'ASG','secours des GV',1);
+  s+=PT('1',`<path d="M660 395 H422" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="6 5"/>`);
+  s+=K('1',valve(620,395,'var(--ko)')+TX(620,416,'vannes fermées','ko-t','mid'));
+  s+=B(660,440,120,46,'RIS','injection de sécurité',3);
+  s+=K('2 5 6',`<path d="M660 463 H330 V458" fill="none" stroke="var(--m-eau)" stroke-width="6"/><path class="flowdash" d="M660 463 H330"/>`);
+  s+=K('3 4',`<path d="M660 463 H330 V458" fill="none" stroke="var(--m-eau)" stroke-width="2" stroke-dasharray="4 6"/>`+TX(560,455,'débit réduit','deg-t','mid'));
+  /* salle de commande */
+  s+=PT('2 3',panel(810,40,270,262,'Salle de commande'));
+  s+=K('0 1 5 6',lamp(830,92,'var(--ok)','Soupape : fermée'));
+  s+=K('2 3 4',lamp(830,92,'var(--ok)','Soupape : « fermée »')+TX(824,116,'le voyant affiche l’ordre envoyé,','ko-t')+TX(824,132,'pas la position réelle','ko-t'));
+  s+=TX(824,162,'Niveau pressuriseur','lbl');
+  s+=K('0 1 5 6',gauge(824,172,170,.5,'var(--m-eau)','normal'));
+  s+=K('2',gauge(824,172,170,.35,'var(--m-eau)','baisse'));
+  s+=K('3 4',gauge(824,172,170,.95,'var(--deg)','haut')+TX(824,206,'→ « le circuit est plein »','deg-t'));
+  s+=TX(824,234,'Niveau d’eau dans la cuve','lbl')+TX(824,252,'pas de mesure disponible','lbl-s');
+  s+=K('2 3 4',`<g class="blink"><circle cx="1050" cy="64" r="6" fill="var(--ko)"/><circle cx="1032" cy="64" r="6" fill="var(--deg)"/></g>`+TX(824,284,'des dizaines d’alarmes simultanées','lbl-s'));
+  s+=K('6',`<rect x="810" y="316" width="270" height="176" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(824,340,'Enseignements','hd')+['position réelle des vannes','facteurs humains, simulateurs','conduite par états','accidents graves, plans d’urgence'].map((t,i)=>TX(824,366+i*26,'✓ '+t,'lbl')).join(''));
+  return s;}},
+
+/* =============== TCHERNOBYL =============== */
+tch:{t:'Tchernobyl · 26 avril 1986',sub:'Réacteur n° 4, RBMK-1000 · 3 200 MWth · INES 7',fiche:'tch',status:true,st0:'ooo|oon',clk0:'25 avril 1986',
+ intro:'Le RBMK est très différent d’un REP : des tubes de force traversent un empilement de graphite qui modère les neutrons, et l’eau qui y bout sert de caloporteur. Il n’a pas d’enceinte de confinement comparable. L’accident survient pendant un essai de sûreté réalisé dans des conditions qui sortaient du domaine sûr.',
+ steps:[
+ {t:'Préparer un essai',clk:'25 avril',st:'ooo|oon',d:'<p>L’essai doit vérifier que l’alternateur, en ralentissant après la coupure de la vapeur, peut <b>alimenter les pompes</b> pendant les dizaines de secondes nécessaires au démarrage des diesels. La puissance est réduite, puis l’essai est <b>retardé de plusieurs heures</b> à la demande du réseau électrique.</p>'},
+ {t:'Un état instable',clk:'26 avril · 0 h 28 → 1 h 00',st:'doo|oon',d:'<p>La puissance chute accidentellement à environ <b>30 MWth</b>. Le xénon accumulé absorbe les neutrons ; pour remonter vers 200 MWth, l’équipe <b>retire presque toutes les barres</b>. La marge de réactivité devient bien inférieure à la limite réglementaire. Plusieurs protections ont été inhibées pour l’essai.</p>'},
+ {t:'Plus de vapeur, plus de puissance',clk:'1 h 23 min 04',st:'ddo|oon',d:'<p>L’essai commence : la vapeur de la turbine est coupée, les pompes ralentissent, le débit d’eau baisse. L’eau bout davantage dans les canaux. Dans le RBMK, dans cet état, <b>plus de vapeur signifie plus de réactivité</b> (coefficient de vide positif) : la puissance augmente.</p>'},
+ {t:'L’arrêt d’urgence aggrave',clk:'1 h 23 min 40',st:'xdo|oon',d:'<p>Le bouton d’<b>arrêt d’urgence (AZ-5)</b> est actionné. Les barres descendent lentement. Sous leur partie absorbante, un <b>déplaceur en graphite</b> chasse d’abord l’eau du bas des canaux : la réactivité augmente en bas du cœur au lieu de diminuer.</p>'},
+ {t:'Excursion de puissance et explosions',clk:'1 h 23 min 44',st:'xxx|xxn',d:'<p>En quelques secondes, la puissance dépasse de très loin la valeur nominale. Le combustible se fragmente, les canaux se rompent, une <b>explosion de vapeur</b> soulève la dalle supérieure de plus de 1 000 t, puis une seconde explosion détruit le réacteur. Le graphite prend feu.</p>'},
+ {t:'Rejets et protection',clk:'26 avril → début mai',st:'xxx|xxn',d:'<p>Faute d’<b>enceinte de confinement</b>, les rejets sont massifs et durent une dizaine de jours, le temps d’étouffer l’incendie de graphite. La ville de Pripiat est évacuée le 27 avril ; une <b>zone d’exclusion de 30 km</b> est créée. Un sarcophage couvre le réacteur fin 1986, remplacé par une arche en 2016.</p>'},
+ {t:'Ce qui a changé',clk:'après 1986',st:'xxx|xxn',d:'<ul><li>Modifications des RBMK : barres d’arrêt, marges de réactivité, coefficient de vide.</li><li>Notion de <b>culture de sûreté</b> : la sûreté prime sur la production et sur le calendrier.</li><li>Conventions internationales de notification rapide et d’assistance (1986), Convention sur la sûreté nucléaire (1994).</li><li>Création de l’association mondiale des exploitants (WANO) et de l’<b>échelle INES</b> (1990).</li></ul>'}],
+ svg:()=>{let s='';
+  s+=PT('5 6',`<path d="M40 492 V120 H720 V492" fill="none" stroke="var(--eq-stroke)" stroke-width="3" stroke-dasharray="4 4"/>`+TX(48,112,'bâtiment industriel : pas d’enceinte de confinement','lbl-s'));
+  /* graphite et canaux */
+  s+=PT('2 3 4',`<rect x="110" y="260" width="320" height="170" rx="6" fill="var(--m-coq)" opacity=".35" stroke="var(--eq-stroke)" stroke-width="2"/>${Array.from({length:12},(_,i)=>`<line x1="${125+i*27}" x2="${125+i*27}" y1="262" y2="428" stroke="var(--water2)" stroke-width="5" opacity=".7"/>`).join('')}`+TX(270,450,'empilement de graphite traversé de tubes de force','lbl-s','mid'));
+  s+=K('0 1 2',bubbles([125,206,287,368],420,'var(--steam)','rise',2.5));
+  s+=K('3',bubbles([125,152,179,206,233,260,287,314,341,368,395],420,'var(--steam)','rise',3.5)+bubbles([138,192,246,300,354],400,'var(--steam)','rise',3));
+  /* barres */
+  const rod=(x,dy)=>`<g transform="translate(0 ${dy})"><rect x="${x-6}" y="150" width="12" height="100" rx="3" fill="var(--m-comb)"/><rect x="${x-6}" y="256" width="12" height="110" rx="3" fill="var(--m-coq)"/></g>`;
+  s+=K('0 1',[160,240,320,400].map(x=>rod(x,50)).join('')+TX(445,300,'barre : absorbant (violet)','lbl-s')+TX(445,314,'+ déplaceur en graphite (gris)','lbl-s')+TX(445,328,'sous le déplaceur : eau','lbl-s'));
+  s+=K('2 3',[160,240,320,400].map(x=>rod(x,0)).join('')+TX(445,300,'presque toutes les barres','deg-t')+TX(445,316,'sont retirées','deg-t'));
+  s+=K('4',`<g transform="translate(0 40)"><g class="drop">${[160,240,320,400].map(x=>rod(x,0)).join('')}</g></g><rect x="112" y="380" width="316" height="48" rx="4" fill="var(--ko)" opacity=".4" class="glow"/>`+TX(445,396,'le graphite chasse l’eau','ko-t')+TX(445,412,'en bas du cœur : pic de réactivité','ko-t'));
+  s+=K('5 6 7',`<path d="M120 430 L150 330 L190 400 L230 300 L280 390 L330 310 L380 400 L420 340 L430 430 Z" fill="var(--ko)" opacity=".55"/>`);
+  /* dalle supérieure */
+  s+=K('0 1 2 3 4',`<rect x="100" y="228" width="340" height="22" rx="4" fill="var(--concrete)"/>`+TX(448,244,'dalle supérieure','lbl-s'));
+  s+=K('5',`<g class="lift-up" style="transform-origin:270px 239px"><rect x="100" y="228" width="340" height="22" rx="4" fill="var(--concrete)"/></g><circle class="boom" cx="270" cy="250" r="70" fill="var(--hot)"/>`+puffs(270,220,7,'var(--hot)')+TX(270,200,'explosion de vapeur','ko-t','mid'));
+  s+=K('6 7',`<rect x="150" y="150" width="340" height="22" rx="4" fill="var(--concrete)" transform="rotate(-14 320 160)"/>`+[180,240,300,360].map((x,i)=>`<path class="flame" d="M${x} 300 q-14 -30 0 -60 q14 30 0 60z" fill="var(--hot)" style="animation-delay:${i*.2}s"/>`).join('')+puffs(260,140,6,'var(--m-coq)')+puffs(330,130,6,'var(--m-coq)')+TX(270,108,'incendie du graphite, rejets','ko-t','mid'));
+  /* ballons et pompes */
+  s+=PT('1 3',`<rect x="480" y="150" width="210" height="34" rx="17" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="480" y="196" width="210" height="34" rx="17" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(585,142,'ballons séparateurs','lbl','mid')+`<path d="M270 260 V200 H480" fill="none" stroke="var(--steam)" stroke-width="5"/><path d="M640 230 V330" stroke="var(--water2)" stroke-width="5"/><path d="M640 380 V460 H270 V430" fill="none" stroke="var(--water2)" stroke-width="5"/>`);
+  s+=B(590,330,100,50,'Pompes','de circulation',3);
+  s+=K('0 1 2',`<path class="flowdash" d="M640 380 V460 H270 V430"/>`);
+  s+=K('3',`<path class="flowdash" d="M640 380 V460 H270 V430" style="animation-duration:3.5s"/>`+TX(700,420,'débit en baisse','deg-t'));
+  /* turbine et essai */
+  s+=PT('1 3',`<path d="M690 167 H780" stroke="var(--steam)" stroke-width="5"/>`);
+  s+=B(780,136,130,62,'Turbo-alternateur','',1);
+  s+=K('1',`<path d="M845 198 V355 H690" fill="none" stroke="var(--m-u)" stroke-width="3" stroke-dasharray="6 4"/>`+TX(855,290,'essai : l’alternateur','lbl')+TX(855,306,'en ralentissement','lbl')+TX(855,322,'alimente les pompes','lbl'));
+  s+=K('3',valve(735,167,'var(--ko)')+TX(735,128,'vapeur coupée','ko-t','mid'));
+  /* puissance */
+  s+=panel(760,360,320,140,'Puissance thermique');
+  s+=TX(776,406,'3 200 MWth = puissance nominale','lbl-s');
+  s+=K('0',gauge(776,416,240,.95,'var(--ok)','nominale'));
+  s+=K('1',gauge(776,416,240,.5,'var(--ok)','≈ 50 %'));
+  s+=K('2',gauge(776,416,240,.04,'var(--deg)','30 → 200 MWth')+TX(776,456,'xénon, marge de réactivité faible','deg-t'));
+  s+=K('3',gauge(776,416,240,.12,'var(--deg)','en hausse'));
+  s+=K('4',gauge(776,416,240,.4,'var(--ko)','emballement'));
+  s+=K('5 6 7',gauge(776,416,240,1,'var(--ko)','≫ nominale')+TX(776,456,'excursion en quelques secondes','ko-t'));
+  s+=K('7',`<rect x="760" y="210" width="320" height="140" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(776,234,'Enseignements','hd')+['RBMK modifiés','culture de sûreté','conventions, WANO','échelle INES (1990)'].map((t,i)=>TX(776,258+i*22,'✓ '+t,'lbl')).join(''));
+  return s;}},
+
+/* =============== RÉACTEUR À EAU BOUILLANTE =============== */
+reb:{t:'Le réacteur à eau bouillante (REB)',sub:'Technologie des réacteurs de Fukushima Daiichi · schéma de principe d’une unité de type Mark I',fiche:'reb',
+ intro:'Avant de suivre l’accident, il faut comprendre la machine. Les réacteurs de Fukushima Daiichi sont des réacteurs à eau bouillante (REB) : un seul circuit, une eau qui bout directement dans la cuve, une enceinte compacte associée à un tore de condensation. Il n’y a pas de REB en France : le parc français est composé de REP.',
+ steps:[
+ {t:'Un seul circuit : l’eau bout dans la cuve',d:'<p>Dans un REB, l’eau traverse le cœur et <b>bout dans la cuve</b>, à environ <b>70 bar</b> et 285 °C. Des séparateurs et sécheurs en haut de la cuve retiennent l’eau ; la <b>vapeur part directement vers la turbine</b>. Il n’y a ni générateur de vapeur ni pressuriseur.</p><p class="note">Dans un REP, l’eau reste liquide à 155 bar et cède sa chaleur à un second circuit par les générateurs de vapeur.</p>'},
+ {t:'Turbine, condenseur, pompes alimentaires',d:'<p>La vapeur fait tourner la turbine puis se condense au contact de l’eau de mer. Les <b>pompes alimentaires</b> la renvoient en permanence dans la cuve. La vapeur qui sort du bâtiment réacteur est <b>légèrement radioactive</b> (azote 16, de période 7 secondes) : la turbine fait partie de la zone à protéger.</p><p>Des <b>vannes d’isolement</b>, de part et d’autre de l’enceinte, ferment la ligne vapeur en cas d’incident.</p>'},
+ {t:'Piloter la réaction',d:'<p>Les barres de commande, en croix, entrent dans le cœur <b>par le bas</b>, poussées hydrauliquement : le haut de la cuve est occupé par la vapeur. Les <b>pompes de recirculation</b> règlent le débit dans le cœur : plus de débit, moins de bulles de vapeur, donc plus de modération et plus de puissance. Le bore n’est pas utilisé en fonctionnement normal ; un système d’injection de bore existe en secours.</p>'},
+ {t:'Les barrières et l’enceinte Mark I',d:'<p>Trois barrières, comme sur un REP : <b>gaine</b>, <b>cuve et circuit</b>, <b>enceinte</b>. L’enceinte Mark I comprend une enceinte sèche en acier en forme de « poire » et un <b>tore de condensation</b> rempli d’eau, qui condense la vapeur en cas de brèche. Ce volume est petit : la pression y monte vite si la chaleur n’est plus évacuée.</p><p>Autour, le <b>bâtiment réacteur</b> abrite la <b>piscine du combustible</b> en hauteur. Il n’est pas conçu comme une enceinte : c’est là que l’hydrogène s’est accumulé.</p>'},
+ {t:'Refroidir sans électricité',d:'<p>Deux systèmes peuvent refroidir le cœur sans le réseau :</p><ul><li><b>Condenseur d’isolement</b> (unité 1) : la vapeur se condense dans un réservoir d’eau placé en hauteur et revient par gravité.</li><li><b>RCIC</b> (unités 2 et 3) : une turbopompe entraînée par la vapeur du réacteur aspire l’eau du tore et la renvoie dans la cuve.</li></ul><p>Mais leurs vannes et leur contrôle dépendent des batteries, et leur réserve d’eau est limitée. Après la perte des batteries, le condenseur de l’unité 1 est resté pratiquement inopérant ; le RCIC de l’unité 2 a fonctionné près de trois jours.</p>'},
+ {t:'REB et REP : ce qui change',d:'<p>Le tableau résume les différences. Pour l’accident, retenez surtout : un <b>seul circuit</b>, une <b>enceinte de petit volume</b> avec tore, une <b>piscine</b> en haut du bâtiment réacteur et des moyens de refroidissement de secours qui dépendent, à un moment, de l’électricité.</p>'}],
+ svg:()=>{let s='';
+  /* bâtiment réacteur */
+  s+=PT('4 6',`<path d="M30 470 V52 H560 V470" fill="var(--eq)" fill-opacity=".18" stroke="var(--eq-stroke)" stroke-width="3"/>`+TX(40,44,'bâtiment réacteur','lbl'));
+  s+=PT('4',`<rect x="48" y="70" width="110" height="50" rx="4" fill="var(--water)" opacity=".65" stroke="var(--eq-stroke)"/>`+[0,1,2,3,4].map(i=>`<rect x="${58+i*20}" y="88" width="12" height="28" fill="var(--m-comb)" opacity=".6"/>`).join('')+TX(103,136,'piscine du combustible','lbl-s','mid'));
+  /* enceinte sèche et tore */
+  s+=PT('4 6',`<path d="M232 122 Q222 92 262 88 H338 Q378 92 368 122 V200 Q440 250 412 332 H188 Q160 250 232 200 Z" fill="var(--panel2)" fill-opacity=".6" stroke="var(--m-pu)" stroke-width="5"/><path d="M228 332 V386 M372 332 V386" stroke="var(--m-pu)" stroke-width="5"/><ellipse cx="300" cy="404" rx="205" ry="26" fill="var(--water)" opacity=".55" stroke="var(--m-pu)" stroke-width="4"/>`+TX(300,446,'tore de condensation (eau)','lbl-s','mid')+TX(176,174,'enceinte sèche','lbl-s','end')+TX(176,188,'« poire » en acier','lbl-s','end'));
+  /* cuve */
+  s+=PT('1 3 6',`<rect x="262" y="118" width="76" height="204" rx="30" fill="var(--eq)" stroke="var(--hot)" stroke-width="4"/><rect x="266" y="200" width="68" height="118" rx="20" fill="var(--water)" opacity=".7"/><rect x="268" y="180" width="64" height="16" fill="url(#sep)" stroke="var(--eq-stroke)"/><rect x="274" y="238" width="52" height="56" rx="4" fill="var(--hot)" opacity=".45" class="glow"/>`+bubbles([280,292,304,316],236,'var(--steam)','rise',3)+TX(300,112,'cuve','lbl','mid'));
+  s+=`<defs><pattern id="sep" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 6 L6 0" stroke="var(--eq-stroke)" stroke-width="1.2"/></pattern></defs>`;
+  s+=PT('1',TX(348,170,'vapeur ≈ 70 bar','lbl')+TX(348,192,'séparateurs, sécheurs','lbl-s')+TX(348,250,'l’eau bout dans le cœur','lbl-s'));
+  /* barres par le bas */
+  s+=PT('3',`<rect x="270" y="324" width="60" height="12" rx="3" fill="var(--eq-stroke)"/>`+[282,294,306,318].map(x=>`<rect x="${x-2}" y="268" width="4" height="58" fill="var(--m-comb)"/>`).join('')+TX(300,352,'barres insérées par le bas','lbl-s','mid'));
+  /* recirculation */
+  s+=PT('3',`<path d="M262 300 H214 V246 H262" fill="none" stroke="var(--m-eau)" stroke-width="5"/><path class="flowdash" d="M262 300 H214 V246 H262"/><circle cx="214" cy="274" r="13" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(200,278,'recirculation','lbl-s','end'));
+  /* ligne vapeur et vannes */
+  s+=PT('1 2',`<path d="M338 150 H600" fill="none" stroke="var(--steam)" stroke-width="7"/><path class="flowdash" d="M338 150 H600"/>`);
+  s+=PT('2',valve(398,150,'var(--ok)')+valve(470,150,'var(--ok)')+TX(434,134,'vannes d’isolement','lbl-s','mid'));
+  s+=B(600,118,150,64,'Turbine','vapeur légèrement active',2);
+  s+=PT('2',`<path class="pipe-sec" d="M675 182 V220"/>`);
+  s+=B(600,220,150,50,'Condenseur','',2);
+  s+=B(810,220,120,50,'Mer','source froide',2);
+  s+=PT('2',`<path class="pipe-cold" d="M750 245 H810" style="stroke-width:5"/><path class="pipe-sec" d="M675 270 V306"/>`);
+  s+=B(600,306,150,46,'Pompes alimentaires','retour en continu',2);
+  s+=PT('1 2',`<path d="M600 329 H500 V214 H338" fill="none" stroke="var(--m-eau)" stroke-width="5"/><path class="flowdash" d="M600 329 H500 V214 H338"/>`);
+  /* secours sans électricité */
+  s+=PT('5',`<rect x="420" y="66" width="120" height="52" rx="5" fill="var(--water)" opacity=".6" stroke="var(--eq-stroke)"/><path d="M440 82 h80 v20 h-80" fill="none" stroke="var(--hot)" stroke-width="2.5"/><path d="M318 118 V60 H430 V82" fill="none" stroke="var(--steam)" stroke-width="4" stroke-dasharray="7 4"/><path d="M440 102 H410 V200 H338" fill="none" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="7 4"/>`+TX(480,48,'condenseur d’isolement (unité 1)','lbl','mid'));
+  s+=B(452,350,96,44,'RCIC','turbopompe',5,{rx:8});
+  s+=PT('5',`<path d="M520 150 V350" fill="none" stroke="var(--steam)" stroke-width="3.5" stroke-dasharray="6 4"/><path d="M500 394 V404 H470" fill="none" stroke="var(--m-eau)" stroke-width="3.5" stroke-dasharray="6 4"/><path d="M452 372 H430 V232 H338" fill="none" stroke="var(--m-eau)" stroke-width="3.5" stroke-dasharray="6 4"/>`+TX(500,416,'aspire l’eau du tore','lbl-s','mid'));
+  s+=K('5',`<rect x="600" y="372" width="330" height="70" rx="10" fill="var(--panel)" stroke="var(--deg)" stroke-width="2"/>`+TX(614,394,'Point faible','hd')+TX(614,414,'vannes et contrôle alimentés par batteries','lbl')+TX(614,432,'réserve d’eau limitée','lbl'));
+  /* tableau REB / REP */
+  const rows=[['Circuits','1 seul','2 (primaire, secondaire)'],['Pression','≈ 70 bar','155 bar'],['Ébullition','dans la cuve','non (GV)'],['Barres','par le bas','par le haut'],['Réglage fin','débit de recirculation','bore + grappes'],['Vapeur turbine','légèrement active','non active']];
+  s+=K('6',`<rect x="600" y="360" width="480" height="148" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(726,382,'REB','hd','mid')+TX(930,382,'REP (France)','hd','mid')+rows.map((r,i)=>`<path d="M612 ${390+i*19} H1068" stroke="var(--border)"/>`+TX(614,404+i*19,r[0],'lbl-s')+TX(726,404+i*19,r[1],'lbl','mid')+TX(930,404+i*19,r[2],'lbl','mid')).join(''));
+  s+=K('0 1 2 3 4',`<rect x="600" y="372" width="480" height="70" rx="10" fill="var(--panel)" stroke="var(--border)"/>`+TX(614,394,'Fukushima Daiichi : 6 REB','hd')+TX(614,414,'unité 1 : 460 MWe · unités 2 à 5 : 784 MWe','lbl')+TX(614,432,'unité 6 : 1 100 MWe','lbl'));
+  return s;}},
+
+/* =============== FUKUSHIMA =============== */
+fuk:{t:'Fukushima Daiichi · à partir du 11 mars 2011',sub:'Réacteurs à eau bouillante · coupe de principe d’une unité · INES 7',fiche:'fuk',status:true,st0:'ooo|ooo',clk0:'11 mars · avant 14 h 46',
+ intro:'Le site compte six réacteurs à eau bouillante, dont le fonctionnement est expliqué dans la vue précédente « Le REB ». Les unités 1 à 3 fonctionnent, les unités 4 à 6 sont à l’arrêt pour maintenance. La coupe représente une unité ; l’échelle verticale du site est respectée (1 m = 10 px).',
+ steps:[
+ {t:'Séisme et arrêt automatique',clk:'11 mars · 14 h 46',st:'ooo|ooo',d:'<p>Un séisme de magnitude 9 frappe le Japon. Les réacteurs en fonctionnement <b>s’arrêtent automatiquement</b>. Les lignes électriques extérieures sont perdues ; les <b>diesels de secours</b> démarrent et alimentent le refroidissement de la puissance résiduelle.</p>'},
+ {t:'Le tsunami noie le site',clk:'≈ 15 h 30 → 15 h 40',st:'oxo|ooo',d:'<p>Environ 50 minutes plus tard, un <b>tsunami de 14 à 15 m</b> submerge la plateforme située à 10 m, alors que la protection était dimensionnée pour environ 5,7 m. Les <b>diesels</b>, les <b>tableaux électriques</b> en sous-sol et les <b>pompes d’eau de mer</b> sont noyés : électricité et source froide sont perdues pour les unités 1 à 4.</p>'},
+ {t:'Les cœurs se découvrent',clk:'11 → 14 mars',st:'oxd|xdo',d:'<p>Les systèmes de refroidissement encore disponibles s’arrêtent les uns après les autres. L’eau de la cuve s’évapore, les <b>cœurs des unités 1, 2 et 3 se découvrent</b> et fondent. À haute température, le <b>zirconium des gaines réagit avec la vapeur</b> et produit de grandes quantités d’<b>hydrogène</b>.</p>'},
+ {t:'Dépressuriser, éventer, injecter',clk:'12 → 14 mars',st:'oxd|xdd',d:'<p>La pression monte dans l’enceinte. Sans électricité ni air comprimé, les <b>éventages</b> sont très difficiles à réaliser. Les équipes injectent de l’<b>eau de mer</b> avec des camions-pompes. L’hydrogène fuit vers le haut du bâtiment réacteur.</p>'},
+ {t:'Explosions d’hydrogène',clk:'12 mars (U1) · 14 mars (U3) · 15 mars (U4)',st:'oxx|xxx',d:'<p>L’hydrogène accumulé explose dans les bâtiments des unités 1, 3 puis 4 (alimenté par l’hydrogène de l’unité 3). Ce sont des <b>explosions chimiques</b>, pas des explosions nucléaires. Les bâtiments sont détruits ; l’enceinte de l’unité 2 perd aussi son étanchéité. Les rejets sont importants.</p>'},
+ {t:'Protéger la population',clk:'à partir du 11 mars',st:'oxx|xxx',d:'<p>Les autorités <b>évacuent</b> progressivement jusqu’à 20 km et demandent la <b>mise à l’abri</b> entre 20 et 30 km ; d’autres zones sont évacuées ensuite selon les dépôts. Plus de 100 000 personnes sont déplacées. L’accident est classé au <b>niveau 7</b>.</p>'},
+ {t:'Ce qui a changé en France',clk:'après 2011',st:'oxx|xxx',d:'<ul><li><b>Évaluations complémentaires de sûreté</b> de toutes les installations dès 2011 : séisme, inondation, pertes d’électricité et de source froide au-delà du dimensionnement.</li><li>Un <b>noyau dur</b> par réacteur : diesel d’ultime secours, source d’eau ultime, centre de crise local résistant.</li><li>La <b>FARN</b>, force d’action rapide nucléaire d’EDF, capable d’intervenir sur un site en moins de 24 heures.</li><li>Gestion de crise sur plusieurs réacteurs à la fois.</li></ul>'}],
+ svg:()=>{let s='';const G=380;/* plateforme 10 m */
+  /* mer et digue */
+  s+=`<rect x="0" y="480" width="200" height="40" fill="var(--sea)" opacity=".7"/>`;
+  s+=`<path d="M180 480 L190 423 H205 L215 480 Z" fill="var(--concrete)"/>`+TX(198,416,'≈ 5,7 m','lbl-s','mid');
+  s+=`<path d="M215 480 V${G} H1100 V520 H215 Z" fill="var(--ground)" opacity=".55"/>`+TX(1090,G-6,'plateforme 10 m','lbl-s','end');
+  [0,5,10,15].forEach(m=>s+=`<path d="M8 ${480-m*10} H22" stroke="var(--label)"/>`+TX(26,484-m*10,m+' m','lbl-s'));
+  s+=K('3 4 5 6 7',`<rect x="220" y="${G}" width="210" height="60" fill="var(--sea)" opacity=".55"/>`+TX(325,G+76,'sous-sols noyés','ko-t','mid'));
+  /* pompes eau de mer */
+  s+=B(222,350,60,30,'','',2,{rx:6,inner:`<text class="eq-s" x="252" y="369">pompes</text>`});
+  s+=TX(252,342,'eau de mer','lbl-s','mid');
+  s+=K('2 3 4 5 6 7',X_(252,365,12));
+  /* bâtiment turbine et sous-sol */
+  s+=`<rect x="290" y="230" width="150" height="${G-230}" rx="4" fill="var(--eq)" stroke="var(--eq-stroke)"/>`+TX(365,252,'salle des machines','lbl','mid');
+  s+=`<rect x="290" y="${G}" width="150" height="62" fill="var(--panel2)" stroke="var(--eq-stroke)"/>`;
+  s+=B(296,G+8,66,40,'Diesels','',1,{rx:6});
+  s+=B(368,G+8,66,40,'Tableaux','',2,{rx:6});
+  s+=K('1',`<path d="M329 ${G+8} V310 H560" fill="none" stroke="var(--m-u)" stroke-width="3" stroke-dasharray="6 4"/>`+TX(450,302,'secours électrique','lbl-s','mid'));
+  s+=K('2 3 4 5 6 7',X_(354,G+16,7)+X_(426,G+16,7));
+  s+=K('2',`<path class="wave-in" d="M0 335 Q60 300 120 330 T240 335 T360 340 L470 345 V480 H0 Z" fill="var(--sea)" opacity=".75"/>`+TX(120,320,'tsunami 14 à 15 m','ko-t','mid'));
+  /* réseau */
+  s+=`<path d="M1040 380 L1060 250 L1080 380 M1046 330 H1074 M1052 290 H1068" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(1060,240,'réseau','lbl-s','mid');
+  s+=K('0',`<path d="M1060 260 Q960 240 900 200" fill="none" stroke="var(--m-u)" stroke-width="2.5"/>`);
+  s+=K('1 2 3 4 5 6 7',`<path d="M1060 260 Q1010 250 985 236" fill="none" stroke="var(--m-u)" stroke-width="2.5"/>`+X_(975,232,9));
+  /* bâtiment réacteur */
+  s+=K('0 1 2 3',`<path d="M480 ${G} V100 H880 V${G}" fill="var(--eq)" fill-opacity=".35" stroke="var(--eq-stroke)" stroke-width="3"/>`);
+  s+=K('4',`<path d="M480 ${G} V100 H880 V${G}" fill="var(--eq)" fill-opacity=".35" stroke="var(--eq-stroke)" stroke-width="3"/><rect x="484" y="104" width="392" height="44" fill="var(--m-pu)" opacity=".28" class="glow"/>`+TX(680,130,'hydrogène accumulé sous le toit','lbl','mid'));
+  s+=K('5',`<path d="M480 ${G} V150 L520 120 L560 150 L610 110 L660 150 L720 115 L790 150 L840 118 L880 150 V${G}" fill="var(--eq)" fill-opacity=".35" stroke="var(--eq-stroke)" stroke-width="3"/><circle class="boom" cx="680" cy="125" r="90" fill="var(--hot)"/>`+puffs(620,110,6,'var(--m-coq)')+puffs(740,110,6,'var(--m-coq)')+TX(680,90,'explosion d’hydrogène','ko-t','mid'));
+  s+=K('6 7',`<path d="M480 ${G} V170 L530 140 L590 165 L650 132 L710 160 L770 138 L830 168 L880 150 V${G}" fill="var(--eq)" fill-opacity=".35" stroke="var(--eq-stroke)" stroke-width="3"/>`+puffs(680,140,5,'var(--m-coq)'));
+  /* piscine */
+  s+=`<rect x="496" y="160" width="74" height="60" rx="4" fill="var(--water)" opacity=".6" stroke="var(--eq-stroke)"/>`+TX(533,234,'piscine','lbl-s','mid');
+  /* enceinte sèche et tore */
+  s+=PT('3 4 5',`<path d="M610 160 Q600 150 640 140 H720 Q760 150 750 160 V250 Q800 300 760 340 H600 Q560 300 610 250 Z" fill="var(--panel2)" stroke="var(--m-pu)" stroke-width="5"/><ellipse cx="680" cy="${G-14}" rx="140" ry="18" fill="var(--water)" opacity=".5" stroke="var(--m-pu)" stroke-width="3"/>`+TX(820,362,'tore de condensation','lbl-s')+TX(770,200,'enceinte','lbl-s'));
+  s+=`<rect x="652" y="168" width="56" height="160" rx="24" fill="var(--eq)" stroke="var(--hot)" stroke-width="3"/>`;
+  s+=K('0 1 2',`<rect x="657" y="190" width="46" height="133" rx="20" fill="var(--water)" opacity=".75"/>`);
+  s+=K('3 4',`<rect x="657" y="290" width="46" height="33" rx="14" fill="var(--water)" opacity=".75"/>`+bubbles([666,680,694],285,'var(--m-pu)','rise',2.5)+TX(712,275,'H₂','ko-t'));
+  s+=`<rect x="665" y="235" width="30" height="60" rx="4" fill="var(--hot)" opacity=".3"/>`;
+  s+=K('0',rodsIn([672,680,688],300,330));
+  s+=K('1 2',`<g class="drop">${rodsIn([672,680,688],235,292)}</g>`);
+  s+=K('3 4',[670,680,690].map(x=>`<line x1="${x}" x2="${x}" y1="238" y2="292" stroke="var(--ko)" stroke-width="3" class="glow"/>`).join('')+TX(712,248,'cœur découvert','ko-t'));
+  s+=K('5 6 7',`<path d="M660 320 Q670 290 680 300 Q692 286 700 320 Z" fill="var(--ko)" opacity=".8"/>`+TX(712,310,'cœur fondu','ko-t'));
+  /* éventage et injection */
+  s+=K('4',`<path d="M800 ${G-14} H920 V60" fill="none" stroke="var(--m-pu)" stroke-width="3" stroke-dasharray="6 5"/><rect x="908" y="60" width="24" height="${G-60}" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`+puffs(920,58,4,'var(--m-pu)')+TX(940,90,'éventage','lbl')+`<g class="truck"><rect x="950" y="${G-34}" width="70" height="26" rx="4" fill="var(--z-rouge)"/><circle cx="964" cy="${G-6}" r="7" fill="var(--label)"/><circle cx="1004" cy="${G-6}" r="7" fill="var(--label)"/></g><path d="M950 ${G-22} H880" stroke="var(--sea)" stroke-width="3"/>`+TX(985,G-44,'eau de mer','lbl-s','mid'));
+  s+=K('6',`<rect x="900" y="40" width="190" height="120" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(914,62,'Population','hd')+TX(914,86,'évacuation jusqu’à 20 km','lbl')+TX(914,106,'mise à l’abri 20 à 30 km','lbl')+TX(914,126,'> 100 000 personnes','lbl')+TX(914,146,'déplacées','lbl'));
+  s+=K('7',`<rect x="900" y="40" width="190" height="150" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(914,62,'En France','hd')+['ECS 2011','noyau dur','diesel d’ultime secours','FARN'].map((t,i)=>TX(914,88+i*24,'✓ '+t,'lbl')).join(''));
+  return s;}},
+
+/* =============== BLAYAIS =============== */
+bla:{t:'Blayais · 27 et 28 décembre 1999',sub:'4 REP de 900 MWe · estuaire de la Gironde · INES 2 · d’après le rapport OPECST et l’analyse de l’IPSN (2000)',fiche:'bla',status:true,st0:'ooo|ooo',clk0:'27 déc. · journée',
+ intro:'Un incident français sans fusion ni rejet, mais riche d’enseignements : une même agression externe, l’inondation, a atteint plusieurs équipements de sûreté à la fois. Les réacteurs 1, 2 et 4 fonctionnent ; le réacteur 3 est à l’arrêt pour réparation. Échelle verticale : 1 m = 25 px, niveaux en m NGF.',
+ steps:[
+ {t:'Tempête : le réseau se dégrade',clk:'27 déc. · 18 h → 20 h 50',st:'odo|ooo',d:'<p>La tempête coupe les deux lignes <b>225 kV</b> d’alimentation auxiliaire (18 h et 19 h 30). Le marais inonde la <b>route d’accès</b> : la relève de quart de 21 h est impossible. Vers 20 h 50, les perturbations du réseau font disjoncter les réacteurs <b>2 et 4</b>, qui s’arrêtent automatiquement ; leurs <b>diesels</b> (deux par réacteur) démarrent. Le 400 kV revient vers 23 h 30.</p>'},
+ {t:'La digue est franchie',clk:'≈ 19 h 30 · 2 h avant la pleine mer',st:'odo|ooo',d:'<p>La marée prévue (coefficient 77) devait atteindre <b>2,40 m NGF</b>. Le niveau mesuré atteint <b>4,50 m</b>, soit 2 m de plus, et des <b>vagues d’au moins 5,5 m</b> franchissent la digue haute de <b>5,20 m</b>, au bord d’une plateforme à 4,50 m. Les enrochements sont déplacés, la digue est arasée côté Gironde. L’eau reste environ 2 heures sur le site (≈ 30 cm dans l’angle nord-ouest).</p><p class="note">À 22 h, l’alarme de niveau haut de la Gironde n’arrive qu’en salle de commande de la tranche 4.</p>'},
+ {t:'L’eau entre dans les galeries',clk:'27 déc. soir',st:'odo|ooo',d:'<p>L’eau s’engouffre dans la <b>galerie générale</b> qui encercle les bâtiments, par des trous de manutention et des tôles déformées : de <b>20 000 à 40 000 m³/h</b>. Des trémies cèdent sous la pression ; l’isolant des traversées de murs, censé tenir 6 m d’eau, ne tient pas. Environ <b>90 000 m³</b> seront pompés et rejetés après contrôle entre le 27 décembre et le 1er janvier.</p>'},
+ {t:'Des équipements de sûreté noyés',clk:'nuit du 27 au 28',st:'odd|ooo',d:'<ul><li>Tranche 1 : les pompes de la <b>voie A du circuit d’eau brute secourue (SEC)</b> sont perdues, moteurs noyés. La voie B, indépendante, reste disponible.</li><li>Tranches 1 et 2 : au fond du bâtiment combustible (≈ 1 m d’eau en tranche 1, ≈ 2 m en tranche 2), les deux pompes d’<b>injection de sécurité basse pression</b> et les deux pompes d’<b>aspersion de l’enceinte</b> sont indisponibles.</li><li>Des tableaux électriques sont touchés. Le réacteur 1 s’arrête automatiquement à 0 h 30.</li></ul><p class="note">La piscine du combustible, en hauteur, n’a jamais été atteinte.</p>'},
+ {t:'Le refroidissement tient',clk:'28 déc. → 4 janv.',st:'odo|ooo',d:'<p>Les réacteurs sont refroidis par les générateurs de vapeur grâce à l’<b>ASG</b> (deux motopompes et une turbopompe, une seule suffit), qui n’a montré aucune défaillance. L’IPSN estime que la tranche 1 aurait disposé de <b>plus de 10 heures</b> avant fusion en cas de perte de l’ASG.</p><p>Crise : préfecture, DRIRE et autorité de sûreté informées à 22 h 40 ; équipes nationales EDF à 3 h 15 ; <b>PUI de niveau 2 à 9 h</b>, à la demande de l’autorité de sûreté. Classement <b>INES 2</b> ; aucune contamination mesurable dans l’environnement.</p>'},
+ {t:'Ce qui a changé',clk:'années suivantes',st:'ooo|ooo',d:'<ul><li><b>Réévaluer les agressions naturelles</b> : la « crue millénaire » ne suffit plus comme référence ; combiner marée, surcote, vagues, vent.</li><li><b>Protection externe</b> : digue rehaussée et renforcée (aujourd’hui 8 m NGF au Blayais).</li><li><b>Protection interne</b> : compartimenter les sous-sols, doubler les portes coupe-feu de portes étanches, traversées étanches, pompes d’épuisement plus puissantes.</li><li><b>Organisation</b> : accès au site et relève des équipes, alerte météo, critères de déclenchement du PUI plus opérationnels.</li></ul>'}],
+ svg:()=>{let s='';const Z=y=>420-y*25;/* 1 m = 25 px, 0 NGF à y = 420 */
+  [0,2,4,6,8].forEach(m=>s+=`<path d="M8 ${Z(m)} H22" stroke="var(--label)"/>`+TX(26,Z(m)+4,m+' m NGF','lbl-s'));
+  s+=K('0',`<rect x="0" y="${Z(2.4)}" width="250" height="${520-Z(2.4)}" fill="var(--sea)" opacity=".7"/>`+TX(120,Z(2.4)+40,'marée prévue 2,40 m','lbl','mid'));
+  s+=K('1',`<path class="wave" d="M-30 ${Z(4)} Q30 ${Z(4.4)} 90 ${Z(4)} T210 ${Z(4)} T330 ${Z(4)} V520 H-30 Z" fill="var(--sea)" opacity=".75"/>`+TX(120,Z(4)+50,'surcote : l’eau monte','lbl','mid'));
+  s+=K('2 3 4',`<path class="wave" d="M-30 ${Z(4.5)} Q30 ${Z(5.8)} 90 ${Z(4.5)} T210 ${Z(4.6)} T330 ${Z(4.5)} V520 H-30 Z" fill="var(--sea)" opacity=".75"/>`+TX(150,Z(4.5)+44,'niveau 4,50 m (+2 m)','ko-t','mid')+TX(150,Z(4.5)+62,'vagues ≥ 5,5 m','ko-t','mid'));
+  s+=K('5 6',`<rect x="0" y="${Z(3)}" width="250" height="${520-Z(3)}" fill="var(--sea)" opacity=".7"/>`);
+  s+=K('1 2',[60,130,190].map((x,i)=>`<path class="wave" d="M${x} ${70+i*22} h50 m-10 -6 l10 6 l-10 6" fill="none" stroke="var(--label)" stroke-width="2" style="animation-delay:${i*.4}s"/>`).join('')+TX(40,62,'vent de tempête','lbl'));
+  /* digue */
+  s+=PT('2',`<path d="M250 520 L262 ${Z(5.2)} H286 L300 520 Z" fill="var(--concrete)"/>`+TX(274,Z(5.2)-8,'digue 5,20 m','lbl','mid'));
+  s+=K('6',`<path d="M250 520 L262 ${Z(8)} H286 L300 520" fill="none" stroke="var(--ok)" stroke-width="3" stroke-dasharray="8 5"/>`+TX(274,Z(8)-8,'aujourd’hui 8 m','ok-t','mid'));
+  s+=K('2 3',`<path class="drip" d="M262 ${Z(5.8)} q22 -12 46 12" fill="none" stroke="var(--sea)" stroke-width="7"/>`);
+  /* plateforme 4,50 m */
+  const P=Z(4.5);
+  s+=`<path d="M300 ${P} H1100 V520 H300 Z" fill="var(--ground)" opacity=".5"/>`+TX(1092,P+16,'plateforme 4,50 m','lbl-s','end');
+  s+=K('2 3 4',`<rect x="300" y="${P-8}" width="560" height="8" fill="var(--sea)" opacity=".6"/>`+TX(530,P-14,'≈ 30 cm d’eau, ≈ 2 h','lbl-s','mid'));
+  /* station de pompage */
+  s+=`<rect x="320" y="${P-80}" width="130" height="80" rx="4" fill="var(--eq)" stroke="var(--eq-stroke)"/>`+TX(385,P-60,'station','lbl','mid')+TX(385,P-46,'de pompage','lbl','mid');
+  s+=`<rect x="320" y="${P}" width="130" height="70" fill="var(--panel2)" stroke="var(--eq-stroke)"/>`;
+  s+=B(330,P+12,52,46,'SEC','voie A',4,{rx:6});s+=B(388,P+12,52,46,'SEC','voie B',4,{rx:6});
+  /* galerie générale */
+  s+=PT('3',`<rect x="450" y="${P+28}" width="160" height="26" fill="var(--panel2)" stroke="var(--eq-stroke)"/>`+TX(530,P+70,'galerie générale','lbl-s','mid')+TX(530,P+84,'20 000 à 40 000 m³/h','deg-t','mid'));
+  s+=K('3 4',`<rect x="452" y="${P+30}" width="156" height="22" fill="var(--sea)" opacity=".6"/><rect x="322" y="${P+40}" width="126" height="28" fill="var(--sea)" opacity=".6"/><rect x="612" y="${P+40}" width="146" height="48" fill="var(--sea)" opacity=".6"/>`+`<g>${[0,1,2].map(i=>`<circle class="travel" cx="470" cy="${P+41}" r="4" fill="var(--sea)" style="--dx:130px;animation-delay:${i*1.5}s"/>`).join('')}</g>`+[480,540].map(x=>`<path class="fall" d="M${x} ${P-6} v18" stroke="var(--sea)" stroke-width="4"/>`).join(''));
+  /* bâtiment combustible */
+  s+=`<rect x="610" y="${P-110}" width="150" height="110" rx="4" fill="var(--eq)" stroke="var(--eq-stroke)"/>`+TX(685,P-88,'bâtiment','lbl','mid')+TX(685,P-74,'combustible','lbl','mid')+`<rect x="626" y="${P-62}" width="118" height="34" rx="3" fill="var(--water)" opacity=".6"/>`+TX(685,P-40,'piscine, hors d’eau','lbl-s','mid');
+  s+=`<rect x="610" y="${P}" width="150" height="90" fill="var(--panel2)" stroke="var(--eq-stroke)"/>`+TX(764,P+86,'sous-sols ≈ −10 m','lbl-s');
+  s+=B(618,P+12,64,52,'RIS BP','injection',4,{rx:6});s+=B(688,P+12,64,52,'EAS','aspersion',4,{rx:6});
+  s+=K('4 5',X_(676,P+18,7)+X_(746,P+18,7)+X_(376,P+18,7)+TX(685,P+108,'noyées (tranches 1 et 2)','ko-t','mid')+TX(385,P+108,'voie A perdue (tranche 1)','ko-t','mid'));
+  /* réacteur */
+  s+=`<path d="M790 ${P} V${P-120} Q790 ${P-190} 860 ${P-190} Q930 ${P-190} 930 ${P-120} V${P}" fill="var(--eq)" stroke="var(--m-pu)" stroke-width="4"/>`+TX(860,P-160,'réacteur','lbl','mid');
+  s+=K('1 2 3 4',`<g class="drop">${rodsIn([848,860,872],P-80,P-30)}</g>`);
+  s+=B(950,P-60,80,50,'Diesels','2 par réacteur',1,{rx:6});
+  s+=K('1',`<path d="M990 ${P-60} V${P-80} H930" fill="none" stroke="var(--m-u)" stroke-width="3" stroke-dasharray="6 4"/>`+TX(990,P-88,'tranches 2 et 4','lbl-s','mid'));
+  s+=B(940,P-130,100,44,'ASG','3 pompes, 1 suffit',5,{rx:6});
+  s+=K('5',`<circle class="pulse" cx="1030" cy="${P-120}" r="5" fill="var(--ok)"/>`);
+  /* route d'accès */
+  s+=K('1 2 3',`<rect x="940" y="${P}" width="160" height="12" fill="var(--sea)" opacity=".6"/>`+TX(1092,P+48,'marais : route d’accès coupée','deg-t','end'));
+  /* lignes */
+  s+=`<path d="M1050 ${P} L1068 ${P-150} L1086 ${P} M1056 ${P-50} H1080 M1061 ${P-100} H1075" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(1068,P-160,'225 / 400 kV','lbl-s','mid');
+  s+=K('0 5 6',`<path d="M1068 ${P-140} Q1000 ${P-170} 930 ${P-150}" fill="none" stroke="var(--m-u)" stroke-width="2.5"/>`);
+  s+=K('1 2 3 4',`<path d="M1068 ${P-140} Q1040 ${P-150} 1020 ${P-152}" fill="none" stroke="var(--m-u)" stroke-width="2.5"/>`+X_(1012,P-152,9));
+  s+=K('5',`<rect x="320" y="30" width="400" height="104" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(334,52,'Bilan','hd')+TX(334,76,'pas de fusion, pas de rejet mesurable · INES 2','lbl')+TX(334,98,'marge estimée par l’IPSN : plus de 10 h','lbl')+TX(334,120,'PUI niveau 2 déclenché le 28 à 9 h','lbl-s'));
+  s+=K('6',`<rect x="320" y="30" width="400" height="110" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(334,52,'Enseignements','hd')+['réévaluer les agressions naturelles combinées','digue renforcée, sous-sols compartimentés','accès, relève, critères de PUI'].map((t,i)=>TX(334,76+i*22,'✓ '+t,'lbl')).join(''));
+  return s;}},
+
+/* =============== RETOUR D’EXPÉRIENCE =============== */
+rex:{t:'Retour d’expérience : ce qui a changé',sub:'Chaque accident a renforcé un ou plusieurs niveaux de défense',fiche:'rexf',
+ intro:'Le retour d’expérience relie un mécanisme d’accident à des évolutions concrètes : conception, conduite, organisation, coopération internationale, moyens de crise. La frise situe les quatre événements étudiés et le repère français de Saint-Laurent-des-Eaux.',
+ steps:[
+ {t:'1979 · Three Mile Island',d:'<p>Facteurs humains et ergonomie des salles de commande, formation sur <b>simulateur</b>, conduite accidentelle fondée sur l’état réel de l’installation, prise en compte des <b>accidents graves</b> et des plans d’urgence.</p>'},
+ {t:'1980 · Saint-Laurent-des-Eaux',d:'<p>Fusion de deux éléments combustibles dans un réacteur UNGG, classée <b>niveau 4</b>. Elle rappelle que le refroidissement doit être garanti localement et que les filières anciennes ont leurs propres risques.</p>'},
+ {t:'1986 · Tchernobyl',d:'<p><b>Culture de sûreté</b>, indépendance du contrôle, coopération entre exploitants (WANO), conventions internationales et <b>échelle INES</b>. La conception doit rendre le réacteur intrinsèquement stable.</p>'},
+ {t:'1999 · Blayais',d:'<p>Réévaluation du <b>risque d’inondation</b> pour tout le parc français, protection des locaux et combinaisons d’aléas. Une agression externe peut toucher plusieurs voies à la fois.</p>'},
+ {t:'2011 · Fukushima',d:'<p><b>Évaluations complémentaires de sûreté</b>, <b>noyau dur</b>, FARN, gestion de crise multi-réacteurs, situations de perte totale et durable d’électricité et de source froide.</p>'},
+ {t:'Un retour d’expérience permanent',d:'<p>Le REX ne commence pas avec l’accident : chaque <b>événement significatif</b> est déclaré, analysé, partagé entre sites et à l’international. Les <b>réexamens de sûreté tous les 10 ans</b> intègrent ces enseignements. L’intervenant y contribue en <b>signalant</b> chaque écart.</p>'}],
+ svg:()=>{let s='';
+  s+=`<path d="M60 200 H1060" stroke="var(--eq-stroke)" stroke-width="3"/>`;
+  const ev=[[1979,'TMI','INES 5','var(--z-rouge)','1',['simulateurs','facteurs humains','conduite par états','accidents graves']],[1980,'Saint-Laurent','INES 4','var(--z-orange)','2',['refroidissement local','filière UNGG']],[1986,'Tchernobyl','INES 7','var(--z-rouge)','3',['culture de sûreté','WANO, conventions','échelle INES']],[1999,'Blayais','INES 2','var(--z-jaune)','4',['risque inondation','digues, étanchéité','combinaisons d’aléas']],[2011,'Fukushima','INES 7','var(--z-rouge)','5',['ECS 2011','noyau dur, DUS','FARN']]];
+  const X=y=>60+(y-1975)/40*1000;
+  for(let y=1980;y<=2010;y+=10)s+=`<path d="M${X(y)} 192 V208" stroke="var(--eq-stroke)"/>`+TX(X(y),226,y,'lbl-s','mid');
+  ev.forEach((e,i)=>{const x=X(e[0]),up=i%2===0,cx=Math.min(Math.max(x,120),980);
+   s+=PT(e[4]+' 6',`<circle cx="${x}" cy="200" r="10" fill="${e[3]}"/><path d="M${x} ${up?190:210} V${up?150:250}" stroke="${e[3]}" stroke-width="2"/>`+`<rect x="${cx-100}" y="${up?28:250}" width="200" height="${up?122:126}" rx="12" fill="var(--panel)" stroke="${e[3]}" stroke-width="2"/>`+TX(cx-86,up?50:274,e[0]+' · '+e[1],'hd')+TX(cx-86,up?67:292,e[2],'lbl-s')+e[5].map((t,j)=>TX(cx-86,(up?88:314)+j*18,'✓ '+t,'lbl')).join(''));});
+  /* défense en profondeur renforcée */
+  const L=['Prévenir','Surveiller','Sauvegarder','Accident grave','Urgence'];
+  const hit={1:[1,2,4],2:[3],3:[1,2,5],4:[1,3],5:[3,4,5],6:[1,2,3,4,5]};
+  s+=TX(60,410,'Niveaux de défense en profondeur renforcés','hd');
+  L.forEach((l,i)=>{s+=`<rect x="${60+i*202}" y="422" width="190" height="56" rx="10" fill="var(--panel)" stroke="var(--border)"/>`+TX(155+i*202,446,'Niveau '+(i+1),'lbl-s','mid')+TX(155+i*202,466,l,'hd','mid');
+   Object.entries(hit).forEach(([st,lv])=>{if(lv.includes(i+1))s+=K(st,`<rect x="${60+i*202}" y="422" width="190" height="56" rx="10" fill="var(--accent)" opacity=".18" stroke="var(--accent)" stroke-width="2.5"/>`);});});
+  s+=K('0',TX(560,500,'Choisissez une étape pour voir les niveaux renforcés.','lbl-s','mid'));
+  return s;}},
+
+/* =============== MISES EN SITUATION =============== */
+situations:{t:'Mises en situation',sub:'Relier mécanisme, fonction perdue et enseignement',fiche:'situ',quiz:true,steps:[]}
+};
+
+const ACTIVITIES=[
+ {title:'Relier mécanisme et enseignement',context:'Comparer les accidents à partir de leur chronologie.',rule:'Identifier la fonction de sûreté menacée et la leçon applicable.',steps:[
+  {prompt:'À Fukushima, pourquoi fallait-il encore refroidir après l’arrêt automatique ?',options:['Pour évacuer la puissance résiduelle','Pour maintenir la turbine à pleine puissance','Pour relancer la réaction en chaîne'],answer:0,why:'Les produits de fission continuent à se désintégrer et à chauffer après l’arrêt : environ 1 % de la puissance au bout d’une heure.'},
+  {prompt:'Quel enseignement relie le Blayais et Fukushima ?',options:['Tous les réacteurs sont identiques','Une agression externe peut faire perdre plusieurs fonctions à la fois','Le confinement est inutile'],answer:1,why:'L’indépendance des voies de sûreté doit être vérifiée face à une même agression : inondation, séisme.'},
+  {prompt:'À Three Mile Island, quelle indication a trompé le diagnostic ?',options:['La couleur des bâtiments','Le niveau de la rivière','Le niveau haut du pressuriseur, pris pour la preuve que le cœur était noyé'],answer:2,why:'Une indication n’a de sens que dans son domaine de validité ; il n’existait pas de mesure du niveau dans la cuve.'}]},
+ {title:'Fonctions et barrières',context:'Lire le bandeau d’état de chaque chronologie.',rule:'Distinguer la fonction perdue de la barrière qui a tenu.',steps:[
+  {prompt:'À Three Mile Island, pourquoi les rejets sont-ils restés faibles malgré la fusion partielle ?',options:['L’enceinte de confinement a tenu','Le réacteur était arrêté depuis un mois','La soupape s’est refermée seule'],answer:0,why:'Les gaines et le circuit primaire ont été atteints, mais la troisième barrière a retenu l’essentiel des produits radioactifs.'},
+  {prompt:'À Tchernobyl, quelle fonction de sûreté a été perdue en premier ?',options:['Le confinement','La maîtrise de la réactivité','L’alimentation électrique'],answer:1,why:'L’excursion de puissance résulte du coefficient de vide positif et de l’effet des déplaceurs des barres : la réaction en chaîne n’était plus maîtrisée.'},
+  {prompt:'À Fukushima, d’où viennent les explosions dans les bâtiments réacteurs ?',options:['D’une explosion nucléaire du cœur','De l’hydrogène produit par la réaction du zirconium avec la vapeur','D’un incendie du gazole des diesels'],answer:1,why:'Le zirconium des gaines, surchauffé, réagit avec la vapeur d’eau et libère de l’hydrogène, qui explose au contact de l’air.'}]},
+ {title:'Lire l’échelle INES',context:'Communiquer la gravité d’un événement.',rule:'INES classe la gravité ; ce n’est ni une consigne ni un bilan sanitaire.',steps:[
+  {prompt:'Le Blayais est classé au niveau 2. Que signifie ce niveau ?',options:['Un incident : défense en profondeur affaiblie, sans conséquence à l’extérieur','Un accident avec rejets importants','Un écart sans importance pour la sûreté'],answer:0,why:'Les niveaux 1 à 3 sont des incidents ; les accidents commencent au niveau 4.'},
+  {prompt:'Deux accidents classés 7 ont-ils exactement les mêmes conséquences ?',options:['Oui, le niveau le garantit','Non : INES communique une gravité, il ne compare pas finement toutes les conséquences'],answer:1,why:'Tchernobyl et Fukushima sont tous deux au niveau 7, avec des mécanismes, des rejets et des conséquences différents.'},
+  {prompt:'Un écart sans importance pour la sûreté est classé :',options:['au niveau 0, hors échelle','au niveau 1','au niveau 3'],answer:0,why:'Le niveau 0 regroupe les écarts sans importance pour la sûreté ; ils sont tout de même analysés.'}]}
+];
+
+/* =====================================================================
+   MOTEUR COMMUN — reprend le fonctionnement des parcours validés
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+function pts(d){const t=d.match(/[MLHV]|-?\d+(?:\.\d+)?/g);const p=[];let c='M',x=0,y=0,i=0;
+ while(i<t.length){const k=t[i];if(/[MLHV]/.test(k)){c=k;i++;continue;}
+  if(c==='M'||c==='L'){x=+t[i];y=+t[i+1];i+=2;}else if(c==='H'){x=+t[i];i++;}else{y=+t[i];i++;}p.push([x,y]);}return p;}
+function F(d,m,s,o={}){const p=pts(d),a=p[p.length-2],b=p[p.length-1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),w=o.w||6,sz=w+6;
+ const tri=`M${b[0]} ${b[1]} L${(b[0]-sz*Math.cos(ang-.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang-.45)).toFixed(1)} L${(b[0]-sz*Math.cos(ang+.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang+.45)).toFixed(1)}Z`;
+ return `<g class="fl m-${m}" data-m="${m}"${s!==''?` data-s="${s}"`:''}${o.n?` data-n="${o.n}"`:''}${o.k?` data-k="${o.k}"`:''}>${o.noCase?'':`<path class="f-case" d="${d}" stroke-width="${w+5}"/>`}<path class="f-base" d="${d}" stroke-width="${w}"/><path class="f-dash" d="${d}" stroke-width="${Math.max(2,w*.45).toFixed(1)}"/>${o.noArrow?'':`<path class="f-arr" d="${tri}"/>`}${o.lab?`<text class="f-lab" x="${o.lab[0]}" y="${o.lab[1]}"${o.lab[3]?` text-anchor="${o.lab[3]}"`:''}>${o.lab[2]}</text>`:''}</g>`;}
+function B(x,y,w,h,t,sub,s,o={}){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2;
+ const ty=o.top?y+20:(y+h/2-(L.length*13)/2+5);
+ return `<g class="eq" data-s="${s}" tabindex="0" role="button" aria-label="${t.replace(/<[^>]+>/g,'')}"><rect class="eq-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx??11}"/>${o.inner||''}<text class="eq-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="eq-s" x="${cx}" y="${ty+15+i*13}">${l}</text>`).join('')}</g>`;}
+function N(id,x,y,w,h,t,sub,col){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2+3,ty=y+h/2-(L.length*13)/2+5;
+ return `<g class="node" data-node="${id}" tabindex="0" role="button" aria-label="${t}"><rect class="n-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><rect class="n-strip" x="${x}" y="${y+6}" width="6" height="${h-12}" rx="3" style="fill:${col}"/><text class="n-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="n-s" x="${cx}" y="${ty+16+i*13}">${l}</text>`).join('')}</g>`;}
+const PT=(s,inner,k)=>`<g class="part" data-s="${s}"${k?` data-k="${k}"`:''}>${inner}</g>`;
+const K=(k,inner)=>`<g data-k="${k}">${inner}</g>`;
+const TX=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+const ZONE=(x,y,w,h,t)=>`<rect class="zone" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><text class="zt" x="${x+12}" y="${y+18}">${t}</text>`;
+const CALL=(x,y,n)=>`<circle cx="${x}" cy="${y}" r="11" class="callout"/><text class="num" x="${x}" y="${y+4.5}">${n}</text>`;
+const bubbles=(xs,y,c,cls='rise',r=3)=>xs.map((x,i)=>`<circle class="${cls}" cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".8" style="animation-delay:${(i*.45).toFixed(2)}s"/>`).join('');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Fiches ---------- */
+function renderFiche(id,inDetail){const f=FICHE[id];if(!f)return;
+ $('aside').innerHTML=`<div class="kicker">Fiche</div><h2>${f.t}</h2><p style="margin:0 0 8px;color:var(--muted)">${f.full}</p><p>${f.role}</p>
+ ${f.does?`<h3>${f.doesT||'À retenir'}</h3><ul>${f.does.map(d=>`<li>${d}</li>`).join('')}</ul>`:''}
+ ${f.keys&&f.keys.length?`<h3>Repères</h3><div class="facts">${f.keys.map(([a,b])=>`<div class="fact"><b>${a}</b>${b}</div>`).join('')}</div>`:''}
+ ${f.io?`<h3>${f.ioT||'Liens'}</h3><div class="io">${f.io.map(([a,b])=>`<span>${a}</span><div>${b}</div>`).join('')}</div>`:''}
+ ${!inDetail&&f.view?`<button class="btn primary openbtn" type="button" id="openView">Ouvrir la vue détaillée →</button>`:''}
+ <div class="warning">${WARN}</div>`;
+ const b=$('openView');if(b)b.onclick=()=>openView(f.view);}
+function asideHome(){$('aside').innerHTML=HOME_ASIDE;}
+
+/* ---------- Navigation ---------- */
+let cur='syn',step=0,playTimer=null,tourTimer=null,selNode=null,filter='all';
+function buildNav(){$('nav').innerHTML=`<button type="button" data-go="syn">${SYN_LABEL}</button><span class="sep"></span>`+VIEW_ORDER.map(v=>`<button type="button" data-go="${v}">${NAV_LABEL[v]}</button>`).join('');
+ $('nav').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='syn'?showSyn():openView(b.dataset.go));}
+function markNav(){$('nav').querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===cur));}
+function crumbs(){$('crumbs').innerHTML=cur==='syn'?`<span>${SYN_LABEL}</span>`:`<a id="toSyn" tabindex="0">${SYN_LABEL}</a><span>›</span><span>${NAV_LABEL[cur]}</span>`;const a=$('toSyn');if(a){a.onclick=showSyn;a.onkeydown=e=>{if(e.key==='Enter')showSyn();};}}
+function showSyn(){stopTour();stopPlay();cur='syn';$('synSec').classList.remove('hidden');$('detSec').classList.add('hidden');markNav();crumbs();if(selNode)renderFiche(selNode);else asideHome();window.scrollTo({top:0,behavior:'smooth'});}
+function openView(v){stopTour();stopPlay();cur=v;const V=VIEWS[v];step=0;
+ $('synSec').classList.add('hidden');$('detSec').classList.remove('hidden');
+ const det=$('det'),quiz=$('quiz');
+ if(V.quiz){det.classList.add('hidden');quiz.classList.remove('hidden');$('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>&nbsp;·&nbsp;${V.sub}`;$('steps').classList.add('hidden');$('stepText').classList.add('hidden');$('status').classList.add('hidden');$('playBtn').classList.add('hidden');renderQuiz();}
+ else{det.classList.remove('hidden');quiz.classList.add('hidden');$('steps').classList.remove('hidden');$('stepText').classList.remove('hidden');$('playBtn').classList.remove('hidden');
+  det.setAttribute('aria-label',V.t);det.setAttribute('viewBox',V.vb||'0 0 1100 520');det.innerHTML=V.svg();
+  const used=[...new Set([...det.querySelectorAll('.fl')].map(g=>g.dataset.m))].filter(m=>MAT[m]);
+  $('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>`+(used.length?'&nbsp;·&nbsp;'+used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join(''):(V.legend?'&nbsp;·&nbsp;'+V.legend:''));
+  $('steps').innerHTML=`<button class="sbtn" type="button" data-step="0">Vue d’ensemble</button>`+V.steps.map((st,i)=>`<button class="sbtn" type="button" data-step="${i+1}">${i+1} · ${st.t}</button>`).join('');
+  $('steps').querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>{stopPlay();setStep(+b.dataset.step);});
+  det.querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+  $('status').classList.toggle('hidden',!V.status);}
+ const i=VIEW_ORDER.indexOf(v);$('prevView').disabled=i<=0;$('nextView').disabled=i>=VIEW_ORDER.length-1;
+ markNav();crumbs();renderFiche(V.fiche,true);if(!V.quiz)setStep(0);window.scrollTo({top:0,behavior:'smooth'});}
+function renderStatus(code,clk){if(!STATUS_DEF||!code){$('status').innerHTML='';return;}
+ const groups=code.split('|');const LBL={o:'assurée',d:'dégradée',x:'perdue',n:'sans objet'},LBB={o:'intègre',d:'menacée',x:'rompue',n:'absente'};
+ $('status').innerHTML=STATUS_DEF.map((g,gi)=>`<div class="sg"><b>${g[0]}</b>${g[1].map((name,j)=>{const c=(groups[gi]||'')[j]||'n';return `<span class="pill ${c}" title="${name} : ${(gi?LBB:LBL)[c]}"><i></i>${name} <em>${(gi?LBB:LBL)[c]}</em></span>`;}).join('')}</div>`).join('')+(clk?`<span class="clock">${clk}</span>`:'');}
+function setStep(n){const V=VIEWS[cur];step=n;const det=$('det');
+ det.querySelectorAll('[data-s]').forEach(e=>{const on=n===0||e.dataset.s.split(' ').includes(String(n));e.classList.toggle('dim',!on);if(e.classList.contains('eq'))e.classList.toggle('hl',n>0&&on);});
+ det.querySelectorAll('[data-k]').forEach(e=>{e.classList.toggle('k-hide',!e.dataset.k.split(' ').includes(String(n)));});
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===n));
+ if(V.status){const s=n===0?{st:V.st0,clk:V.clk0}:V.steps[n-1];renderStatus(s.st||V.st0,s.clk);}
+ $('stepText').innerHTML=n===0?`<h3>${V.t}</h3><p>${V.intro}</p><p class="note">${V.sub}. Choisissez une étape ou lancez la lecture guidée ; cliquez sur un équipement pour afficher l’étape correspondante.</p>`:`<h3>Étape ${n} / ${V.steps.length} — ${V.steps[n-1].t}</h3>${V.steps[n-1].d}`;}
+$('prevView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i>0)openView(VIEW_ORDER[i-1]);};
+$('nextView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i<VIEW_ORDER.length-1)openView(VIEW_ORDER[i+1]);};
+function stopPlay(){if(playTimer){clearInterval(playTimer);playTimer=null;}$('playBtn').textContent='▶ Lecture guidée';}
+$('playBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(playTimer){stopPlay();return;}const V=VIEWS[cur];$('playBtn').textContent='⏸ Arrêter la lecture';setStep(step>=V.steps.length?1:step+1);
+ playTimer=setInterval(()=>{if(step>=VIEWS[cur].steps.length){stopPlay();return;}setStep(step+1);},10000);};
+
+/* ---------- Synoptique ---------- */
+function applySyn(){const syn=$('syn');
+ syn.querySelectorAll('.node').forEach(n=>{const id=n.dataset.node;let on=true;
+  if(selNode)on=id===selNode||[...syn.querySelectorAll('.fl')].some(f=>(f.dataset.n||'').split(' ').includes(selNode)&&(f.dataset.n||'').split(' ').includes(id));
+  if(filter!=='all')on=on&&[...syn.querySelectorAll(`.fl[data-m="${filter}"]`)].some(f=>(f.dataset.n||'').split(' ').includes(id));
+  n.classList.toggle('dim',!on);n.classList.toggle('sel',id===selNode);});
+ syn.querySelectorAll('.fl').forEach(f=>{const ns=(f.dataset.n||'').split(' ');let on=true;if(selNode)on=ns.includes(selNode);if(filter!=='all')on=on&&f.dataset.m===filter;f.classList.toggle('dim',!on);});
+ syn.querySelectorAll('[data-for]').forEach(g=>{g.classList.toggle('dim',!!selNode&&!g.dataset.for.split(' ').includes(selNode));});}
+function selectNode(id){selNode=selNode===id&&!tourTimer?null:id;applySyn();if(selNode)renderFiche(selNode);else asideHome();}
+function stopTour(){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}$('tourBtn').textContent='▶ Visite guidée';}
+$('tourBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(tourTimer){stopTour();return;}filter='all';markFilters();let i=0;$('tourBtn').textContent='⏸ Arrêter la visite';selNode=null;selectNode(TOUR[0]);
+ tourTimer=setInterval(()=>{i++;if(i>=TOUR.length){stopTour();selNode=null;applySyn();asideHome();return;}selNode=null;selectNode(TOUR[i]);},7000);};
+function markFilters(){$('filters').querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===filter));}
+function buildSyn(){const syn=$('syn');syn.setAttribute('viewBox',SYN_VB||'0 0 1200 700');syn.innerHTML=SYN();
+ syn.querySelectorAll('.node').forEach(n=>{n.onclick=()=>{stopTour();selectNode(n.dataset.node);};n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();stopTour();selectNode(n.dataset.node);}};});
+ const used=[...new Set([...syn.querySelectorAll('.fl')].map(g=>g.dataset.m))].filter(m=>MAT[m]);
+ if(used.length){$('filters').innerHTML=`<button class="chip active" type="button" data-f="all">Tous les liens</button>`+used.map(m=>`<button class="chip m-${m}" type="button" data-f="${m}"><i></i>${MAT[m]}</button>`).join('');
+  $('filters').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;markFilters();applySyn();});
+  $('synLegend').innerHTML=used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('')+(SYN_NOTE?`<span>${SYN_NOTE}</span>`:'');}
+ else{$('filters').innerHTML=SYN_FILTER_TEXT||'';$('synLegend').innerHTML=SYN_NOTE||'';}}
+
+/* ---------- Mises en situation ---------- */
+let qTask=0,qStage=0,qTries=0,qFirst=[],qScores={};
+function renderQuiz(){const box=$('quiz');box.innerHTML=`<div class="qmenu" role="group" aria-label="Situations">${ACTIVITIES.map((a,i)=>`<button type="button" data-t="${i}">${esc(a.title)}</button>`).join('')}<button type="button" data-t="bilan">Mon bilan</button></div><section class="qcard" id="qcard" aria-live="polite"></section>`;
+ box.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>b.dataset.t==='bilan'?qBilan():qStart(+b.dataset.t));qStart(0);}
+function qMark(t){$('quiz').querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('active',b.dataset.t===String(t)));}
+function qStart(i){qTask=i;qStage=0;qTries=0;qFirst=[];qMark(i);qRender();}
+function qRender(){const a=ACTIVITIES[qTask],s=a.steps[qStage],box=$('qcard');
+ if(!s){const r={ok:qFirst.filter(Boolean).length,total:a.steps.length,tries:qTries};qScores[qTask]=r;
+  box.innerHTML=`<div class="kicker">Situation terminée</div><h3>${esc(a.title)}</h3><p><b>${r.ok} / ${r.total}</b> décisions justes au premier essai.</p><p class="note">Chaque décision a été justifiée ; les choix erronés ont été corrigés avant de poursuivre.</p><div class="qrow"><button class="btn" type="button" id="qAgain">Recommencer</button>${qTask<ACTIVITIES.length-1?'<button class="btn primary" type="button" id="qNext">Situation suivante →</button>':''}<button class="btn" type="button" id="qB">Voir mon bilan</button></div>`;
+  $('qAgain').onclick=()=>qStart(qTask);const nx=$('qNext');if(nx)nx.onclick=()=>qStart(qTask+1);$('qB').onclick=qBilan;return;}
+ box.innerHTML=`<div class="kicker">Décision ${qStage+1} / ${a.steps.length}</div><h3>${esc(a.title)}</h3><p>${esc(a.context)}</p><div class="qrule"><b>Consigne</b> · ${esc(a.rule)}</div><h4>${esc(s.prompt)}</h4><div class="qopts">${s.options.map((o,i)=>`<button type="button" data-a="${i}">${esc(o)}</button>`).join('')}</div><div class="qfb" id="qfb" role="status"></div>`;
+ let tries=0;box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{tries++;qTries++;const good=+b.dataset.a===s.answer,fb=$('qfb');
+  fb.className='qfb '+(good?'ok':'ko');
+  fb.innerHTML=good?`<b>Décision validée.</b><p>${esc(s.why)}</p><button class="btn primary" type="button" id="qGo">${qStage+1===a.steps.length?'Terminer la situation':'Décision suivante →'}</button>`:`<b>Décision à reprendre.</b><p>${esc(s.hint||s.why)}</p><p class="note">Relisez la consigne et choisissez une autre action.</p>`;
+  if(good){qFirst.push(tries===1);box.querySelectorAll('[data-a]').forEach(x=>x.disabled=true);$('qGo').onclick=()=>{qStage++;qRender();};$('qGo').focus();}else b.disabled=true;});}
+function qBilan(){qMark('bilan');const rows=ACTIVITIES.map((a,i)=>{const r=qScores[i];return `<tr><td>${esc(a.title)}</td><td>${r?r.ok+' / '+r.total:'non terminée'}</td><td>${r?r.tries:'—'}</td></tr>`;}).join('');
+ $('qcard').innerHTML=`<div class="kicker">Bilan de séance</div><h3>Mon bilan</h3><p class="note">Le score compte les décisions justes au premier essai. Il reste dans la page jusqu’à son rechargement.</p><div style="overflow-x:auto"><table class="qtable"><thead><tr><th>Situation</th><th>Premier essai</th><th>Choix effectués</th></tr></thead><tbody>${rows}</tbody></table></div><label for="qRef"><b>Ce que je dois vérifier avant d’agir</b></label><textarea id="qRef" placeholder="Une règle, une erreur comprise, une question à reprendre…"></textarea><div class="qrow"><button class="btn" type="button" id="qCopy">Copier mon bilan</button><span class="note" id="qMsg"></span></div>`;
+ $('qCopy').onclick=()=>{const txt=document.title+'\n\n'+ACTIVITIES.map((a,i)=>{const r=qScores[i];return a.title+' : '+(r?r.ok+'/'+r.total+' au premier essai, '+r.tries+' choix':'non terminée');}).join('\n')+'\n\nRéflexion :\n'+$('qRef').value;
+  const done=m=>$('qMsg').textContent=m;try{navigator.clipboard.writeText(txt).then(()=>done('Bilan copié.'),()=>{$('qRef').value=txt;$('qRef').select();done('Copie refusée : le texte est sélectionné, copiez-le avec Ctrl+C.');});}catch(e){$('qRef').value=txt;$('qRef').select();done('Copiez le texte sélectionné avec Ctrl+C.');}};}
+
+/* ---------- Thème et animations ---------- */
+const root=document.documentElement;
+const SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t,set=true){if(set){root.dataset.theme=t;try{localStorage.setItem(THEME_KEY,t)}catch(e){}}const d=t==='dark';$('themeIcon').innerHTML=d?SUN:MOON;$('themeTxt').textContent=d?'Thème clair':'Thème sombre';$('themeBtn').setAttribute('aria-pressed',String(!d));}
+const curTheme=()=>root.dataset.theme||((()=>{try{return matchMedia('(prefers-color-scheme: light)').matches}catch(e){return false}})()?'light':'dark');
+try{const saved=localStorage.getItem(THEME_KEY);if(saved==='light'||saved==='dark')root.dataset.theme=saved;}catch(e){}
+setTheme(curTheme(),false);
+$('themeBtn').onclick=()=>setTheme(curTheme()==='dark'?'light':'dark');
+function setPaused(p){if(p){stopPlay();stopTour();}document.body.classList.toggle('paused',p);$('pauseBtn').textContent=p?'▶ Animations':'⏸ Animations';$('pauseBtn').classList.toggle('active',p);}
+$('pauseBtn').onclick=()=>setPaused(!document.body.classList.contains('paused'));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+
+/* ---------- Démarrage ---------- */
+buildNav();buildSyn();
+(()=>{const h=(location.hash||'').slice(1);if(VIEWS[h])openView(h);else showSyn();})();
+
+</script>
+</body></html>

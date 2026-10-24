@@ -1,0 +1,27 @@
+{
+  "id": "./",
+  "name": "Sûreté & Cycle TIIN",
+  "short_name": "Sûreté & Cycle",
+  "description": "Parcours interactifs Bac Pro TIIN : cycle du combustible (amont, REP 1300, La Hague, Andra), sûreté nucléaire et accidents — Lycée Alexis de Tocqueville",
+  "lang": "fr",
+  "dir": "ltr",
+  "start_url": "./",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "orientation": "any",
+  "background_color": "#0a121c",
+  "theme_color": "#0d1b2e",
+  "categories": ["education"],
+  "icons": [
+    { "src": "icons/icon.svg", "sizes": "any", "type": "image/svg+xml", "purpose": "any" },
+    { "src": "icons/icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "icons/icon-maskable-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ],
+  "shortcuts": [
+    { "name": "Sûreté nucléaire", "url": "./#surete", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Accidents nucléaires", "url": "./#accidents", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] },
+    { "name": "Simulateur REP 1300", "url": "./#rep", "icons": [{ "src": "icons/icon-192.png", "sizes": "192x192" }] }
+  ]
+}

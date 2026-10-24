@@ -1,0 +1,824 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+
+<title>Sûreté nucléaire</title>
+<style>:root{box-sizing:border-box}html{scroll-padding-top:env(safe-area-inset-top,0px)}img{max-width:100%}[hidden]{display:none!important}</style>
+<style>
+/* V2.1 — consolidation du rendu desktop et du comportement */
+:root{--stage-outline:color-mix(in srgb,var(--accent) 22%,var(--border))}
+.stage{box-shadow:0 7px 24px rgba(0,0,0,.10);border-color:var(--stage-outline)}
+.nav button,.chip,.sbtn{transition:background-color .18s,border-color .18s,transform .18s}
+.nav button:hover,.chip:hover,.sbtn:hover{border-color:var(--accent)}
+.steptext{min-height:110px;line-height:1.62}
+.steptext h3{font-size:17px}
+.aside{line-height:1.57}
+.eq.dim,.part.dim,.fl.dim{pointer-events:none}
+/* ================= THÈMES ================= */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--eq:#1b2c3f;--eq-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;--focus:#ffffff;
+ --zone:rgba(92,179,230,.045);--zone-stroke:#2c4a63;--zone-text:#8fc4e3;--water:#1d5a86;--water2:#2a78ab;--glow:#ff9b4f;--warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;
+ --m-comb:#b197fc;--m-sol:#f59f00;--m-u:#ffd43b;--m-pu:#f783ac;--m-pf:#ff6b6b;--m-coq:#adb5bd;--m-eff:#4dabf7;--m-gaz:#99e9f2;--m-dt:#d4a373;--m-solv:#69db7c;--m-verre:#63e6be;--m-eau:#74c0fc;--m-air:#ced4da;--m-upu:#ffa94d;--m-emb:#b9a88d;--m-colis:#adb5bd;--m-vtc:#b197fc;--m-tfa:#74c0fc;--m-fmavc:#63e6be;--m-favl:#ffd43b;--m-mavl:#ffa94d;--m-ha:#ff6b6b;--m-beton:#ced4da;--m-argile:#d4a373;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-colis:#6c757d;--m-vtc:#7048e8;--m-tfa:#1971c2;--m-fmavc:#099268;--m-favl:#b08900;--m-mavl:#d9480f;--m-ha:#e03131;--m-beton:#868e96;--m-argile:#8d6e4c;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,.node:focus-visible,.eq:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px;min-height:38px}
+.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px}
+.theme-btn svg{width:18px;height:18px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+.nav button{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 12px;font-size:12.5px}
+.nav button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.nav .sep{width:1px;background:var(--border);margin:0 4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 120px)}
+.main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:18px;overflow:auto}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:5px 11px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--mc)}
+.chip.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.stage{border:1px solid var(--border);border-radius:14px;background:radial-gradient(ellipse at 50% 30%,var(--canvas-glow),var(--canvas) 75%);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:22px;height:5px;border-radius:3px;background:var(--mc);display:inline-block}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+.steps .sbtn{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 11px;font-size:12px}
+.steps .sbtn.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:700}
+.steptext{padding:12px 16px 16px;border-top:1px solid var(--border);background:var(--panel)}
+.steptext h3{margin:0 0 6px;font-size:16px}
+.steptext p{margin:0 0 6px}
+.steptext ul{margin:4px 0 0;padding-left:20px}.steptext li{margin:3px 0}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:14px;border-radius:0 8px 8px 0}
+.aside h2{font-size:20px;margin:2px 0 4px}
+.aside h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:16px 0 6px}
+.aside ul{margin:0;padding-left:18px}.aside li{margin:4px 0}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts{display:grid;grid-template-columns:1fr;gap:6px}
+.fact{border:1px solid var(--border);background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:13px}
+.fact b{display:block;font-size:15px}
+.io{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}.io span{color:var(--muted)}
+.openbtn{width:100%;margin-top:14px}
+.footer{padding:10px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.hidden{display:none!important}
+
+/* ================= SVG ================= */
+.ttl{fill:var(--text);font-size:18px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone{fill:var(--zone);stroke:var(--zone-stroke);stroke-dasharray:6 5}
+.zt{fill:var(--zone-text);font-size:11.5px;font-weight:700;letter-spacing:.08em}
+.free{fill:var(--sublabel);font-size:11.5px}
+.node{cursor:pointer;outline:none;transition:opacity .25s}
+.n-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.n-strip{fill:var(--mc)}
+.n-t{fill:var(--label);font-size:15px;font-weight:700;text-anchor:middle;pointer-events:none}
+.n-s{fill:var(--sublabel);font-size:11px;text-anchor:middle;pointer-events:none}
+.n-go{fill:var(--accent);font-size:10.5px;font-weight:700;text-anchor:end;pointer-events:none}
+.node:hover .n-b,.node.sel .n-b{stroke:var(--focus);stroke-width:3}
+.node.dim,.fl.dim{opacity:.16}
+.fl{transition:opacity .25s}
+.fl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f-case{stroke:var(--canvas)}
+.f-base{stroke:var(--mc);opacity:.38}
+.f-dash{stroke:var(--mc);stroke-dasharray:8 10;animation:flow 1.4s linear infinite}
+.fl .f-arr{fill:var(--mc);stroke:none}
+.f-lab{fill:var(--mc);font-size:11px;font-weight:700}
+.m-gaz .f-dash,.m-air .f-dash{stroke-dasharray:2 8}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.m-comb{--mc:var(--m-comb)}.m-sol{--mc:var(--m-sol)}.m-u{--mc:var(--m-u)}.m-pu{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}.m-coq{--mc:var(--m-coq)}
+.m-eff{--mc:var(--m-eff)}.m-gaz{--mc:var(--m-gaz)}.m-dt{--mc:var(--m-dt)}.m-solv{--mc:var(--m-solv)}.m-verre{--mc:var(--m-verre)}.m-eau{--mc:var(--m-eau)}.m-air{--mc:var(--m-air)}.m-emb{--mc:var(--m-emb)}.m-upu{--mc:var(--m-upu)}
+/* Équipements des vues détaillées */
+.eq{cursor:pointer;transition:opacity .3s}
+.eq-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.eq-t{fill:var(--label);font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.eq-s{fill:var(--sublabel);font-size:10.5px;text-anchor:middle;pointer-events:none}
+.eq:hover .eq-b{stroke:var(--focus)}
+.eq.hl .eq-b{stroke:var(--accent);stroke-width:3}
+.dim{opacity:.17}
+.part{transition:opacity .3s}
+.lbl{fill:var(--label);font-size:12px}.lbl-s{fill:var(--sublabel);font-size:10.5px}
+.mid{text-anchor:middle}.end{text-anchor:end}
+.wall{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.thin{fill:none;stroke:var(--eq-stroke);stroke-width:1.4}
+.water{fill:var(--water);opacity:.55}
+.metal{fill:var(--m-coq)}
+/* Animations */
+.spin{animation:spin 10s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin-fast{animation:spin 2.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chop{animation:chop 1.6s ease-in-out infinite}
+@keyframes chop{0%,40%,100%{transform:translateY(0)}55%{transform:translateY(34px)}}
+.feed{animation:feed 3.2s ease-in-out infinite}
+@keyframes feed{0%{transform:translateX(-40px)}50%,100%{transform:translateX(0)}}
+.fall{animation:fall 1.6s linear infinite}
+@keyframes fall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+.rise{animation:rise 3s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+.rise-long{animation:riseL 4s linear infinite}
+@keyframes riseL{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(-240px);opacity:0}}
+.lift{animation:lift 4s ease-in-out infinite}
+@keyframes lift{0%,15%{transform:translateY(40px)}55%,100%{transform:translateY(0)}}
+.press{animation:press 2.8s ease-in-out infinite}
+@keyframes press{0%,30%,100%{transform:translateY(0)}60%{transform:translateY(58px)}}
+.crush{animation:crush 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes crush{0%,30%,100%{transform:scaleY(1)}60%{transform:scaleY(.2)}}
+.fillup{animation:fillup 6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes fillup{0%{transform:scaleY(.05)}80%,100%{transform:scaleY(1)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.drip{animation:drip 1.1s linear infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(40px);opacity:0}}
+.move-r{animation:mover 5s linear infinite}
+.tr-move{animation:trMove 9s ease-in-out infinite}@keyframes trMove{0%,10%{transform:translateX(0)}45%,60%{transform:translateX(230px)}95%,100%{transform:translateX(0)}}
+body.paused .tr-move{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tr-move{animation:none}}
+@keyframes mover{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(860px);opacity:0}}
+body.paused .fl .f-dash,body.paused .spin,body.paused .spin-fast,body.paused .chop,body.paused .feed,body.paused .fall,body.paused .rise,body.paused .rise-long,body.paused .lift,body.paused .press,body.paused .crush,body.paused .fillup,body.paused .glow,body.paused .drip,body.paused .move-r{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.f-dash,.spin,.spin-fast,.chop,.feed,.fall,.rise,.rise-long,.lift,.press,.crush,.fillup,.glow,.drip,.move-r{animation:none!important}}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:560px){.top h1{font-size:17px}.nav{padding:8px}}
+
+/* ===== Compléments S7 (sûreté, accidents) — mêmes jetons que les parcours ===== */
+:root{--ok:#51cf66;--deg:#fcc419;--ko:#ff6b6b;--na:#7d8fa1;--ok-bg:rgba(81,207,102,.13);--deg-bg:rgba(252,196,25,.13);--ko-bg:rgba(255,107,107,.14);
+ --z-bleu:#4dabf7;--z-vert:#51cf66;--z-jaune:#ffd43b;--z-orange:#ff922b;--z-rouge:#ff6b6b;--hot:#ff6b3d;--steam:#dfe8f0;--sea:#1d5a86;--ground:#3a3428;--concrete:#5b6b7a}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){--ok:#2b8a3e;--deg:#c77700;--ko:#d6262b;--na:#7b8a99;--ok-bg:#e6f4ea;--deg-bg:#fdf1dc;--ko-bg:#fde7e7;
+ --z-bleu:#1c7ed6;--z-vert:#2f9e44;--z-jaune:#e8b500;--z-orange:#e8590c;--z-rouge:#d6262b;--hot:#e8590c;--steam:#8fa3b5;--sea:#4f94c8;--ground:#c9b99a;--concrete:#aab6c2}}
+:root[data-theme="light"]{--ok:#2b8a3e;--deg:#c77700;--ko:#d6262b;--na:#7b8a99;--ok-bg:#e6f4ea;--deg-bg:#fdf1dc;--ko-bg:#fde7e7;
+ --z-bleu:#1c7ed6;--z-vert:#2f9e44;--z-jaune:#e8b500;--z-orange:#e8590c;--z-rouge:#d6262b;--hot:#e8590c;--steam:#8fa3b5;--sea:#4f94c8;--ground:#c9b99a;--concrete:#aab6c2}
+.m-conseil{--mc:var(--m-verre)}.m-colis{--mc:var(--m-emb)}.m-norme{--mc:var(--m-comb)}.m-autor{--mc:var(--m-u)}.m-ctrl{--mc:var(--m-eff)}.m-surv{--mc:var(--m-solv)}.m-info{--mc:var(--m-gaz)}.m-alerte{--mc:var(--m-pf)}.m-regle{--mc:var(--m-upu)}
+.m-eau{--mc:var(--m-eau)}.m-vap{--mc:var(--steam)}.m-elec{--mc:var(--m-u)}.m-h2{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}
+/* Bandeau d’état des fonctions et des barrières */
+.status{display:flex;flex-wrap:wrap;gap:8px 22px;padding:10px 14px;border-top:1px solid var(--border);background:var(--panel2);font-size:12px}
+.status .sg{display:flex;flex-wrap:wrap;align-items:center;gap:6px}
+.status .sg>b{color:var(--muted);font-weight:600;margin-right:2px;text-transform:uppercase;letter-spacing:.06em;font-size:10.5px}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:3px 10px;border:1px solid var(--border);background:var(--panel);white-space:nowrap}
+.pill i{width:9px;height:9px;border-radius:50%;background:var(--na)}
+.pill.o{border-color:var(--ok);background:var(--ok-bg)}.pill.o i{background:var(--ok)}
+.pill.d{border-color:var(--deg);background:var(--deg-bg)}.pill.d i{background:var(--deg)}
+.pill.x{border-color:var(--ko);background:var(--ko-bg)}.pill.x i{background:var(--ko)}
+.pill.n{opacity:.75}.pill em{font-style:normal;color:var(--muted);font-size:11px}
+.status .clock{margin-left:auto;font:600 12px ui-monospace,Consolas,monospace;color:var(--text)}
+/* Mises en situation */
+.quiz{display:grid;grid-template-columns:230px minmax(0,1fr);gap:14px;padding:14px}
+.quiz .qmenu{display:flex;flex-direction:column;gap:6px}
+.quiz .qmenu button{text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:8px 11px;font-size:13px}
+.quiz .qmenu button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.qcard{border:1px solid var(--border);border-radius:12px;background:var(--panel);padding:16px;min-width:0}
+.qcard h3{margin:2px 0 6px;font-size:17px}.qcard h4{margin:14px 0 8px;font-size:15px}
+.qrule{border-left:3px solid var(--accent);background:var(--panel2);padding:8px 11px;border-radius:0 8px 8px 0;font-size:13px}
+.qopts{display:grid;gap:8px}.qopts button{text-align:left;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:9px 12px}
+.qopts button:hover:not(:disabled){border-color:var(--accent)}.qopts button:disabled{opacity:.55;cursor:default}
+.qfb{margin-top:12px;border-radius:10px;padding:10px 12px;font-size:13px}.qfb:empty{display:none}
+.qfb.ok{background:var(--ok-bg);border:1px solid var(--ok)}.qfb.ko{background:var(--ko-bg);border:1px solid var(--ko)}
+.qfb p{margin:4px 0}.qtable{width:100%;border-collapse:collapse;font-size:13px;margin:8px 0}.qtable th,.qtable td{border:1px solid var(--border);padding:6px 8px;text-align:left}
+.qcard textarea{width:100%;min-height:70px;border:1px solid var(--border);border-radius:8px;background:var(--panel2);color:var(--text);padding:8px;font:inherit}
+.qrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+@media(max-width:700px){.quiz{grid-template-columns:1fr}.quiz .qmenu{display:grid;grid-template-columns:1fr 1fr}}
+/* SVG complémentaires */
+.hd{fill:var(--label);font-size:13px;font-weight:700}
+.tag{fill:var(--sublabel);font-size:10.5px;font-weight:700;letter-spacing:.06em}
+.wire{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.pipe-hot{fill:none;stroke:var(--hot);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.pipe-cold{fill:none;stroke:var(--m-eau);stroke-width:7;stroke-linecap:round;stroke-linejoin:round;opacity:.85}
+.pipe-sec{fill:none;stroke:var(--m-eff);stroke-width:5;stroke-linecap:round;stroke-linejoin:round;opacity:.7}
+.flowdash{fill:none;stroke:var(--panel);stroke-width:2;stroke-dasharray:4 9;animation:flow 1.2s linear infinite;opacity:.8}
+.cross{stroke:var(--ko);stroke-width:5;stroke-linecap:round}
+.callout{fill:var(--panel);stroke:var(--accent);stroke-width:1.4}
+.num{fill:var(--accent);font-size:13px;font-weight:800;text-anchor:middle}
+.ko-t{fill:var(--ko);font-weight:700}.ok-t{fill:var(--ok);font-weight:700}.deg-t{fill:var(--deg);font-weight:700}
+.blink{animation:blink 1s steps(2,start) infinite}@keyframes blink{to{visibility:hidden}}
+.pulse{animation:pulse 1.6s ease-in-out infinite;transform-box:fill-box;transform-origin:center}@keyframes pulse{50%{transform:scale(1.12);opacity:.6}}
+.drop{animation:drop 3.5s ease-in infinite}@keyframes drop{0%,20%{transform:translateY(-70px)}60%,100%{transform:translateY(0)}}
+.drop-slow{animation:dropS 6s linear infinite}@keyframes dropS{0%,15%{transform:translateY(-120px)}85%,100%{transform:translateY(0)}}
+.wave{animation:wave 5s ease-in-out infinite}@keyframes wave{0%,100%{transform:translateX(-30px)}50%{transform:translateX(30px)}}
+.wave-in{animation:waveIn 6s ease-in-out infinite}@keyframes waveIn{0%{transform:translateX(-120px)}60%,100%{transform:translateX(0)}}
+.puff{animation:puff 2.4s ease-out infinite;opacity:0}@keyframes puff{0%{transform:translate(0,0) scale(.6);opacity:0}25%{opacity:.85}100%{transform:translate(28px,-46px) scale(1.4);opacity:0}}
+.boom{animation:boom 3s ease-out infinite;transform-box:fill-box;transform-origin:center}@keyframes boom{0%{transform:scale(.3);opacity:0}15%{opacity:.6}60%,100%{transform:scale(1.25);opacity:0}}
+.siren{animation:siren 2.4s ease-out infinite;transform-box:fill-box;transform-origin:center;opacity:0}@keyframes siren{0%{transform:scale(.4);opacity:.9}100%{transform:scale(1.8);opacity:0}}
+.travel{animation:travel 7s linear infinite}@keyframes travel{0%{transform:translateX(0);opacity:0}6%{opacity:1}94%{opacity:1}100%{transform:translateX(var(--dx,600px));opacity:0}}
+.shake{animation:shake .35s linear infinite}@keyframes shake{0%,100%{transform:translate(0,0)}25%{transform:translate(-3px,1px)}75%{transform:translate(3px,-1px)}}
+.lift-up{animation:liftUp 4s ease-out infinite}@keyframes liftUp{0%,30%{transform:translateY(0) rotate(0)}60%,100%{transform:translateY(-38px) rotate(-8deg)}}
+.flame{animation:flame .9s ease-in-out infinite alternate;transform-box:fill-box;transform-origin:bottom}@keyframes flame{to{transform:scaleY(1.25);opacity:.75}}
+.truck{animation:truck 12s ease-in-out infinite}@keyframes truck{0%,8%{transform:translateX(-40px)}45%,55%{transform:translateX(40px)}92%,100%{transform:translateX(-40px)}}
+body.paused svg *,.dim *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){svg *{animation:none!important}}
+.k-hide{display:none}
+
+</style>
+</head><body>
+<header class="top">
+ <div><h1>Sûreté nucléaire <span>/</span> Acteurs, règles et protections</h1><div class="sub">S7 · fonctions de sûreté, barrières, défense en profondeur, RGE, zonages, urgence, transport · synoptique cliquable et vues détaillées · version 2.0</div></div>
+ <div class="bar" style="margin:0">
+  <button class="btn" id="pauseBtn" type="button">⏸ Animations</button>
+  <button id="themeBtn" class="btn theme-btn" type="button" aria-label="Basculer entre le thème clair et le thème sombre"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span></button>
+ </div>
+</header>
+<nav class="nav" id="nav" aria-label="Navigation entre les vues"></nav>
+
+<div class="layout">
+<main class="main">
+ <div class="crumbs" id="crumbs"></div>
+ <section id="synSec">
+  <div class="bar">
+   <div class="grp" id="filters" role="group" aria-label="Filtrer les liens"></div>
+   <div class="grp"><button class="btn" id="tourBtn" type="button">▶ Visite guidée</button></div>
+  </div>
+  <div class="stage"><svg id="syn" viewBox="0 0 1200 700" role="img" aria-label="Synoptique des acteurs de la sûreté nucléaire"></svg>
+   <div class="legend" id="synLegend"></div></div>
+ </section>
+ <section id="detSec" class="hidden">
+  <div class="bar">
+   <div class="grp"><button class="btn" id="prevView" type="button">← Vue précédente</button><button class="btn" id="nextView" type="button">Vue suivante →</button></div>
+   <div class="grp"><button class="btn" id="playBtn" type="button">▶ Lecture guidée</button></div>
+  </div>
+  <div class="stage">
+   <svg id="det" viewBox="0 0 1100 520" role="img"></svg>
+   <div class="quiz hidden" id="quiz"></div>
+   <div class="legend" id="detLegend"></div>
+   <div class="status hidden" id="status"></div>
+   <div class="steps" id="steps"></div>
+   <div class="steptext" id="stepText" aria-live="polite"></div>
+  </div>
+ </section>
+</main>
+<aside class="aside" id="aside"></aside>
+</div>
+<footer class="footer">Sources : ASNR (barrières de confinement, création de l’ASNR, guide n° 23 zonage déchets, guide n° 7 transport), AIEA (normes de sûreté, SSR-6), EDF (Guide national de l’intervenant 2023, plaquettes PPI), Code du travail (R4451-23, R4451-111 et suivants), arrêté INB du 7 février 2012, arrêté du 28 juin 2021, ANCCLI (fiche PPI), préfecture de Haute-Marne (Cigéo). Schémas de principe non dimensionnés, sans valeur de procédure.</footer>
+<script>
+"use strict";
+const THEME_KEY='surete-theme';
+/* =====================================================================
+   SÛRETÉ — données du parcours (S7.1.1.9, S7.3)
+   ===================================================================== */
+const MAT={norme:'Normes, recommandations',autor:'Autorisation, autorité',ctrl:'Contrôle',regle:'Règles appliquées',surv:'Surveillance, désignation',conseil:'Conseil',info:'Information, participation',alerte:'Alerte, protection',colis:'Expéditions'};
+const SYN_LABEL='Qui fait quoi ?',SYN_VB='0 0 1200 700',SYN_NOTE='Liens simplifiés : chaque flèche résume une relation principale.',SYN_FILTER_TEXT='';
+const WARN='Schémas de principe à visée pédagogique. Ils ne remplacent ni les RGE, ni les consignes, ni les procédures de l’installation.';
+const STATUS_DEF=null;
+const TREF=(x,y,r,c)=>`<g transform="translate(${x} ${y})"><circle r="${r*0.22}" fill="${c}"/>${[0,120,240].map(a=>`<path d="M0 0 L${(r*Math.cos((a-30)*Math.PI/180)).toFixed(1)} ${(r*Math.sin((a-30)*Math.PI/180)).toFixed(1)} A${r} ${r} 0 0 1 ${(r*Math.cos((a+30)*Math.PI/180)).toFixed(1)} ${(r*Math.sin((a+30)*Math.PI/180)).toFixed(1)} Z" fill="${c}" transform="rotate(-90)"/>`).join('')}<circle r="${r*0.36}" fill="none"/></g>`;
+
+/* ---------------- Synoptique : les acteurs ---------------- */
+function SYN(){let s='';
+ s+=`<text class="ttl" x="24" y="32">La sûreté nucléaire : qui fait quoi ?</text><text class="subt" x="24" y="50">Cliquez sur un acteur pour afficher sa fiche et ses liens ; filtrez un type de lien ; ouvrez une vue détaillée.</text>`;
+ s+=ZONE(20,62,1160,104,'INTERNATIONAL · RÉFÉRENCES');
+ s+=ZONE(20,190,270,480,'ÉTAT · CONTRÔLE');
+ s+=ZONE(330,190,290,480,'EXPLOITANT');
+ s+=ZONE(660,190,265,480,'INTERVENANTS');
+ s+=ZONE(955,190,225,480,'PUBLIC · TERRITOIRE');
+ /* liens */
+ s+=F('M380 144 V172 H150 V225','norme','',{n:'aiea gouv',lab:[270,166,'normes AIEA','middle']});
+ s+=F('M820 144 V184 H185 V225','norme','',{n:'cipr gouv',lab:[600,179,'recommandations CIPR','middle']});
+ s+=F('M270 250 H350','autor','',{n:'gouv exp',lab:[310,243,'décret','middle']});
+ s+=F('M270 357 H350','ctrl','',{n:'asnr exp',lab:[310,350,'contrôle','middle']});
+ s+=F('M155 489 V525','autor','',{n:'prefet dreal',lab:[165,511,'autorité']});
+ s+=F('M475 365 V425','regle','',{n:'exp rge',lab:[485,400,'rédige, applique']});
+ s+=F('M600 257 H680','surv','',{n:'exp presta',lab:[648,276,'surveille','middle']});
+ s+=F('M600 457 H680','regle','',{n:'rge interv',lab:[648,450,'consignes','middle']});
+ s+=F('M790 289 V325','surv','',{n:'presta crp',lab:[800,311,'désigne']});
+ s+=F('M790 389 V425','conseil','',{n:'crp interv',lab:[800,411,'conseille']});
+ s+=F('M350 340 H336 V557 H350','alerte','',{n:'exp pui'});
+ s+=F('M350 580 H310 V457 H270','alerte','',{n:'pui prefet',lab:[300,600,'alerte','end']});
+ s+=F('M40 470 H28 V650 H1075 V489','alerte','',{n:'prefet pop',lab:[600,643,'PPI : alerte, mise à l’abri, iode, évacuation','middle']});
+ s+=F('M600 240 H640 V214 H1075 V225','info','',{n:'exp cli'});
+ s+=F('M1165 257 H1172 V457 H1165','info','',{n:'cli pop',w:4});
+ s+=F('M600 320 H640 V306 H945 V357 H975','info','',{n:'exp enq',lab:[872,300,'dossier soumis à l’enquête','middle']});
+ s+=F('M600 350 H613 V557 H680','colis','',{n:'exp transp',lab:[648,578,'expédie','middle']});
+ /* acteurs */
+ s+=N('aiea',260,88,240,56,'AIEA','normes de sûreté · Vienne','var(--m-comb)');
+ s+=N('cipr',700,88,240,56,'CIPR','recommandations de radioprotection','var(--m-comb)');
+ s+=N('gouv',40,225,230,64,'Parlement, Gouvernement','lois · décrets d’autorisation','var(--m-u)');
+ s+=N('asnr',40,325,230,64,'ASNR','contrôle · expertise · recherche','var(--m-eff)');
+ s+=N('prefet',40,425,230,64,'Préfet','PPI · installations classées','var(--m-pf)');
+ s+=N('dreal',40,525,230,64,'DREAL','inspection des installations classées','var(--m-eff)');
+ s+=N('exp',350,225,250,140,'Exploitant',['EDF · Orano · CEA · Andra…','responsabilité première','de la sûreté'],'var(--m-upu)');
+ s+=N('rge',350,425,250,64,'RGE','règles générales d’exploitation','var(--m-upu)');
+ s+=N('pui',350,525,250,64,'PUI','plan d’urgence interne','var(--m-pf)');
+ s+=N('presta',680,225,220,64,'Entreprise prestataire','intervenants extérieurs','var(--m-solv)');
+ s+=N('crp',680,325,220,64,'Conseiller en RP','PCR, OCR, pôle de compétences','var(--m-verre)');
+ s+=N('interv',680,425,220,64,'Intervenant','vous, sur le terrain','var(--m-solv)');
+ s+=N('transp',680,525,220,64,'Expéditeur, transporteur','colis et véhicules','var(--m-emb)');
+ s+=N('cli',975,225,190,64,'CLI','commission locale d’information','var(--m-gaz)');
+ s+=N('enq',975,325,190,64,'Enquête publique','commissaire enquêteur','var(--m-gaz)');
+ s+=N('pop',975,425,190,64,'Population','riverains · zone PPI','var(--m-pf)');
+ return s;}
+
+const TOUR=['aiea','cipr','gouv','asnr','prefet','dreal','exp','rge','pui','presta','crp','interv','transp','cli','enq','pop'];
+const HOME_ASIDE=`<div class="kicker">Mode d’emploi</div><h2>Qui fait quoi ?</h2><p>Le synoptique place chaque acteur de la sûreté nucléaire et relie ceux qui fixent les règles, ceux qui contrôlent, ceux qui exploitent et ceux qui interviennent.</p><ul><li><b>Cliquez sur un acteur</b> pour afficher sa fiche et ses liens.</li><li><b>Filtrez un type de lien</b> (contrôle, alerte…) pour suivre une chaîne de responsabilité.</li><li><b>Les vues détaillées</b> schématisent les fonctions de sûreté, les barrières, la défense en profondeur, les RGE, les zonages, l’urgence, l’autorisation d’une INB et le transport.</li></ul><h3>Trois idées à retenir</h3><div class="facts"><div class="fact"><b>L’exploitant est responsable</b>de la sûreté de son installation, même quand il sous-traite.</div><div class="fact"><b>L’ASNR contrôle</b>au nom de l’État ; elle ne remplace pas l’exploitant.</div><div class="fact"><b>Le préfet protège la population</b>avec le PPI ; l’exploitant gère l’installation avec le PUI.</div></div><div class="warning">${WARN}</div>`;
+
+/* ---------------- Fiches ---------------- */
+const FICHE={
+aiea:{t:'AIEA',full:'Agence internationale de l’énergie atomique · Vienne, créée en 1957',view:'defense',
+ role:'Organisation du système des Nations unies. Elle publie les normes de sûreté de référence et aide les États à les appliquer. Ses normes ne valent pas autorisation : chaque État les reprend dans son propre droit.',
+ does:['Normes de sûreté : fondements, prescriptions, guides (dont la défense en profondeur).','Missions d’examen par des experts internationaux, auprès des exploitants et des autorités.','Garanties : vérifier que les matières nucléaires ne sont pas détournées.','Échelle INES, gérée avec l’AEN de l’OCDE.'],
+ keys:[['1957','création, siège à Vienne'],['INES','échelle de communication des événements']]},
+cipr:{t:'CIPR',full:'Commission internationale de protection radiologique · créée en 1928',view:'zonage',
+ role:'Organisme scientifique indépendant. Elle formule des recommandations de radioprotection, reprises par les directives Euratom puis par le Code du travail et le Code de la santé publique.',
+ does:['Justification : une exposition doit apporter plus d’avantages que d’inconvénients.','Optimisation : réduire les doses autant que raisonnablement possible.','Limitation : respecter des limites de dose individuelles.'],
+ keys:[['20 mSv / an','limite de dose efficace pour un travailleur (Code du travail)'],['1 mSv / an','limite pour le public, hors exposition médicale et naturelle']]},
+gouv:{t:'Parlement et Gouvernement',full:'Lois, décrets et politique nucléaire',view:'inb',
+ role:'Le Parlement vote les lois (code de l’environnement, loi de 2024 créant l’ASNR). Le Gouvernement autorise par décret la création et le démantèlement des installations nucléaires de base, après avis de l’ASNR.',
+ does:['Fixe le cadre législatif et réglementaire général.','Autorise la création d’une INB par décret, après enquête publique.','Reprend en droit français les directives Euratom.']},
+asnr:{t:'ASNR',full:'Autorité de sûreté nucléaire et de radioprotection · depuis le 1er janvier 2025',view:'inb',
+ role:'Autorité administrative indépendante qui réunit les missions de l’ASN (contrôle) et de l’IRSN (expertise et recherche). Elle contrôle les activités nucléaires civiles au nom de l’État et informe le public. Les documents antérieurs à 2025 portent les noms ASN ou IRSN.',
+ does:['Prend des décisions techniques et fixe des prescriptions.','Autorise la mise en service d’une INB.','Inspecte les installations, les transports et les activités médicales.','Expertise les dossiers de sûreté : c’est l’appui technique, autrefois assuré par l’IRSN.','En crise, conseille le préfet sur la protection des populations.'],
+ keys:[['2025','fusion ASN + IRSN'],['Inspections','annoncées ou inopinées, avec suites publiées']]},
+prefet:{t:'Préfet',full:'Représentant de l’État dans le département',view:'urgence',
+ role:'Il protège la population : il déclenche le plan particulier d’intervention (PPI) et décide de la mise à l’abri, de la prise d’iode et de l’évacuation. Il organise aussi l’enquête publique et autorise les installations classées.',
+ does:['Déclenche et dirige le PPI autour d’une installation.','Autorise les installations classées (ICPE), avec l’appui de la DREAL.','Ouvre l’enquête publique d’un projet d’INB.']},
+dreal:{t:'DREAL',full:'Direction régionale de l’environnement, de l’aménagement et du logement',view:'inb',
+ role:'Service de l’État placé sous l’autorité du préfet. Elle inspecte les installations classées pour la protection de l’environnement (ICPE). Le Cires de l’Andra est une ICPE : il ne relève pas du régime INB contrôlé par l’ASNR.',
+ does:['Inspection des installations classées.','Instruction des dossiers d’autorisation environnementale.','Ne contrôle pas la sûreté des INB : c’est le rôle de l’ASNR.']},
+exp:{t:'Exploitant nucléaire',full:'EDF, Orano, CEA, Andra, Framatome…',view:'fonctions',
+ role:'Il détient l’autorisation et porte la responsabilité première de la sûreté. Il démontre la sûreté de son installation, l’exploite selon les RGE, surveille ses prestataires et déclare ses écarts. Sous-traiter ne transfère pas cette responsabilité.',
+ does:['Rédige le rapport de sûreté et les règles générales d’exploitation.','Surveille les intervenants extérieurs (arrêté INB du 7 février 2012).','Déclare les événements significatifs à l’ASNR.','Réalise un réexamen périodique de sûreté tous les 10 ans.','Finance la gestion de ses déchets et son démantèlement.'],
+ keys:[['10 ans','périodicité du réexamen de sûreté'],['1984 → 2012','l’arrêté du 10 août 1984 cité au référentiel est abrogé depuis le 1er juillet 2013']]},
+rge:{t:'RGE',full:'Règles générales d’exploitation',view:'exploit',
+ role:'Le référentiel qui dit comment exploiter l’installation en sûreté : limites à respecter, conduite à tenir en cas d’écart, essais périodiques, procédures accidentelles.',
+ does:['Spécifications techniques d’exploitation : domaine autorisé et délais de repli.','Procédures de conduite incidentelle et accidentelle.','Programmes d’essais périodiques des matériels importants.'],
+ keys:[['STE','limites et conduites à tenir'],['EP','essais périodiques']]},
+pui:{t:'PUI',full:'Plan d’urgence interne',view:'urgence',
+ role:'Déclenché par l’exploitant quand un événement menace la sûreté. Il mobilise l’organisation de crise du site, alerte le préfet et l’ASNR et protège le personnel.',
+ does:['Rassemble et met à l’abri le personnel.','Active les équipes de crise locales et nationales.','Alerte immédiatement le préfet et l’ASNR.']},
+presta:{t:'Entreprise prestataire',full:'Intervenants extérieurs, sous-traitants',view:'exploit',
+ role:'Elle réalise une partie des activités de maintenance et de logistique. Elle reste employeur de ses salariés : elle les forme, organise leur radioprotection et désigne son conseiller en radioprotection.',
+ does:['Applique les exigences contractuelles et les consignes de l’exploitant.','Organise la radioprotection de ses salariés (employeur).','Est surveillée par l’exploitant, qui garde la responsabilité de la sûreté.']},
+crp:{t:'Conseiller en radioprotection',full:'PCR (personne compétente) ou OCR (organisme compétent) · pôle de compétences en INB',view:'zonage',
+ role:'Désigné par l’employeur selon le Code du travail. Il conseille sur l’évaluation des risques, le zonage, les mesures, la dosimétrie et les conditions d’intervention. Dans un établissement comprenant une INB, l’exploitant organise un pôle de compétences en radioprotection.',
+ does:['Conseille l’employeur, qui reste responsable.','Participe à la délimitation des zones et à l’optimisation des doses.','Le pôle de compétences en INB est encadré par l’arrêté du 28 juin 2021.'],
+ keys:[['2018','« conseiller en radioprotection » remplace la seule notion de PCR']]},
+interv:{t:'Intervenant',full:'Technicien de l’exploitant ou d’une entreprise prestataire',view:'exploit',
+ role:'Il applique le dossier d’intervention et les consignes, vérifie ses prérequis et s’arrête en cas de doute. Il signale tout écart, même s’il pense l’avoir corrigé.',
+ does:['Formation, habilitations, aptitude médicale à jour.','Dosimétrie passive et opérationnelle en zone contrôlée.','Respect du zonage, de l’autorisation de travail et du régime de consignation.','Arrêt et signalement en cas d’écart ou de situation imprévue.'],
+ keys:[['20 mSv / an','limite réglementaire de dose efficace'],['6 mSv / an','au-delà possible : classement en catégorie A']]},
+transp:{t:'Expéditeur et transporteur',full:'Transport de substances radioactives (classe 7)',view:'transport',
+ role:'L’expéditeur garantit que le colis convient à son contenu et qu’il est contrôlé, marqué et documenté. Le transporteur respecte les règles du mode de transport. L’ASNR contrôle la sûreté des transports civils.',
+ does:['Colis adapté au contenu, contrôlé avant départ.','Étiquettes, plaques et documents de transport.','Règlements modaux issus des recommandations de l’AIEA.']},
+cli:{t:'CLI',full:'Commission locale d’information',view:'inb',
+ role:'Instituée auprès des installations nucléaires, elle réunit élus, associations, syndicats et experts. Elle informe la population et suit l’impact de l’installation. Elle ne se substitue pas à l’autorité de contrôle.',
+ does:['Reçoit l’information de l’exploitant et de l’ASNR.','Peut faire réaliser des expertises et des mesures.','Est consultée sur certains dossiers.']},
+enq:{t:'Enquête publique',full:'Participation du public avant une décision',view:'inb',
+ role:'Le public consulte le dossier et formule ses observations. Un commissaire enquêteur, désigné par le tribunal administratif, rend un rapport et des conclusions motivées. L’enquête éclaire la décision ; ce n’est ni un vote ni une expertise de sûreté.',
+ does:['Ouverte par le préfet, pour une durée d’au moins 30 jours.','Dossier : étude d’impact, rapport préliminaire de sûreté, avis recueillis.','Conclusions favorables, avec réserves ou défavorables, transmises à l’autorité qui décide.'],
+ keys:[['≥ 30 jours','durée minimale'],['Cigéo','enquête publique du 18 mai au 2 juillet 2026']]},
+pop:{t:'Population',full:'Riverains et zone du PPI',view:'urgence',
+ role:'Elle est informée en permanence par la CLI et l’exploitant. En cas d’accident, elle applique les consignes du préfet : mise à l’abri, écoute des médias, prise d’iode sur ordre, évacuation si elle est décidée.',
+ does:['Comprimés d’iode distribués à l’avance dans le périmètre du PPI.','Alerte par sirène, FR-Alert et médias.','Ne pas aller chercher ses enfants à l’école : l’école les met à l’abri.'],
+ keys:[['20 km','rayon du PPI autour des centrales EDF']]},
+/* fiches des vues */
+fonctions:{t:'Les trois fonctions de sûreté',full:'Ce qu’il faut garantir en permanence',role:'Toute la conception et l’exploitation d’un réacteur visent trois fonctions : maîtriser la réactivité, évacuer la chaleur et confiner les substances radioactives.',does:['Réactivité : grappes de commande et bore.','Refroidissement : y compris après l’arrêt (puissance résiduelle).','Confinement : trois barrières successives.'],keys:[['≈ 7 %','de la puissance juste après l’arrêt'],['≈ 1 %','une heure après, soit ≈ 40 MW pour un REP 1300']]},
+barrieres:{t:'Trois barrières',full:'Gaine · circuit primaire · enceinte',role:'Trois enveloppes successives séparent les produits radioactifs de l’environnement. Chacune est surveillée ; la défaillance de l’une affaiblit la défense.',does:['1re : gaine des crayons (alliage de zirconium).','2e : enveloppe du circuit primaire (cuve, tuyauteries, tubes de GV).','3e : enceinte de confinement.'],keys:[['≈ 0,6 mm','épaisseur d’une gaine'],['1,2 m + 0,55 m','parois de l’enceinte double d’un REP 1300']]},
+defense:{t:'Défense en profondeur',full:'Cinq niveaux successifs et indépendants',role:'On ne compte jamais sur une seule protection. Chaque niveau suppose que le précédent peut échouer.',does:['Prévenir, surveiller, sauvegarder, gérer l’accident grave, protéger la population.','Redondance, diversification, séparation physique.','Le risque naît quand plusieurs défaillances s’alignent.']},
+exploit:{t:'Exploiter selon les RGE',full:'Domaine autorisé, essais, interventions',role:'L’exploitation se déroule dans un domaine défini par les RGE. Un écart déclenche une conduite à tenir et peut constituer un événement significatif.',does:['Rester dans les limites des STE.','Tester périodiquement les matériels de sûreté.','Intervenir avec une autorisation de travail et une consignation.']},
+zonage:{t:'Zonages',full:'Radiologique, déchets, incendie, accès',role:'Un zonage délimite des locaux selon un risque précis et fixe des conditions d’accès ou de gestion. Chaque zonage répond à une question différente.',does:['Radiologique : exposition des travailleurs (bleu → rouge).','Déchets : ZppDN ou ZDC selon l’origine possible des déchets.','Incendie : secteurs de feu.'],keys:[['< 1,25 mSv / mois','zone surveillée bleue'],['≥ 100 mSv / h','zone contrôlée rouge']]},
+urgence:{t:'PUI et PPI',full:'Organisation de crise',role:'L’exploitant agit sur l’installation (PUI) ; le préfet protège la population (PPI). L’ASNR conseille et contrôle.',does:['Phase réflexe : mise à l’abri dans un rayon d’environ 2 km.','Évacuation immédiate possible dans un rayon d’environ 5 km.','PPI : jusqu’à 20 km autour des centrales EDF.'],keys:[['2 · 5 · 20 km','cercles d’action du PPI']]},
+inb:{t:'Autoriser une INB',full:'De la demande au démantèlement',role:'Une installation nucléaire de base est autorisée par décret, mise en service avec l’accord de l’ASNR, contrôlée toute sa vie et démantelée sur décret.',does:['Le public participe : débat public, enquête publique, CLI.','La sûreté est réexaminée tous les 10 ans.','Le démantèlement est prévu dès la conception.']},
+transport:{t:'Transport des substances radioactives',full:'Classe 7 du transport de marchandises dangereuses',role:'La sûreté repose d’abord sur le colis : il doit rester sûr en conditions normales et, pour les types B et C, en conditions accidentelles.',does:['Contenu + emballage = colis.','Types excepté, industriel, A, B, C.','Étiquettes I-blanche, II-jaune, III-jaune.'],keys:[['9 m','chute sur cible indéformable (type B)'],['800 °C · 30 min','épreuve de feu (type B)']]},
+situations:{t:'Mises en situation',full:'Décider avant d’agir',role:'Trois situations fictives, sans valeur de procédure, pour appliquer les règles vues dans le parcours.',does:['Lisez la consigne avant de choisir.','Une erreur se corrige avant de continuer.','Le bilan compte les réussites au premier essai.']}
+};
+
+/* ---------------- Vues détaillées ---------------- */
+const VIEW_ORDER=['fonctions','barrieres','defense','exploit','zonage','urgence','inb','transport','situations'];
+const NAV_LABEL={fonctions:'Fonctions de sûreté',barrieres:'Trois barrières',defense:'Défense en profondeur',exploit:'Exploitation · RGE',zonage:'Zonages',urgence:'PUI · PPI',inb:'Autoriser une INB',transport:'Transport',situations:'Mises en situation'};
+
+/* courbe de puissance résiduelle (formule de Way-Wigner, 1 an de fonctionnement) */
+function residual(x0,y0,w,h){const P=t=>6.6*(Math.pow(t,-0.2)-Math.pow(t+3.15e7,-0.2));const X=lg=>x0+lg/5.2*w,Y=p=>y0+h-p/7*h;let d='';
+ for(let lg=0;lg<=5.201;lg+=0.1){d+=(d?' L':'M')+X(lg).toFixed(1)+' '+Y(P(Math.pow(10,lg))).toFixed(1);}
+ let s=`<rect x="${x0-40}" y="${y0-44}" width="${w+56}" height="${h+92}" rx="12" fill="var(--panel)" stroke="var(--border)"/>`;
+ s+=`<text class="hd" x="${x0-28}" y="${y0-24}">Puissance résiduelle</text><text class="lbl-s" x="${x0-28}" y="${y0-9}">après l’arrêt du réacteur</text>`;
+ [0,2,4,6].forEach(p=>s+=`<line x1="${x0}" x2="${x0+w}" y1="${Y(p)}" y2="${Y(p)}" stroke="var(--border)" stroke-width="${p?0.6:1.2}"/>`+TX(x0-6,Y(p)+4,p+' %','lbl-s','end'));
+ [[0,'1 s'],[Math.log10(60),'1 min'],[Math.log10(3600),'1 h'],[Math.log10(86400),'1 j']].forEach(([lg,l])=>s+=`<line x1="${X(lg)}" x2="${X(lg)}" y1="${y0}" y2="${y0+h}" stroke="var(--border)" stroke-width=".6"/>`+TX(X(lg),y0+h+15,l,'lbl-s','mid'));
+ s+=`<path d="${d}" fill="none" stroke="var(--hot)" stroke-width="3"/>`;
+ [[Math.log10(3600),'≈ 1 % (1 h)',-8,-10],[Math.log10(86400),'≈ 0,5 % (1 j)',-2,22]].forEach(([lg,l,dx,dy])=>{const p=P(Math.pow(10,lg));s+=`<circle cx="${X(lg)}" cy="${Y(p)}" r="4.5" fill="var(--hot)"/>`+`<text class="lbl" x="${X(lg)+dx}" y="${Y(p)+dy}" text-anchor="end">${l}</text>`;});
+ s+=TX(x0+8,Y(6.5)+4,'≈ 7 % à l’arrêt','lbl');
+ s+=TX(x0-28,y0+h+36,'temps, échelle logarithmique','lbl-s');
+ return s;}
+
+/* crayon / gaine */
+function crayon(x,y,h){let s=`<rect x="${x}" y="${y}" width="44" height="${h}" rx="20" fill="var(--panel2)" stroke="var(--m-coq)" stroke-width="4"/>`;
+ s+=`<path d="M${x+10} ${y+16} ${Array.from({length:8},(_,i)=>`L${x+(i%2?34:10)} ${y+20+i*6}`).join(' ')}" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`;
+ const top=y+72,n=Math.floor((h-90)/24);for(let i=0;i<n;i++)s+=`<rect x="${x+7}" y="${top+i*24}" width="30" height="21" rx="3" fill="var(--m-u)" opacity=".75" stroke="var(--m-sol)"/>`;
+ return s;}
+
+const VIEWS={
+/* ---------- 1. Fonctions ---------- */
+fonctions:{t:'Les trois fonctions de sûreté',sub:'Maîtriser la réactivité · refroidir · confiner',fiche:'fonctions',
+ intro:'Un réacteur est sûr tant que trois fonctions sont assurées : maîtriser la réaction en chaîne, évacuer la chaleur produite par le combustible (y compris après l’arrêt) et confiner les substances radioactives. Les accidents étudiés dans le parcours suivant sont tous la perte d’une ou plusieurs de ces fonctions.',
+ steps:[
+ {t:'Maîtriser la réactivité',d:'<p>Les <b>grappes de commande</b> contiennent des matériaux absorbant les neutrons. En cas d’arrêt automatique, elles tombent <b>par gravité</b> dans le cœur en quelques secondes. Pour les variations lentes, on ajuste la concentration en <b>bore</b> dissous dans l’eau primaire grâce au circuit RCV.</p><p class="note">Perte de cette fonction : Tchernobyl (excursion de puissance).</p>'},
+ {t:'Évacuer la chaleur en fonctionnement',d:'<p>L’eau primaire, à 155 bar, traverse le cœur de 293 à 329 °C puis cède sa chaleur aux <b>générateurs de vapeur</b>. La vapeur du circuit secondaire fait tourner la turbine ; le condenseur rejette la chaleur restante vers la <b>source froide</b> (mer, fleuve ou tours aéroréfrigérantes).</p>'},
+ {t:'Refroidir après l’arrêt',d:'<p>Arrêter la réaction en chaîne ne supprime pas la chaleur : les produits de fission continuent à se désintégrer. Cette <b>puissance résiduelle</b> vaut environ 7 % de la puissance juste après l’arrêt, environ 1 % au bout d’une heure (≈ 40 MW pour un réacteur de 3 817 MWth) et environ 0,5 % au bout d’un jour.</p><p>L’<b>ASG</b> alimente les GV en eau de secours ; l’<b>injection de sécurité (RIS)</b> maintient le cœur sous eau en cas de brèche.</p><p class="note">Perte de cette fonction : Three Mile Island, Fukushima.</p>'},
+ {t:'Confiner',d:'<p>Les produits radioactifs sont retenus par <b>trois barrières successives</b> : la gaine des crayons, l’enveloppe du circuit primaire et l’enceinte de confinement. La vue suivante les détaille.</p>'},
+ {t:'Les fonctions supports',d:'<p>Les fonctions de sûreté dépendent de <b>fonctions supports</b> : alimentation électrique (réseau, diesels, batteries), source froide, air comprimé, contrôle-commande. Une même agression (inondation, séisme) peut faire perdre plusieurs supports à la fois : c’est une <b>défaillance de cause commune</b>.</p><p class="note">Blayais (1999) et Fukushima (2011) l’ont montré.</p>'}],
+ svg:()=>{let s='';
+  s+=PT('4',`<path d="M50 478 V215 Q50 70 285 70 Q520 70 520 215 V478 Z" fill="none" stroke="var(--m-pu)" stroke-width="5" stroke-dasharray="14 7"/>`+TX(285,94,'Enceinte de confinement','lbl','mid'));
+  s+=TX(48,500,'Bâtiment réacteur','lbl-s');
+  /* boucle primaire */
+  s+=PT('2 3',`<path class="pipe-hot" d="M262 285 H330 V170 H390"/><path class="pipe-cold" d="M420 400 V445 H300 V395 H262"/><path class="flowdash" d="M262 285 H330 V170 H390"/><path class="flowdash" d="M420 400 V445 H300 V395 H262"/>`);
+  s+=B(375,140,90,265,'GV','',2,{rx:40,top:true});
+  s+=PT('2',`<path d="M392 380 V200 Q420 168 448 200 V380" fill="none" stroke="var(--hot)" stroke-width="3"/>`);
+  s+=B(268,420,64,50,'Pompe','',2,{rx:25});
+  s+=PT('1 2 3',`<rect x="150" y="210" width="115" height="235" rx="50" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="168" y="300" width="80" height="115" rx="8" fill="var(--hot)" opacity=".35" class="glow"/>`+[180,196,212,228,244].map(x=>`<line x1="${x}" x2="${x}" y1="305" y2="410" stroke="var(--hot)" stroke-width="3"/>`).join('')+TX(207,465,'Cuve et cœur','lbl','mid'));
+  s+=PT('1',`<rect x="170" y="150" width="76" height="52" rx="8" fill="var(--eq)" stroke="var(--eq-stroke)"/>`+TX(208,140,'Mécanismes de grappes','lbl-s','mid')+`<g class="drop">${[186,203,220,237].map(x=>`<rect x="${x-3}" y="230" width="6" height="85" rx="2" fill="var(--label)"/>`).join('')}</g>`+CALL(140,180,'1'));
+  s+=B(62,250,78,56,'Bore','circuit RCV',1);
+  s+=PT('1',`<path d="M140 278 H150" stroke="var(--m-eff)" stroke-width="4"/>`);
+  /* secondaire */
+  s+=PT('2',`<path class="pipe-sec" d="M420 140 V112 H560"/><path class="pipe-sec" d="M625 150 V180"/><path class="pipe-sec" d="M625 240 V318 H465"/><path class="flowdash" d="M420 140 V112 H560"/><path class="flowdash" d="M625 240 V318 H465"/>`+CALL(330,240,'2'));
+  s+=B(560,90,130,60,'Turbine','alternateur',2);
+  s+=B(560,180,130,60,'Condenseur','',2);
+  s+=B(745,180,120,60,'Source froide','mer · fleuve · tours',2+' 5');
+  s+=PT('2 5',`<path class="pipe-cold" d="M690 210 H745" style="stroke-width:5"/>`);
+  s+=B(560,355,130,50,'ASG','eau de secours des GV',3);
+  s+=B(560,420,130,50,'RIS','injection de sécurité',3);
+  s+=PT('3',`<path d="M560 445 H335" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="6 5" fill="none"/><path d="M560 380 H500 V320" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="6 5" fill="none"/>`);
+  s+=B(745,300,120,50,'Diesels','secours électrique',5);
+  s+=B(745,365,120,50,'Batteries','contrôle-commande',5);
+  s+=PT('5',`<path d="M745 325 H715 V445 H690 M715 380 H690" stroke="var(--m-u)" stroke-width="3" stroke-dasharray="5 4" fill="none"/>`+TX(805,440,'Fonctions supports','lbl','mid'));
+  s+=PT('4',CALL(520,215,'3'));
+  s+=PT('3',residual(925,95,145,170));
+  s+=PT('1',`<rect x="896" y="370" width="190" height="96" rx="10" fill="var(--panel)" stroke="var(--border)"/>`+TX(908,392,'① Réactivité','hd')+TX(908,412,'grappes + bore','lbl-s')+TX(908,436,'② Refroidissement','hd')+TX(908,456,'③ Confinement','hd'));
+  return s;}},
+
+/* ---------- 2. Barrières ---------- */
+barrieres:{t:'Les trois barrières de confinement',sub:'Gaine · enveloppe du circuit primaire · enceinte',fiche:'barrieres',
+ intro:'Trois enveloppes successives séparent les produits radioactifs de l’environnement. Chacune est conçue, surveillée et contrôlée ; tant qu’une barrière tient, elle limite les conséquences de la défaillance des autres.',
+ steps:[
+ {t:'1re barrière : la gaine',d:'<p>Les pastilles d’oxyde d’uranium sont empilées dans un tube en <b>alliage de zirconium</b> d’environ 0,6 mm d’épaisseur et 4 m de long, fermé par des bouchons soudés. Un ressort maintient la colonne ; une chambre d’expansion recueille les gaz de fission.</p>'},
+ {t:'2e barrière : le circuit primaire',d:'<p>Cuve (≈ 20 cm d’acier), tuyauteries, pressuriseur, pompes et <b>tubes des générateurs de vapeur</b> (≈ 1 mm d’épaisseur) forment une enveloppe fermée sous 155 bar.</p><p class="note">Une rupture de tube de GV met le primaire en communication avec le secondaire, qui sort du bâtiment réacteur : c’est un contournement de l’enceinte.</p>'},
+ {t:'3e barrière : l’enceinte',d:'<p>Sur un REP 1300, l’enceinte est <b>double</b> : une paroi interne en béton précontraint d’environ 1,2 m et une paroi externe en béton armé d’environ 0,55 m. L’espace entre les deux est maintenu <b>en dépression</b> ; l’air éventuellement fui y est collecté et filtré avant rejet.</p>'},
+ {t:'La pastille : rétention, pas barrière',d:'<p>La céramique d’UO₂ retient une grande partie des produits de fission dans son réseau cristallin. Cette rétention aide, mais <b>la première barrière est la gaine</b> : c’est elle qui est conçue, contrôlée et surveillée comme une enveloppe étanche.</p>'},
+ {t:'Surveiller chaque barrière',d:'<ul><li><b>Gaine</b> : mesure de l’activité de l’eau primaire ; une hausse signale des crayons non étanches.</li><li><b>Circuit primaire</b> : bilan des fuites ; mesure d’activité au secondaire pour détecter une fuite de tube de GV.</li><li><b>Enceinte</b> : épreuves et mesures du taux de fuite, surveillance de l’espace entre enceintes.</li></ul>'},
+ {t:'Barrières et accidents',d:'<p><b>Three Mile Island</b> : gaines détruites, circuit primaire ouvert par une soupape, mais l’enceinte a tenu : rejets faibles. <b>Tchernobyl</b> : pas d’enceinte comparable, rejets massifs. <b>Fukushima</b> : les trois barrières ont été dégradées.</p>'}],
+ svg:()=>{let s='';
+  /* panneau 1 */
+  s+=`<rect x="20" y="22" width="320" height="440" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="44">1 · GAINE DU CRAYON</text>`;
+  s+=PT('1 4 5 6',crayon(150,62,380));
+  s+=PT('4',`<g>${Array.from({length:22},(_,i)=>`<circle class="glow" cx="${160+(i*7)%26}" cy="${150+(i*53)%300}" r="2.6" fill="var(--m-pf)" style="animation-delay:${(i*.2).toFixed(1)}s"/>`).join('')}</g>`+TX(210,250,'pastilles UO₂','lbl')+TX(210,266,'retiennent une partie','lbl-s')+TX(210,280,'des produits de fission','lbl-s'));
+  s+=PT('1',TX(210,96,'chambre d’expansion','lbl')+TX(210,112,'ressort, gaz de fission','lbl-s')+`<path d="M194 330 H220" stroke="var(--m-coq)" stroke-width="2"/>`+TX(224,326,'gaine en alliage','lbl')+TX(224,341,'de zirconium ≈ 0,6 mm','lbl-s')+TX(40,96,'≈ 4 m','lbl')+`<path d="M60 105 V430" stroke="var(--eq-stroke)" stroke-width="1.2"/><path d="M54 105 H66 M54 430 H66" stroke="var(--eq-stroke)"/>`);
+  /* panneau 2 */
+  s+=`<rect x="360" y="22" width="360" height="440" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="374" y="44">2 · ENVELOPPE DU CIRCUIT PRIMAIRE</text>`;
+  s+=PT('2 5 6',`<rect x="395" y="150" width="105" height="230" rx="46" fill="var(--eq)" stroke="var(--hot)" stroke-width="5"/><rect x="415" y="240" width="65" height="100" rx="6" fill="var(--hot)" opacity=".3"/><path class="pipe-hot" d="M500 220 H560 V120 H600"/><path class="pipe-cold" d="M630 380 V420 H545 V340 H500"/><rect x="590" y="90" width="80" height="300" rx="36" fill="var(--eq)" stroke="var(--hot)" stroke-width="5"/>${[0,1,2,3].map(i=>`<path d="M${606+i*8} 370 V${150+i*10} Q630 ${118+i*10} ${654-i*8} ${150+i*10} V370" fill="none" stroke="var(--hot)" stroke-width="2"/>`).join('')}<rect x="520" y="70" width="34" height="100" rx="16" fill="var(--eq)" stroke="var(--hot)" stroke-width="4"/><path d="M537 170 V220" stroke="var(--hot)" stroke-width="5"/>`);
+  s+=PT('2',TX(447,402,'cuve ≈ 20 cm','lbl','mid')+TX(630,446,'tubes de GV ≈ 1 mm','lbl','mid')+TX(537,62,'pressuriseur','lbl','mid')+TX(400,120,'155 bar','hd'));
+  /* panneau 3 */
+  s+=`<rect x="740" y="22" width="340" height="440" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="754" y="44">3 · ENCEINTE DE CONFINEMENT</text>`;
+  s+=PT('3 5 6',`<path d="M770 420 V235 Q770 100 910 100 Q1050 100 1050 235 V420" fill="none" stroke="var(--concrete)" stroke-width="12"/><path d="M800 420 V240 Q800 130 910 130 Q1020 130 1020 240 V420" fill="none" stroke="var(--m-pu)" stroke-width="18"/><path d="M760 420 H1060" stroke="var(--concrete)" stroke-width="10"/>`+`<rect x="880" y="300" width="60" height="100" rx="26" fill="var(--eq)" stroke="var(--hot)" stroke-width="3"/>`);
+  s+=PT('3',TX(910,170,'paroi interne','lbl','mid')+TX(910,186,'béton précontraint ≈ 1,2 m','lbl-s','mid')+TX(754,66,'paroi externe : béton armé ≈ 0,55 m','lbl')+`<g>${[0,1,2].map(i=>`<circle class="rise" cx="${785}" cy="${380-i*50}" r="3" fill="var(--m-air)" style="animation-delay:${i*.7}s"/>`).join('')}</g>`+TX(768,450,'espace entre enceintes en dépression → filtration','lbl-s'));
+  /* surveillance */
+  const badge=(x,w,t1,t2)=>`<rect x="${x}" y="474" width="${w}" height="40" rx="9" fill="var(--panel)" stroke="var(--accent)"/>`+TX(x+10,490,t1,'hd')+TX(x+10,506,t2,'lbl-s');
+  s+=PT('5',badge(20,320,'Surveillance de la gaine','activité de l’eau primaire')+badge(360,360,'Surveillance du primaire','bilan des fuites · activité au secondaire')+badge(740,340,'Surveillance de l’enceinte','épreuves · taux de fuite'));
+  return s;}},
+
+/* ---------- 3. Défense en profondeur ---------- */
+defense:{t:'La défense en profondeur',sub:'Cinq niveaux successifs, chacun supposant l’échec du précédent',fiche:'defense',
+ intro:'Le principe de défense en profondeur, recommandé par l’AIEA, superpose cinq niveaux de protection. Chaque niveau est conçu comme si le précédent pouvait échouer. Un accident grave suppose que plusieurs défaillances s’alignent, comme les trous de tranches de fromage.',
+ steps:[
+ {t:'Niveau 1 · Prévenir',d:'<p>Concevoir et construire avec des marges, des matériaux qualifiés et une organisation de qualité ; former les équipes. L’objectif est qu’une anomalie <b>ne se produise pas</b>.</p>'},
+ {t:'Niveau 2 · Surveiller et corriger',d:'<p>Détecter les écarts par la surveillance, les alarmes et les essais ; les corriger avant qu’ils ne s’aggravent. Les <b>spécifications techniques d’exploitation</b> fixent les limites à respecter.</p>'},
+ {t:'Niveau 3 · Maîtriser l’accident',d:'<p>Si un accident survient, les <b>protections automatiques</b> arrêtent le réacteur et les <b>systèmes de sauvegarde</b> (injection de sécurité, alimentation de secours des GV, aspersion de l’enceinte) ramènent l’installation dans un état sûr, avec des procédures dédiées.</p>'},
+ {t:'Niveau 4 · Gérer l’accident grave',d:'<p>Si le cœur est endommagé, il faut préserver l’enceinte : recombineurs d’hydrogène, dispositif d’éventage-filtration de l’enceinte (filtre à sable U5), moyens du <b>noyau dur</b> installés après Fukushima.</p>'},
+ {t:'Niveau 5 · Protéger la population',d:'<p>Limiter les conséquences radiologiques à l’extérieur : PUI de l’exploitant, PPI du préfet, mise à l’abri, prise d’iode, évacuation.</p>'},
+ {t:'Quand les trous s’alignent',d:'<p>Aucune protection n’est parfaite. Un accident grave survient quand des faiblesses de plusieurs niveaux <b>se combinent</b> : défaut de conception, erreur de diagnostic, agression externe, organisation défaillante. Les accidents du parcours suivant illustrent cet alignement.</p>'},
+ {t:'Redondance, diversité, indépendance',d:'<ul><li><b>Redondance</b> : deux voies de sauvegarde (A et B) assurent la même fonction.</li><li><b>Diversification</b> : des moyens de technologies différentes.</li><li><b>Séparation physique</b> : des locaux distincts, pour qu’un incendie ou une inondation ne touche pas les deux voies.</li></ul><p class="note">Une agression commune peut néanmoins atteindre plusieurs voies : c’est la leçon du Blayais et de Fukushima.</p>'}],
+ svg:()=>{let s='';
+  const L=[['Niveau 1','Prévenir','conception, qualité,','marges, formation'],['Niveau 2','Surveiller','alarmes, essais,','limites des STE'],['Niveau 3','Sauvegarder','arrêt automatique,','RIS, ASG, procédures'],['Niveau 4','Accident grave','enceinte, recombineurs,','filtre U5, noyau dur'],['Niveau 5','Urgence','PUI, PPI, mise à l’abri,','iode, évacuation']];
+  const holes=[[150,330],[210,370],[130,300],[190,350],[160,330]];
+  L.forEach((l,i)=>{const x=210+i*155;
+   s+=PT(String(i+1)+' 6 7',`<path d="M${x} 110 L${x+60} 90 V380 L${x} 400 Z" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M${x+60} 90 L${x+78} 98 V388 L${x+60} 380 Z" fill="var(--panel2)" stroke="var(--eq-stroke)" stroke-width="1.5"/>`+holes[i].map(y=>`<ellipse cx="${x+30}" cy="${y-i*0}" rx="14" ry="20" fill="var(--canvas)" stroke="var(--eq-stroke)"/>`).join('')+TX(x+30,72,l[0],'tag','mid')+`<text class="hd mid" x="${x+30}" y="56" style="text-anchor:middle">${l[1]}</text>`+TX(x+30,424,l[2],'lbl-s','mid')+TX(x+30,438,l[3],'lbl-s','mid'));
+   s+=K('6',`<ellipse cx="${x+30}" cy="250" rx="15" ry="21" fill="var(--canvas)" stroke="var(--ko)" stroke-width="2"/>`);});
+  s+=`<g><circle cx="80" cy="250" r="46" fill="var(--panel)" stroke="var(--m-pf)" stroke-width="2"/>`+TX(80,240,'Initiateur','hd','mid')+TX(80,256,'défaillance,','lbl-s','mid')+TX(80,269,'erreur, agression','lbl-s','mid')+`</g>`;
+  s+=`<g><rect x="985" y="200" width="100" height="100" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(1035,240,'Population','lbl','mid')+TX(1035,256,'environnement','lbl-s','mid')+`</g>`;
+  [1,2,3,4,5].forEach(n=>{const x=210+(n-1)*155;s+=K(String(n),`<path d="M126 250 H${x-6}" stroke="var(--m-pf)" stroke-width="5" fill="none"/><path d="M${x-6} 238 L${x+6} 250 L${x-6} 262" fill="none" stroke="var(--m-pf)" stroke-width="4"/><circle class="travel" cx="120" cy="250" r="6" fill="var(--m-pf)" style="--dx:${x-130}px"/>`+TX(x-12,232,'arrêté ici','ok-t','end'));});
+  s+=K('6',`<path d="M126 250 H980" stroke="var(--ko)" stroke-width="5" fill="none"/><path d="M968 238 L982 250 L968 262" fill="none" stroke="var(--ko)" stroke-width="4"/><circle class="travel" cx="120" cy="250" r="7" fill="var(--ko)" style="--dx:850px"/>`+TX(560,478,'Les faiblesses de chaque niveau s’alignent : la conséquence atteint l’extérieur.','ko-t','mid'));
+  s+=K('7',`<rect x="210" y="456" width="300" height="50" rx="10" fill="var(--panel)" stroke="var(--m-eff)" stroke-width="2"/>`+TX(360,478,'Voie A','hd','mid')+TX(360,495,'pompes, diesels, tableaux — local A','lbl-s','mid')+`<rect x="590" y="456" width="300" height="50" rx="10" fill="var(--panel)" stroke="var(--m-solv)" stroke-width="2"/>`+TX(740,478,'Voie B','hd','mid')+TX(740,495,'mêmes fonctions — local B séparé','lbl-s','mid')+`<path d="M550 450 V512" stroke="var(--m-pf)" stroke-width="3" stroke-dasharray="6 4"/>`+TX(550,446,'séparation','lbl-s','mid'));
+  s+=K('0',TX(560,478,'Chaque niveau suppose que le précédent peut échouer.','lbl','mid'));
+  return s;}},
+
+/* ---------- 4. Exploitation et RGE ---------- */
+exploit:{t:'Exploiter dans le domaine autorisé',sub:'RGE · spécifications techniques · essais · interventions',fiche:'exploit',
+ intro:'Les règles générales d’exploitation (RGE) définissent le domaine dans lequel l’installation peut fonctionner, les contrôles à réaliser et la conduite à tenir en cas d’écart. Une autorisation de travail ne permet jamais de s’en affranchir.',
+ steps:[
+ {t:'Les RGE',d:'<p>Elles regroupent notamment les <b>spécifications techniques d’exploitation</b> (STE, chapitre III), les <b>procédures de conduite incidentelle et accidentelle</b> (chapitre VI), les <b>programmes d’essais périodiques</b> (chapitre IX) et les essais physiques du cœur (chapitre X). Elles sont transmises à l’ASNR et contrôlées par elle.</p>'},
+ {t:'Rester dans le domaine autorisé',d:'<p>Pression, température, puissance, disponibilité des matériels : l’installation fonctionne dans un domaine <b>normal</b>, entouré de limites. Le point représente l’état de l’installation.</p>'},
+ {t:'Écart à une limite des STE',d:'<p>Si une limite est dépassée ou si un matériel requis devient indisponible, les STE imposent une <b>conduite à tenir</b> et un <b>délai</b> : rétablir la situation ou replier l’installation vers un état plus sûr.</p>'},
+ {t:'Les protections automatiques',d:'<p>Au-delà, des seuils de protection déclenchent automatiquement l’<b>arrêt du réacteur</b> et, si nécessaire, les systèmes de sauvegarde. Le domaine accidentel est traité par les procédures du chapitre VI.</p>'},
+ {t:'Essais périodiques',d:'<p>Un matériel de sauvegarde ne sert qu’en cas d’accident : il faut donc <b>prouver régulièrement</b> qu’il fonctionne. Les essais périodiques (démarrage des diesels, pompes de sauvegarde…) sont programmés et leurs critères sont fixés.</p>'},
+ {t:'Intervenir sur un matériel',d:'<p>Analyse de risques, <b>autorisation de travail</b>, <b>consignation</b> du matériel, intervention, <b>requalification</b> puis déconsignation. Le matériel n’est rendu disponible qu’après la preuve qu’il fonctionne.</p>'},
+ {t:'Signaler les écarts',d:'<p>Tout écart est signalé et analysé. Les plus importants sont des <b>événements significatifs</b> déclarés à l’ASNR dans les délais prévus, puis classés sur l’échelle INES. Signaler n’est pas une faute : c’est ce qui permet d’apprendre.</p>'}],
+ svg:()=>{let s='';
+  /* diagramme du domaine */
+  s+=`<rect x="20" y="22" width="560" height="380" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="44">DOMAINE DE FONCTIONNEMENT (SCHÉMA DE PRINCIPE)</text>`;
+  s+=`<path d="M70 370 H560 M70 370 V60" stroke="var(--eq-stroke)" stroke-width="1.6"/>`+TX(560,390,'température →','lbl-s','end')+`<text class="lbl-s" x="58" y="64" transform="rotate(-90 58 64)" text-anchor="end">pression →</text>`;
+  s+=PT('4',`<rect x="95" y="75" width="440" height="280" rx="60" fill="var(--ko-bg)" stroke="var(--ko)" stroke-width="2"/>`+TX(110,95,'domaine accidentel','ko-t'));
+  s+=PT('3 4',`<rect x="140" y="112" width="350" height="210" rx="50" fill="var(--deg-bg)" stroke="var(--deg)" stroke-width="2"/>`+TX(155,132,'seuils de protection → arrêt automatique','deg-t'));
+  s+=PT('2 3',`<rect x="190" y="150" width="250" height="135" rx="40" fill="var(--ok-bg)" stroke="var(--ok)" stroke-width="2"/>`+TX(205,170,'limites des STE','ok-t')+TX(315,225,'domaine normal','lbl','mid'));
+  s+=K('0 1 2 5 6 7',`<circle class="pulse" cx="315" cy="248" r="9" fill="var(--accent)"/>`);
+  s+=K('3',`<circle class="pulse" cx="455" cy="200" r="9" fill="var(--deg)"/><path d="M455 200 Q420 260 330 248" fill="none" stroke="var(--deg)" stroke-width="2.5" stroke-dasharray="6 4"/>`+TX(462,220,'écart','deg-t')+TX(352,300,'conduite à tenir + délai : rétablir ou se replier','lbl','mid'));
+  s+=K('4',`<circle class="pulse" cx="505" cy="140" r="9" fill="var(--ko)"/>`+TX(500,166,'AU','ko-t','end')+`<g class="drop">${[250,270,290].map(x=>`<rect x="${x}" y="190" width="5" height="40" fill="var(--label)"/>`).join('')}</g>`);
+  /* classeur RGE */
+  const tabs=[['Chap. III','Spécifications techniques d’exploitation','1 2 3'],['Chap. VI','Conduite incidentelle et accidentelle','1 4'],['Chap. IX','Essais périodiques','1 5'],['Chap. X','Essais physiques du cœur','1'],['…','organisation, autres chapitres','1']];
+  s+=TX(620,40,'Les RGE de l’installation','hd');
+  tabs.forEach((t,i)=>{s+=B(620,54+i*52,460,44,'','',t[2],{rx:8,inner:`<rect x="620" y="${54+i*52}" width="86" height="44" rx="8" fill="var(--btn-active)"/><text class="eq-t" x="663" y="${81+i*52}">${t[0]}</text><text class="lbl" x="720" y="${81+i*52}">${t[1]}</text>`});});
+  /* intervention */
+  const ch=['Analyse de risques','Autorisation de travail','Consignation','Intervention','Requalification','Déconsignation'];
+  s+=PT('6',TX(620,340,'Intervenir sur un matériel','hd')+ch.map((c,i)=>{const x=620+(i%3)*155,y=352+Math.floor(i/3)*52;return `<rect x="${x}" y="${y}" width="140" height="40" rx="20" fill="var(--panel)" stroke="var(--accent)"/>`+TX(x+70,y+25,c,'lbl','mid')+(i%3<2?`<path d="M${x+142} ${y+20} H${x+153}" stroke="var(--accent)" stroke-width="2"/>`:'');}).join(''));
+  s+=PT('7',`<rect x="20" y="420" width="560" height="90" rx="12" fill="var(--panel)" stroke="var(--m-pf)" stroke-width="2"/>`+TX(36,444,'Écart constaté','hd')+`<path d="M150 440 H190" stroke="var(--m-pf)" stroke-width="3"/>`+TX(200,444,'signalement immédiat','lbl')+`<path d="M340 440 H380" stroke="var(--m-pf)" stroke-width="3"/>`+TX(390,444,'analyse par l’exploitant','lbl')+TX(36,474,'Événement significatif ?','hd')+`<path d="M210 470 H250" stroke="var(--m-pf)" stroke-width="3"/>`+TX(260,474,'déclaration à l’ASNR · classement INES','lbl')+TX(36,498,'Retour d’expérience partagé entre sites','lbl-s'));
+  return s;}},
+
+/* ---------- 5. Zonages ---------- */
+zonage:{t:'Zonages : un risque, un zonage',sub:'Zonage radiologique · zonage déchets · autres zonages',fiche:'zonage',
+ intro:'Un zonage délimite des locaux selon un risque et fixe des conditions d’accès ou de gestion. Le zonage radiologique protège les travailleurs de l’exposition ; le zonage déchets dit si un déchet peut être nucléaire. Ce sont deux questions différentes.',
+ steps:[
+ {t:'Pourquoi délimiter des zones',d:'<p>L’employeur évalue les risques d’exposition externe et de contamination, puis <b>délimite, signale et contrôle l’accès</b> des zones. La couleur du trèfle indique le niveau de la zone. Une zone est délimitée dès que la dose efficace peut dépasser 0,08 mSv sur un mois.</p>'},
+ {t:'Zone surveillée bleue',d:'<p>Dose efficace susceptible d’atteindre <b>moins de 1,25 mSv sur un mois</b>. Accès des travailleurs informés et classés selon l’évaluation ; dosimétrie adaptée.</p>'},
+ {t:'Zone contrôlée verte',d:'<p>Dose efficace <b>inférieure à 4 mSv sur un mois</b>. La <b>dosimétrie opérationnelle</b> s’ajoute à la dosimétrie passive. Tenue adaptée, contrôle de contamination en sortie.</p>'},
+ {t:'Zones jaune et orange',d:'<p>Jaune : dose <b>inférieure à 2 mSv en une heure</b>. Orange : <b>inférieure à 100 mSv en une heure</b>. Accès strictement limité et préparé ; le temps passé est compté.</p>'},
+ {t:'Zone rouge',d:'<p>Dose <b>égale ou supérieure à 100 mSv en une heure</b>. Accès en principe interdit ; une entrée exceptionnelle exige une autorisation et une préparation particulières.</p>'},
+ {t:'Sortir de zone',d:'<p>En sortie de zone contrôlée : retrait de la tenue selon la consigne, tri des déchets, <b>contrôle de non-contamination</b> au portique. Une alarme impose de s’arrêter et d’appeler le service de radioprotection.</p>'},
+ {t:'Zonage déchets : ZppDN et ZDC',d:'<p>Le zonage déchets distingue les zones à <b>production possible de déchets nucléaires</b> (ZppDN) des zones à <b>déchets conventionnels</b> (ZDC). Un déchet issu d’une ZppDN est géré comme nucléaire, sauf démarche prévue par le référentiel de l’installation. Une mesure nulle ne suffit pas à le déclasser.</p><p class="note">Guide ASN n° 23.</p>'},
+ {t:'D’autres zonages',d:'<p>Un même local peut relever de plusieurs zonages : <b>secteurs de feu</b> pour l’incendie, zones à atmosphère explosive, zones d’accès réglementé pour la sécurité. Chacun répond à son propre risque.</p>'}],
+ svg:()=>{let s='';
+  const tre=(x,y,c,r=11)=>`<g transform="translate(${x} ${y})"><circle r="${r+4}" fill="var(--panel)" stroke="${c}" stroke-width="2"/><circle r="${r*0.22}" fill="${c}"/>${[0,120,240].map(a=>`<path d="M0 0 L${(r*Math.cos((a-30)*Math.PI/180)).toFixed(1)} ${(r*Math.sin((a-30)*Math.PI/180)).toFixed(1)} A${r} ${r} 0 0 1 ${(r*Math.cos((a+30)*Math.PI/180)).toFixed(1)} ${(r*Math.sin((a+30)*Math.PI/180)).toFixed(1)} Z" fill="${c}" transform="rotate(-90)"/>`).join('')}</g>`;
+  s+=`<rect x="20" y="22" width="620" height="440" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="44">PLAN DE PRINCIPE D’UN BÂTIMENT NUCLÉAIRE</text>`;
+  s+=PT('1 2',`<rect x="60" y="70" width="550" height="370" rx="8" fill="var(--z-bleu)" opacity=".16" stroke="var(--z-bleu)" stroke-width="3"/>`+tre(92,98,'var(--z-bleu)')+TX(112,103,'zone surveillée','lbl'));
+  s+=PT('1 3',`<rect x="150" y="125" width="440" height="295" rx="8" fill="var(--z-vert)" opacity=".18" stroke="var(--z-vert)" stroke-width="3"/>`+tre(180,152,'var(--z-vert)')+TX(200,157,'zone contrôlée verte','lbl'));
+  s+=PT('1 4',`<rect x="320" y="170" width="250" height="230" rx="8" fill="var(--z-jaune)" opacity=".2" stroke="var(--z-jaune)" stroke-width="3"/>`+tre(350,196,'var(--z-jaune)')+TX(370,201,'jaune','lbl'));
+  s+=PT('1 4',`<rect x="400" y="230" width="160" height="160" rx="8" fill="var(--z-orange)" opacity=".22" stroke="var(--z-orange)" stroke-width="3"/>`+tre(428,256,'var(--z-orange)')+TX(448,261,'orange','lbl'));
+  s+=PT('1 5',`<rect x="460" y="290" width="90" height="90" rx="8" fill="var(--z-rouge)" opacity=".28" stroke="var(--z-rouge)" stroke-width="3"/>`+tre(505,322,'var(--z-rouge)')+TX(505,360,'rouge','lbl','mid')+`<path d="M462 292 L548 378 M548 292 L462 378" stroke="var(--z-rouge)" stroke-width="2" opacity=".6"/>`);
+  s+=PT('6',`<rect x="70" y="350" width="70" height="80" rx="6" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(105,370,'Vestiaire','lbl-s','mid')+`<rect x="88" y="380" width="34" height="40" rx="4" fill="none" stroke="var(--accent)" stroke-width="3"/><rect class="glow" x="96" y="392" width="18" height="6" fill="var(--ok)"/>`+TX(105,445,'portique de sortie','lbl-s','mid')+`<path d="M150 395 H200" stroke="var(--accent)" stroke-width="3" stroke-dasharray="5 4"/><path d="M150 395 l8 -6 v12 z" fill="var(--accent)"/>`);
+  s+=K('7',`<rect x="150" y="125" width="440" height="295" rx="8" fill="url(#hatch)" stroke="var(--m-sol)" stroke-width="3" stroke-dasharray="8 5"/>`+`<rect x="60" y="70" width="88" height="270" fill="var(--panel)" opacity=".55"/>`+TX(370,445,'ZppDN : production possible de déchets nucléaires','lbl','mid')+TX(104,215,'ZDC','hd','mid')+TX(104,232,'déchets','lbl-s','mid')+TX(104,245,'conventionnels','lbl-s','mid'));
+  s+=K('8',[[160,135,180,120,'secteur de feu 1'],[345,135,235,120,'secteur de feu 2'],[160,262,420,150,'secteur de feu 3']].map(([x,y,w,h,t])=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" fill="none" stroke="var(--m-pf)" stroke-width="3" stroke-dasharray="12 6"/>`+TX(x+8,y+h-8,t,'ko-t')).join(''));
+  s+=`<defs><pattern id="hatch" width="10" height="10" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="10" height="10" fill="transparent"/><line x1="0" y1="0" x2="0" y2="10" stroke="var(--m-sol)" stroke-width="2" opacity=".5"/></pattern></defs>`;
+  /* tableau */
+  const rows=[['var(--z-bleu)','Surveillée bleue','< 1,25 mSv sur 1 mois','2'],['var(--z-vert)','Contrôlée verte','< 4 mSv sur 1 mois','3'],['var(--z-jaune)','Contrôlée jaune','< 2 mSv en 1 heure','4'],['var(--z-orange)','Contrôlée orange','< 100 mSv en 1 heure','4'],['var(--z-rouge)','Contrôlée rouge','≥ 100 mSv en 1 heure','5']];
+  s+=TX(670,42,'Zonage radiologique · dose efficace','hd')+TX(670,60,'Code du travail, art. R4451-23','lbl-s');
+  rows.forEach((r,i)=>{const y=74+i*58;s+=PT('1 '+r[3],`<rect x="670" y="${y}" width="410" height="50" rx="10" fill="var(--panel)" stroke="${r[0]}" stroke-width="2"/>`+tre(700,y+25,r[0],10)+TX(728,y+21,r[1],'hd')+TX(728,y+39,r[2],'lbl'));});
+  s+=PT('7',`<rect x="670" y="372" width="410" height="90" rx="10" fill="var(--panel)" stroke="var(--m-sol)" stroke-width="2"/>`+TX(684,394,'Zonage déchets','hd')+TX(684,414,'ZppDN → déchet géré comme nucléaire','lbl')+TX(684,432,'ZDC → déchet conventionnel','lbl')+TX(684,451,'question : d’où vient le déchet ?','lbl-s'));
+  s+=K('0 1 2 3 4 5 6 8',`<rect x="670" y="372" width="410" height="90" rx="10" fill="var(--panel)" stroke="var(--border)"/>`+TX(684,394,'Le zonage radiologique répond à :','hd')+TX(684,414,'quelle exposition pour le travailleur ?','lbl')+TX(684,438,'Le zonage déchets répond à :','hd')+TX(684,456,'d’où vient le déchet ?','lbl'));
+  return s;}},
+
+/* ---------- 6. Urgence ---------- */
+urgence:{t:'Situations d’urgence : PUI et PPI',sub:'L’exploitant gère l’installation, le préfet protège la population',fiche:'urgence',
+ intro:'En cas d’accident, deux plans s’articulent. Le plan d’urgence interne (PUI) mobilise l’exploitant sur le site. Le plan particulier d’intervention (PPI), sous l’autorité du préfet, protège la population autour du site. La carte est à l’échelle des distances.',
+ steps:[
+ {t:'L’exploitant déclenche le PUI',d:'<p>Le directeur de l’installation déclenche le PUI : rassemblement et protection du personnel, équipes de crise locales et nationales, actions pour ramener l’installation dans un état sûr.</p>'},
+ {t:'Alerte du préfet et de l’ASNR',d:'<p>L’exploitant alerte <b>immédiatement</b> le préfet et l’ASNR. L’ASNR évalue la situation et conseille le préfet sur les mesures de protection.</p>'},
+ {t:'Phase réflexe : mise à l’abri',d:'<p>En cas d’accident à cinétique rapide, le préfet peut ordonner sans attendre la <b>mise à l’abri</b> dans un rayon d’environ <b>2 km</b> : rentrer dans un bâtiment, fermer portes et fenêtres, écouter les consignes.</p>'},
+ {t:'Évacuation immédiate',d:'<p>Si un rejet important est imminent, le préfet peut décider l’<b>évacuation immédiate</b> dans un rayon d’environ <b>5 km</b>.</p>'},
+ {t:'Iode stable jusqu’à 20 km',d:'<p>Le PPI des centrales EDF s’étend à <b>20 km</b>. Les habitants y disposent de comprimés d’<b>iode stable</b>, à prendre <b>uniquement sur ordre du préfet</b>. L’iode sature la thyroïde et la protège de l’iode radioactif ; il ne protège pas des autres radionucléides.</p>'},
+ {t:'Les bons réflexes',d:'<ul><li>Se mettre à l’abri dans un bâtiment, fermer portes et fenêtres.</li><li>Écouter la radio et suivre FR-Alert et les consignes officielles.</li><li>Ne pas aller chercher les enfants à l’école : les écoles les mettent à l’abri.</li><li>Limiter les appels téléphoniques pour laisser les lignes aux secours.</li></ul>'}],
+ svg:()=>{let s='';const cx=300,cy=270,k=10.5;/* 1 km = 10,5 px */
+  s+=`<rect x="20" y="22" width="560" height="490" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="44">CARTE DE PRINCIPE · DISTANCES À L’ÉCHELLE</text>`;
+  s+=`<path d="M20 330 C120 300 200 360 300 300 S470 250 580 280" fill="none" stroke="var(--water2)" stroke-width="12" opacity=".5"/>`;
+  [[150,170],[420,150],[470,390],[190,420],[360,440],[110,300],[520,230],[240,110]].forEach(([x,y])=>s+=`<rect x="${x-7}" y="${y-7}" width="14" height="14" rx="3" fill="var(--eq-stroke)" opacity=".5"/>`);
+  s+=PT('5 6',`<circle cx="${cx}" cy="${cy}" r="${20*k}" fill="var(--m-u)" opacity=".08" stroke="var(--m-u)" stroke-width="2.5" stroke-dasharray="10 6"/>`+TX(cx,cy-20*k+26,'20 km · PPI','hd','mid')+TX(cx,cy-20*k+42,'iode distribué à l’avance','lbl-s','mid'));
+  s+=PT('4 6',`<circle cx="${cx}" cy="${cy}" r="${5*k}" fill="var(--z-orange)" opacity=".18" stroke="var(--z-orange)" stroke-width="2.5"/>`+`<path d="M${cx+5*k*0.7} ${cy-5*k*0.7} L${cx+90} ${cy-110}" stroke="var(--z-orange)" stroke-width="1.5"/>`+TX(cx+94,cy-114,'≈ 5 km · évacuation immédiate','lbl'));
+  s+=PT('3 6',`<circle cx="${cx}" cy="${cy}" r="${2*k}" fill="var(--z-rouge)" opacity=".25" stroke="var(--z-rouge)" stroke-width="2.5"/>`+`<path d="M${cx-2*k*0.7} ${cy+2*k*0.7} L${cx-110} ${cy+120}" stroke="var(--z-rouge)" stroke-width="1.5"/>`+TX(cx-114,cy+134,'≈ 2 km · mise à l’abri réflexe','lbl'));
+  s+=PT('1 2',`<circle class="siren" cx="${cx}" cy="${cy}" r="40" fill="none" stroke="var(--m-pf)" stroke-width="3"/><circle class="siren" cx="${cx}" cy="${cy}" r="40" fill="none" stroke="var(--m-pf)" stroke-width="3" style="animation-delay:1.2s"/>`);
+  s+=`<rect x="${cx-9}" y="${cy-9}" width="18" height="18" rx="3" fill="var(--m-pf)"/>`+TX(cx+14,cy+5,'site','hd');
+  s+=`<path d="M40 495 H${40+10*k}" stroke="var(--label)" stroke-width="2"/><path d="M40 489 V501 M${40+10*k} 489 V501" stroke="var(--label)" stroke-width="2"/>`+TX(40+5*k,488,'10 km','lbl-s','mid');
+  /* chaîne d’alerte */
+  const ch=[['Exploitant','déclenche le PUI','1','var(--m-upu)'],['Alerte','préfet et ASNR','2','var(--m-pf)'],['Préfet','déclenche le PPI','2 3 4 5','var(--m-pf)'],['ASNR','évalue, conseille','2','var(--m-eff)'],['Population','sirène · FR-Alert · radio','3 4 5 6','var(--m-gaz)']];
+  s+=TX(620,40,'Chaîne d’alerte et de décision','hd');
+  ch.forEach((c,i)=>{const y=56+i*70;s+=B(620,y,260,54,c[0],c[1],c[2],{rx:10,inner:`<rect x="620" y="${y+6}" width="6" height="42" rx="3" fill="${c[3]}"/>`});if(i<4)s+=`<path d="M750 ${y+54} V${y+70}" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M744 ${y+62} L750 ${y+70} L756 ${y+62}" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`;});
+  s+=PT('6',`<rect x="895" y="56" width="190" height="334" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(909,80,'Les bons réflexes','hd')+[['Se mettre à l’abri','bâtiment, portes fermées'],['Écouter','radio, FR-Alert'],['Enfants à l’école','l’école les protège'],['Téléphone','limiter les appels'],['Iode','seulement sur ordre'],['Évacuation','si le préfet la décide']].map((t,i)=>TX(909,108+i*46,t[0],'lbl')+TX(909,124+i*46,t[1],'lbl-s')).join(''));
+  s+=PT('5',`<rect x="620" y="420" width="465" height="90" rx="12" fill="var(--panel)" stroke="var(--m-u)" stroke-width="2"/>`+TX(636,444,'Comprimé d’iode stable','hd')+TX(636,466,'sature la thyroïde → l’iode radioactif ne s’y fixe plus','lbl')+TX(636,488,'à prendre uniquement sur ordre du préfet','lbl')+TX(636,504,'ne protège pas des autres radionucléides','lbl-s'));
+  s+=K('0 1 2 3 4 6',`<rect x="620" y="420" width="465" height="90" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(636,444,'PUI ≠ PPI','hd')+TX(636,466,'PUI : l’exploitant, sur son site','lbl')+TX(636,488,'PPI : le préfet, autour du site','lbl'));
+  return s;}},
+
+/* ---------- 7. Autoriser une INB ---------- */
+inb:{t:'Autoriser une installation nucléaire de base',sub:'De la demande au démantèlement · place du public',fiche:'inb',
+ intro:'Une INB ne peut être créée, mise en service ou démantelée sans autorisation. Le public est associé avant la décision ; l’ASNR expertise et contrôle ; le Gouvernement autorise par décret. L’exemple de Cigéo illustre les étapes en cours.',
+ steps:[
+ {t:'Débat public',d:'<p>Pour les grands projets, la Commission nationale du débat public organise un <b>débat public</b> en amont : opportunité, options, conditions de réalisation. Il ne vaut pas autorisation.</p>'},
+ {t:'Demande d’autorisation de création',d:'<p>L’exploitant dépose la <b>DAC</b> : rapport préliminaire de sûreté, étude d’impact, étude de maîtrise des risques, plan de démantèlement. Cigéo : DAC déposée en janvier 2023.</p>'},
+ {t:'Instruction et expertise',d:'<p>L’<b>ASNR</b> instruit le dossier et l’expertise techniquement. Elle peut demander des compléments avant de rendre son avis.</p>'},
+ {t:'Enquête publique et avis',d:'<p>Le préfet ouvre l’<b>enquête publique</b> (au moins 30 jours). Le public consulte le dossier et dépose ses observations ; le commissaire enquêteur rend un rapport et des conclusions motivées. La CLI et les collectivités donnent leur avis.</p><p class="note">Cigéo : enquête publique du 18 mai au 2 juillet 2026.</p>'},
+ {t:'Décret d’autorisation',d:'<p>Le Gouvernement autorise la création par <b>décret</b>, après avis de l’ASNR. L’ASNR fixe ensuite des <b>prescriptions</b> techniques.</p>'},
+ {t:'Mise en service',d:'<p>Avant de recevoir des matières radioactives, l’exploitant doit obtenir l’<b>autorisation de mise en service</b> de l’ASNR, sur la base du rapport de sûreté et des RGE.</p>'},
+ {t:'Exploitation contrôlée',d:'<p>Inspections de l’ASNR, déclaration des événements significatifs, information de la CLI et <b>réexamen périodique de sûreté tous les 10 ans</b>, qui conditionne la poursuite du fonctionnement.</p>'},
+ {t:'Démantèlement',d:'<p>L’arrêt définitif est déclaré ; le <b>démantèlement</b> est prescrit par décret. Après assainissement, l’installation peut être <b>déclassée</b> et sortir du régime INB.</p>'}],
+ svg:()=>{let s='';
+  const st=[['Débat public','CNDP, grands projets','1','var(--m-gaz)'],['Demande (DAC)','sûreté · impact','2','var(--m-upu)'],['Instruction','expertise ASNR','3','var(--m-eff)'],['Enquête publique','≥ 30 jours · avis','4','var(--m-gaz)'],['Décret','Gouvernement','5','var(--m-u)'],['Mise en service','autorisée par l’ASNR','6','var(--m-eff)'],['Exploitation','contrôles · réexamen / 10 ans','7','var(--m-upu)'],['Démantèlement','décret · déclassement','8','var(--m-coq)']];
+  st.forEach((t,i)=>{const row=i<4?0:1,col=row?3-(i-4):i,x=40+col*265,y=row?300:90;
+   s+=B(x,y,220,90,t[0],t[1],t[2],{rx:14,inner:`<rect x="${x}" y="${y}" width="220" height="8" rx="4" fill="${t[3]}"/><circle cx="${x+22}" cy="${y+30}" r="12" fill="var(--panel)" stroke="${t[3]}" stroke-width="2"/><text class="num" x="${x+22}" y="${y+35}">${i+1}</text>`});
+   if(i<3)s+=`<path d="M${x+222} ${y+45} H${x+262}" stroke="var(--eq-stroke)" stroke-width="2.5"/><path d="M${x+254} ${y+38} L${x+263} ${y+45} L${x+254} ${y+52}" fill="none" stroke="var(--eq-stroke)" stroke-width="2.5"/>`;
+   if(i>=4&&i<7)s+=`<path d="M${x-2} ${y+45} H${x-42}" stroke="var(--eq-stroke)" stroke-width="2.5"/><path d="M${x-34} ${y+38} L${x-43} ${y+45} L${x-34} ${y+52}" fill="none" stroke="var(--eq-stroke)" stroke-width="2.5"/>`;});
+  s+=`<path d="M1015 180 V300" stroke="var(--eq-stroke)" stroke-width="2.5"/><path d="M1008 292 L1015 301 L1022 292" fill="none" stroke="var(--eq-stroke)" stroke-width="2.5"/>`;
+  s+=TX(40,62,'PROJET','zt')+TX(40,282,'VIE DE L’INSTALLATION','zt');
+  s+=PT('1 4',`<rect x="40" y="420" width="480" height="84" rx="12" fill="var(--panel)" stroke="var(--m-gaz)" stroke-width="2"/>`+TX(56,444,'Place du public','hd')+TX(56,466,'débat public → enquête publique → CLI tout au long de la vie','lbl')+TX(56,488,'éclaire la décision · n’est ni un vote ni une expertise','lbl-s'));
+  s+=PT('2 4',`<rect x="560" y="420" width="500" height="84" rx="12" fill="var(--panel)" stroke="var(--m-upu)" stroke-width="2"/>`+TX(576,444,'Exemple en cours : Cigéo','hd')+TX(576,466,'DAC déposée en janvier 2023','lbl')+TX(576,488,'enquête publique du 18 mai au 2 juillet 2026 · décision à venir','lbl'));
+  s+=PT('7',`<g class="spin" style="transform-origin:500px 330px"><path d="M500 307 A23 23 0 1 1 477 330" fill="none" stroke="var(--accent)" stroke-width="3"/><path d="M471 323 L477 332 L485 324" fill="none" stroke="var(--accent)" stroke-width="3"/></g>`);
+  return s;}},
+
+/* ---------- 8. Transport ---------- */
+transport:{t:'Transporter des substances radioactives',sub:'Contenu, emballage, colis · types · épreuves · étiquetage',fiche:'transport',
+ intro:'La sûreté d’un transport repose d’abord sur le colis. Plus le contenu est dangereux, plus le colis doit résister. Les règles internationales de l’AIEA sont reprises dans chaque mode de transport.',
+ steps:[
+ {t:'Contenu, emballage, colis',d:'<p>Le <b>contenu</b> est la matière transportée. L’<b>emballage</b> assure les fonctions de protection. <b>Contenu + emballage = colis.</b> Un emballage robuste n’autorise pas n’importe quel contenu : chaque modèle est conçu ou agréé pour des contenus précis.</p>'},
+ {t:'Risques et fonctions',d:'<p>Le colis doit assurer, selon le contenu : le <b>confinement</b> (contamination), la <b>protection radiologique</b> (irradiation), l’<b>évacuation de la chaleur</b> et la <b>prévention de la criticité</b> pour les matières fissiles. S’y ajoutent des risques chimiques : l’UF₆ forme de l’acide fluorhydrique au contact de l’humidité.</p>'},
+ {t:'Les types de colis',d:'<p><b>Excepté</b> : très faibles quantités. <b>Industriel</b> : matières de faible activité spécifique. <b>Type A</b> : résiste aux conditions normales de transport. <b>Type B</b> : résiste aussi à des conditions accidentelles. <b>Type C</b> : transport aérien de contenus très actifs.</p>'},
+ {t:'Les épreuves du type B',d:'<p>Le modèle doit rester sûr après des épreuves enchaînées : <b>chute de 9 m</b> sur une cible indéformable, <b>chute de 1 m sur un poinçon</b>, <b>feu de 800 °C pendant 30 minutes</b>, puis <b>immersion sous 15 m d’eau</b> (200 m pour les contenus les plus actifs).</p>'},
+ {t:'Étiqueter et signaler',d:'<p>Étiquettes de colis : <b>I-blanche</b>, <b>II-jaune</b> ou <b>III-jaune</b> selon le débit de dose au contact et l’indice de transport (IT). Le véhicule porte des plaques-étiquettes de classe 7 et un panneau orange avec numéro ONU. L’étiquette résulte de mesures : elle ne se déduit pas de la catégorie de déchet.</p>'},
+ {t:'Contrôler avant départ',d:'<p>Adéquation contenu/emballage, état et fermetures, <b>débits de dose</b> et <b>contamination non fixée</b>, documents, marquage, étiquetage, arrimage. Une non-conformité <b>bloque l’expédition</b> jusqu’à son traitement.</p>'},
+ {t:'La réglementation',d:'<p>Les règles de l’AIEA (SSR-6) sont reprises par mode : <b>ADR</b> route, <b>RID</b> rail, <b>ADN</b> voies navigables, <b>code IMDG</b> mer, <b>instructions techniques de l’OACI</b> air. En France, l’arrêté TMD encadre les transports terrestres ; l’ASNR contrôle la sûreté des transports civils.</p>'},
+ {t:'Exemple : combustible usé',d:'<p>Un emballage de combustible usé pèse plus de 100 t : corps épais en acier, protection neutronique en résine, ailettes de refroidissement, capots amortisseurs aux extrémités. C’est un colis de type B transportant une matière fissile.</p>'}],
+ svg:()=>{let s='';
+  /* emballage en coupe */
+  s+=`<rect x="20" y="22" width="490" height="200" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/><text class="zt" x="34" y="42">EMBALLAGE DE TYPE B EN COUPE (PRINCIPE)</text>`;
+  s+=PT('1 2 8',`<rect x="105" y="72" width="320" height="120" rx="30" fill="var(--m-coq)" opacity=".6"/><rect x="118" y="84" width="294" height="96" rx="24" fill="var(--m-solv)" opacity=".35"/><rect x="132" y="96" width="266" height="72" rx="16" fill="var(--m-coq)"/><rect x="146" y="106" width="238" height="52" rx="8" fill="var(--panel2)"/>${[0,1,2,3,4,5].map(i=>`<rect x="${156+i*38}" y="113" width="30" height="38" rx="3" fill="var(--m-comb)" opacity=".7"/>`).join('')}${Array.from({length:13},(_,i)=>`<line x1="${130+i*22}" x2="${130+i*22}" y1="62" y2="72" stroke="var(--m-coq)" stroke-width="3"/><line x1="${130+i*22}" x2="${130+i*22}" y1="192" y2="202" stroke="var(--m-coq)" stroke-width="3"/>`).join('')}<rect x="60" y="78" width="50" height="108" rx="16" fill="var(--m-dt)" opacity=".75"/><rect x="420" y="78" width="50" height="108" rx="16" fill="var(--m-dt)" opacity=".75"/>`);
+  s+=PT('1 8',TX(265,138,'contenu','hd','mid')+TX(85,212,'capot amortisseur','lbl-s','mid')+TX(265,212,'corps acier · résine · ailettes','lbl-s','mid'));
+  s+=PT('2',`${Array.from({length:6},(_,i)=>`<circle class="rise" cx="${160+i*45}" cy="66" r="3" fill="var(--hot)" style="animation-delay:${i*.4}s"/>`).join('')}`+TX(440,60,'chaleur','lbl','end'));
+  /* camion */
+  s+=`<rect x="20" y="236" width="490" height="150" rx="14" fill="var(--zone)" stroke="var(--zone-stroke)" stroke-dasharray="6 5"/>`;
+  s+=PT('5 6 7',`<g class="truck"><rect x="80" y="270" width="290" height="70" rx="6" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="370" y="285" width="80" height="55" rx="8" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="420" y="292" width="24" height="20" rx="3" fill="var(--water2)" opacity=".6"/>${[115,160,330,420].map(x=>`<circle cx="${x}" cy="348" r="13" fill="var(--label)"/><circle cx="${x}" cy="348" r="5" fill="var(--panel)"/>`).join('')}<rect x="150" y="280" width="150" height="50" rx="22" fill="var(--m-coq)" opacity=".8"/><g transform="translate(108 305) rotate(45)"><rect x="-13" y="-13" width="26" height="26" fill="var(--m-u)" stroke="var(--label)" stroke-width="1.5"/></g><text x="108" y="309" class="tag" style="text-anchor:middle;fill:#111">7</text><rect x="320" y="290" width="40" height="28" fill="#f08c00" stroke="var(--label)"/><text x="340" y="302" class="tag" style="text-anchor:middle;fill:#111">70</text><text x="340" y="314" class="tag" style="text-anchor:middle;fill:#111">ONU</text></g><path d="M30 362 H500" stroke="var(--eq-stroke)" stroke-width="2"/>`);
+  s+=PT('5',TX(108,262,'plaque classe 7','lbl-s','mid')+TX(340,262,'panneau orange','lbl-s','mid'));
+  /* étiquettes */
+  const lab=(x,t,top,it,dd)=>`<g transform="translate(${x} 440) rotate(45)"><rect x="-26" y="-26" width="52" height="52" fill="${top}" stroke="var(--label)" stroke-width="1.5"/><path d="M-26 26 L26 -26 L26 26 Z" fill="#fff"/></g>${TREF(x,428,9,'#111')}<text x="${x}" y="456" class="tag" style="text-anchor:middle;fill:#111">${t}</text>`+TX(x+46,430,it,'lbl')+TX(x+46,448,dd,'lbl-s');
+  s+=PT('5',`<rect x="20" y="398" width="490" height="114" rx="14" fill="var(--panel)" stroke="var(--border)"/>`+lab(62,'I','#fff','IT = 0','≤ 0,005 mSv/h')+lab(222,'II','#ffd43b','IT ≤ 1','≤ 0,5 mSv/h')+lab(382,'III','#ffd43b','IT ≤ 10','≤ 2 mSv/h')+TX(30,505,'débit de dose maximal au contact · IT : indice de transport','lbl-s'));
+  s+=K('0 1 2 3 4 6 7 8',`<rect x="20" y="398" width="490" height="114" rx="14" fill="var(--panel)" stroke="var(--border)"/>`+TX(36,424,'Risques d’un transport','hd')+TX(36,448,'irradiation · contamination · criticité','lbl')+TX(36,470,'chaleur · risque chimique (UF₆ → HF)','lbl')+TX(36,494,'accident de la route, incendie, chute','lbl-s'));
+  /* échelle des colis */
+  const types=[['Excepté','très faible'],['Industriel','faible activité'],['Type A','usage normal'],['Type B','accident'],['Type C','aérien']];
+  s+=TX(545,40,'Types de colis : résistance croissante','hd');
+  types.forEach((t,i)=>{const x=545+i*107,h=40+i*28,y=210-h;s+=PT(i>=3?'3 4':'3',`<rect x="${x}" y="${y}" width="98" height="${h}" rx="8" fill="var(--btn-active)" stroke="var(--accent)" stroke-width="1.5"/>`+TX(x+49,y+18,t[0],'hd','mid')+TX(x+49,228,t[1],'lbl-s','mid'));});
+  /* épreuves */
+  const ep=[['Chute 9 m','cible indéformable','M0 -22 V14 M-7 7 L0 14 L7 7'],['Poinçon 1 m','barre d’acier','M0 -22 V0 M-10 14 H10 M0 4 V14'],['Feu 800 °C','30 minutes','M-8 14 Q-12 -2 0 -20 Q12 -2 8 14 Z'],['Immersion','15 m · 200 m','M-14 0 Q-7 -6 0 0 T14 0 M-14 9 Q-7 3 0 9 T14 9']];
+  s+=PT('4',TX(545,262,'Épreuves enchaînées d’un modèle de type B','hd')+ep.map((e,i)=>{const x=545+i*134;return `<rect x="${x}" y="274" width="124" height="104" rx="10" fill="var(--panel)" stroke="var(--m-pf)" stroke-width="1.6"/><g transform="translate(${x+62} 312)"><path d="${e[2]}" fill="${i===2?'var(--hot)':'none'}" stroke="var(--m-pf)" stroke-width="3" stroke-linecap="round"/></g>`+TX(x+62,352,e[0],'hd','mid')+TX(x+62,368,e[1],'lbl-s','mid');}).join(''));
+  /* réglementation */
+  s+=PT('7',`<rect x="545" y="398" width="530" height="114" rx="12" fill="var(--panel)" stroke="var(--m-comb)" stroke-width="2"/>`+TX(560,420,'AIEA · règlement de transport SSR-6','hd')+[['ADR','route'],['RID','rail'],['ADN','fluvial'],['IMDG','mer'],['OACI','air']].map((r,i)=>`<rect x="${560+i*100}" y="432" width="90" height="40" rx="8" fill="var(--btn-active)"/>`+TX(605+i*100,450,r[0],'hd','mid')+TX(605+i*100,465,r[1],'lbl-s','mid')).join('')+TX(560,496,'France : arrêté TMD · contrôle de sûreté par l’ASNR','lbl'));
+  s+=K('0 1 2 3 4 5 6 8',`<rect x="545" y="398" width="530" height="114" rx="12" fill="var(--panel)" stroke="var(--border)"/>`+TX(560,420,'Avant le départ','hd')+['contenu conforme au modèle de colis','débits de dose et contamination mesurés','documents, marquage, étiquetage, arrimage'].map((t,i)=>TX(576,444+i*22,'✓ '+t,'lbl')).join(''));
+  return s;}},
+
+/* ---------- 9. Mises en situation ---------- */
+situations:{t:'Mises en situation',sub:'Situations fictives, sans valeur de procédure',fiche:'situations',quiz:true,steps:[]}
+};
+
+const ACTIVITIES=[
+ {title:'Responsabilités et décisions',context:'Intervention fictive sur un équipement important pour la protection.',rule:'Appliquer les exigences sans improviser de dérogation.',steps:[
+  {prompt:'Un prestataire a réalisé le travail. Qui reste responsable de la sûreté de l’installation ?',options:['Le prestataire seul','L’exploitant','La CIPR'],answer:1,why:'L’exploitant garde la responsabilité première et surveille les intervenants extérieurs ; le prestataire garde ses propres obligations d’employeur.'},
+  {prompt:'Une condition prévue par les RGE n’est plus respectée. Que faire ?',options:['Poursuivre, le travail est presque fini','Ignorer l’écart si le débit de dose est faible','Suspendre selon les consignes et signaler pour appliquer la conduite prévue'],answer:2,why:'Une bonne mesure radiologique ne compense pas un écart à une condition d’exploitation.'},
+  {prompt:'Qui organise la protection des populations dans le cadre du PPI ?',options:['Le préfet','Le fabricant de l’emballage','La CIPR'],answer:0,why:'Le PUI relève de l’exploitant, sur son site ; le PPI relève du préfet, autour du site.'}]},
+ {title:'Autoriser ou bloquer une expédition',context:'Un colis dispose d’un emballage en bon état, mais la fiche du contenu manque.',rule:'L’adéquation contenu/emballage et tous les contrôles prescrits doivent être démontrés avant le départ.',steps:[
+  {prompt:'L’emballage est de type B. Le départ est-il possible ?',options:['Oui, pour tout contenu','Non : l’adéquation du contenu doit être démontrée','Oui, si le trajet est court'],answer:1,why:'La résistance de l’emballage ne remplace pas la vérification du contenu autorisé.'},
+  {prompt:'Un contrôle radiologique prescrit est absent. Quelle décision ?',options:['Inscrire une valeur nominale','Recopier celle du colis précédent','Bloquer et faire compléter les contrôles et documents'],answer:2,why:'Une donnée manquante ne constitue pas une preuve de conformité.'},
+  {prompt:'Le contenu est un déchet TFA. Peut-on choisir d’office l’étiquette I-blanche ?',options:['Non : l’étiquette résulte des mesures et des règles du transport','Oui, TFA signifie sans risque','Oui, si le fût est petit'],answer:0,why:'La catégorie de déchet et la catégorie d’étiquette de transport répondent à des critères distincts.'}]},
+ {title:'Zonages et alerte',context:'Situations courantes autour d’une installation.',rule:'Identifier le zonage concerné et appliquer la consigne correspondante.',steps:[
+  {prompt:'L’accès d’un local porte un trèfle jaune. Qu’indique-t-il ?',options:['Une zone contrôlée jaune : dose pouvant atteindre jusqu’à 2 mSv en une heure, accès réglementé','Un local sans risque radiologique','Une zone à déchets conventionnels'],answer:0,why:'La couleur du trèfle indique la zone radiologique ; le jaune impose un accès limité et préparé.'},
+  {prompt:'Un déchet sort d’une ZppDN et la mesure ne détecte rien. Peut-il aller en filière conventionnelle ?',options:['Oui, la mesure est nulle','Non : issu d’une ZppDN, il est géré comme nucléaire sauf démarche prévue par le référentiel','Oui, si c’est du papier'],answer:1,why:'Le zonage déchets se fonde sur l’origine possible du déchet ; une mesure nulle ne suffit pas.'},
+  {prompt:'La sirène PPI retentit. Votre enfant est à l’école dans le périmètre. Que faites-vous ?',options:['Je vais le chercher immédiatement','Je me mets à l’abri et j’écoute les consignes ; l’école met les élèves à l’abri','Je prends un comprimé d’iode dès la sirène'],answer:1,why:'Se déplacer expose davantage et encombre les routes. L’iode se prend seulement sur ordre du préfet.'}]}
+];
+
+/* =====================================================================
+   MOTEUR COMMUN — reprend le fonctionnement des parcours validés
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+function pts(d){const t=d.match(/[MLHV]|-?\d+(?:\.\d+)?/g);const p=[];let c='M',x=0,y=0,i=0;
+ while(i<t.length){const k=t[i];if(/[MLHV]/.test(k)){c=k;i++;continue;}
+  if(c==='M'||c==='L'){x=+t[i];y=+t[i+1];i+=2;}else if(c==='H'){x=+t[i];i++;}else{y=+t[i];i++;}p.push([x,y]);}return p;}
+function F(d,m,s,o={}){const p=pts(d),a=p[p.length-2],b=p[p.length-1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),w=o.w||6,sz=w+6;
+ const tri=`M${b[0]} ${b[1]} L${(b[0]-sz*Math.cos(ang-.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang-.45)).toFixed(1)} L${(b[0]-sz*Math.cos(ang+.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang+.45)).toFixed(1)}Z`;
+ return `<g class="fl m-${m}" data-m="${m}"${s!==''?` data-s="${s}"`:''}${o.n?` data-n="${o.n}"`:''}${o.k?` data-k="${o.k}"`:''}>${o.noCase?'':`<path class="f-case" d="${d}" stroke-width="${w+5}"/>`}<path class="f-base" d="${d}" stroke-width="${w}"/><path class="f-dash" d="${d}" stroke-width="${Math.max(2,w*.45).toFixed(1)}"/>${o.noArrow?'':`<path class="f-arr" d="${tri}"/>`}${o.lab?`<text class="f-lab" x="${o.lab[0]}" y="${o.lab[1]}"${o.lab[3]?` text-anchor="${o.lab[3]}"`:''}>${o.lab[2]}</text>`:''}</g>`;}
+function B(x,y,w,h,t,sub,s,o={}){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2;
+ const ty=o.top?y+20:(y+h/2-(L.length*13)/2+5);
+ return `<g class="eq" data-s="${s}" tabindex="0" role="button" aria-label="${t.replace(/<[^>]+>/g,'')}"><rect class="eq-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx??11}"/>${o.inner||''}<text class="eq-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="eq-s" x="${cx}" y="${ty+15+i*13}">${l}</text>`).join('')}</g>`;}
+function N(id,x,y,w,h,t,sub,col){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2+3,ty=y+h/2-(L.length*13)/2+5;
+ return `<g class="node" data-node="${id}" tabindex="0" role="button" aria-label="${t}"><rect class="n-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="10"/><rect class="n-strip" x="${x}" y="${y+6}" width="6" height="${h-12}" rx="3" style="fill:${col}"/><text class="n-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="n-s" x="${cx}" y="${ty+16+i*13}">${l}</text>`).join('')}</g>`;}
+const PT=(s,inner,k)=>`<g class="part" data-s="${s}"${k?` data-k="${k}"`:''}>${inner}</g>`;
+const K=(k,inner)=>`<g data-k="${k}">${inner}</g>`;
+const TX=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+const ZONE=(x,y,w,h,t)=>`<rect class="zone" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><text class="zt" x="${x+12}" y="${y+18}">${t}</text>`;
+const CALL=(x,y,n)=>`<circle cx="${x}" cy="${y}" r="11" class="callout"/><text class="num" x="${x}" y="${y+4.5}">${n}</text>`;
+const bubbles=(xs,y,c,cls='rise',r=3)=>xs.map((x,i)=>`<circle class="${cls}" cx="${x}" cy="${y}" r="${r}" fill="${c}" opacity=".8" style="animation-delay:${(i*.45).toFixed(2)}s"/>`).join('');
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+
+/* ---------- Fiches ---------- */
+function renderFiche(id,inDetail){const f=FICHE[id];if(!f)return;
+ $('aside').innerHTML=`<div class="kicker">Fiche</div><h2>${f.t}</h2><p style="margin:0 0 8px;color:var(--muted)">${f.full}</p><p>${f.role}</p>
+ ${f.does?`<h3>${f.doesT||'À retenir'}</h3><ul>${f.does.map(d=>`<li>${d}</li>`).join('')}</ul>`:''}
+ ${f.keys&&f.keys.length?`<h3>Repères</h3><div class="facts">${f.keys.map(([a,b])=>`<div class="fact"><b>${a}</b>${b}</div>`).join('')}</div>`:''}
+ ${f.io?`<h3>${f.ioT||'Liens'}</h3><div class="io">${f.io.map(([a,b])=>`<span>${a}</span><div>${b}</div>`).join('')}</div>`:''}
+ ${!inDetail&&f.view?`<button class="btn primary openbtn" type="button" id="openView">Ouvrir la vue détaillée →</button>`:''}
+ <div class="warning">${WARN}</div>`;
+ const b=$('openView');if(b)b.onclick=()=>openView(f.view);}
+function asideHome(){$('aside').innerHTML=HOME_ASIDE;}
+
+/* ---------- Navigation ---------- */
+let cur='syn',step=0,playTimer=null,tourTimer=null,selNode=null,filter='all';
+function buildNav(){$('nav').innerHTML=`<button type="button" data-go="syn">${SYN_LABEL}</button><span class="sep"></span>`+VIEW_ORDER.map(v=>`<button type="button" data-go="${v}">${NAV_LABEL[v]}</button>`).join('');
+ $('nav').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='syn'?showSyn():openView(b.dataset.go));}
+function markNav(){$('nav').querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===cur));}
+function crumbs(){$('crumbs').innerHTML=cur==='syn'?`<span>${SYN_LABEL}</span>`:`<a id="toSyn" tabindex="0">${SYN_LABEL}</a><span>›</span><span>${NAV_LABEL[cur]}</span>`;const a=$('toSyn');if(a){a.onclick=showSyn;a.onkeydown=e=>{if(e.key==='Enter')showSyn();};}}
+function showSyn(){stopTour();stopPlay();cur='syn';$('synSec').classList.remove('hidden');$('detSec').classList.add('hidden');markNav();crumbs();if(selNode)renderFiche(selNode);else asideHome();window.scrollTo({top:0,behavior:'smooth'});}
+function openView(v){stopTour();stopPlay();cur=v;const V=VIEWS[v];step=0;
+ $('synSec').classList.add('hidden');$('detSec').classList.remove('hidden');
+ const det=$('det'),quiz=$('quiz');
+ if(V.quiz){det.classList.add('hidden');quiz.classList.remove('hidden');$('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>&nbsp;·&nbsp;${V.sub}`;$('steps').classList.add('hidden');$('stepText').classList.add('hidden');$('status').classList.add('hidden');$('playBtn').classList.add('hidden');renderQuiz();}
+ else{det.classList.remove('hidden');quiz.classList.add('hidden');$('steps').classList.remove('hidden');$('stepText').classList.remove('hidden');$('playBtn').classList.remove('hidden');
+  det.setAttribute('aria-label',V.t);det.setAttribute('viewBox',V.vb||'0 0 1100 520');det.innerHTML=V.svg();
+  const used=[...new Set([...det.querySelectorAll('.fl')].map(g=>g.dataset.m))].filter(m=>MAT[m]);
+  $('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>`+(used.length?'&nbsp;·&nbsp;'+used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join(''):(V.legend?'&nbsp;·&nbsp;'+V.legend:''));
+  $('steps').innerHTML=`<button class="sbtn" type="button" data-step="0">Vue d’ensemble</button>`+V.steps.map((st,i)=>`<button class="sbtn" type="button" data-step="${i+1}">${i+1} · ${st.t}</button>`).join('');
+  $('steps').querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>{stopPlay();setStep(+b.dataset.step);});
+  det.querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+  $('status').classList.toggle('hidden',!V.status);}
+ const i=VIEW_ORDER.indexOf(v);$('prevView').disabled=i<=0;$('nextView').disabled=i>=VIEW_ORDER.length-1;
+ markNav();crumbs();renderFiche(V.fiche,true);if(!V.quiz)setStep(0);window.scrollTo({top:0,behavior:'smooth'});}
+function renderStatus(code,clk){if(!STATUS_DEF||!code){$('status').innerHTML='';return;}
+ const groups=code.split('|');const LBL={o:'assurée',d:'dégradée',x:'perdue',n:'sans objet'},LBB={o:'intègre',d:'menacée',x:'rompue',n:'absente'};
+ $('status').innerHTML=STATUS_DEF.map((g,gi)=>`<div class="sg"><b>${g[0]}</b>${g[1].map((name,j)=>{const c=(groups[gi]||'')[j]||'n';return `<span class="pill ${c}" title="${name} : ${(gi?LBB:LBL)[c]}"><i></i>${name} <em>${(gi?LBB:LBL)[c]}</em></span>`;}).join('')}</div>`).join('')+(clk?`<span class="clock">${clk}</span>`:'');}
+function setStep(n){const V=VIEWS[cur];step=n;const det=$('det');
+ det.querySelectorAll('[data-s]').forEach(e=>{const on=n===0||e.dataset.s.split(' ').includes(String(n));e.classList.toggle('dim',!on);if(e.classList.contains('eq'))e.classList.toggle('hl',n>0&&on);});
+ det.querySelectorAll('[data-k]').forEach(e=>{e.classList.toggle('k-hide',!e.dataset.k.split(' ').includes(String(n)));});
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===n));
+ if(V.status){const s=n===0?{st:V.st0,clk:V.clk0}:V.steps[n-1];renderStatus(s.st||V.st0,s.clk);}
+ $('stepText').innerHTML=n===0?`<h3>${V.t}</h3><p>${V.intro}</p><p class="note">${V.sub}. Choisissez une étape ou lancez la lecture guidée ; cliquez sur un équipement pour afficher l’étape correspondante.</p>`:`<h3>Étape ${n} / ${V.steps.length} — ${V.steps[n-1].t}</h3>${V.steps[n-1].d}`;}
+$('prevView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i>0)openView(VIEW_ORDER[i-1]);};
+$('nextView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i<VIEW_ORDER.length-1)openView(VIEW_ORDER[i+1]);};
+function stopPlay(){if(playTimer){clearInterval(playTimer);playTimer=null;}$('playBtn').textContent='▶ Lecture guidée';}
+$('playBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(playTimer){stopPlay();return;}const V=VIEWS[cur];$('playBtn').textContent='⏸ Arrêter la lecture';setStep(step>=V.steps.length?1:step+1);
+ playTimer=setInterval(()=>{if(step>=VIEWS[cur].steps.length){stopPlay();return;}setStep(step+1);},10000);};
+
+/* ---------- Synoptique ---------- */
+function applySyn(){const syn=$('syn');
+ syn.querySelectorAll('.node').forEach(n=>{const id=n.dataset.node;let on=true;
+  if(selNode)on=id===selNode||[...syn.querySelectorAll('.fl')].some(f=>(f.dataset.n||'').split(' ').includes(selNode)&&(f.dataset.n||'').split(' ').includes(id));
+  if(filter!=='all')on=on&&[...syn.querySelectorAll(`.fl[data-m="${filter}"]`)].some(f=>(f.dataset.n||'').split(' ').includes(id));
+  n.classList.toggle('dim',!on);n.classList.toggle('sel',id===selNode);});
+ syn.querySelectorAll('.fl').forEach(f=>{const ns=(f.dataset.n||'').split(' ');let on=true;if(selNode)on=ns.includes(selNode);if(filter!=='all')on=on&&f.dataset.m===filter;f.classList.toggle('dim',!on);});
+ syn.querySelectorAll('[data-for]').forEach(g=>{g.classList.toggle('dim',!!selNode&&!g.dataset.for.split(' ').includes(selNode));});}
+function selectNode(id){selNode=selNode===id&&!tourTimer?null:id;applySyn();if(selNode)renderFiche(selNode);else asideHome();}
+function stopTour(){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}$('tourBtn').textContent='▶ Visite guidée';}
+$('tourBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(tourTimer){stopTour();return;}filter='all';markFilters();let i=0;$('tourBtn').textContent='⏸ Arrêter la visite';selNode=null;selectNode(TOUR[0]);
+ tourTimer=setInterval(()=>{i++;if(i>=TOUR.length){stopTour();selNode=null;applySyn();asideHome();return;}selNode=null;selectNode(TOUR[i]);},7000);};
+function markFilters(){$('filters').querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===filter));}
+function buildSyn(){const syn=$('syn');syn.setAttribute('viewBox',SYN_VB||'0 0 1200 700');syn.innerHTML=SYN();
+ syn.querySelectorAll('.node').forEach(n=>{n.onclick=()=>{stopTour();selectNode(n.dataset.node);};n.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();stopTour();selectNode(n.dataset.node);}};});
+ const used=[...new Set([...syn.querySelectorAll('.fl')].map(g=>g.dataset.m))].filter(m=>MAT[m]);
+ if(used.length){$('filters').innerHTML=`<button class="chip active" type="button" data-f="all">Tous les liens</button>`+used.map(m=>`<button class="chip m-${m}" type="button" data-f="${m}"><i></i>${MAT[m]}</button>`).join('');
+  $('filters').querySelectorAll('.chip').forEach(c=>c.onclick=()=>{filter=c.dataset.f;markFilters();applySyn();});
+  $('synLegend').innerHTML=used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('')+(SYN_NOTE?`<span>${SYN_NOTE}</span>`:'');}
+ else{$('filters').innerHTML=SYN_FILTER_TEXT||'';$('synLegend').innerHTML=SYN_NOTE||'';}}
+
+/* ---------- Mises en situation ---------- */
+let qTask=0,qStage=0,qTries=0,qFirst=[],qScores={};
+function renderQuiz(){const box=$('quiz');box.innerHTML=`<div class="qmenu" role="group" aria-label="Situations">${ACTIVITIES.map((a,i)=>`<button type="button" data-t="${i}">${esc(a.title)}</button>`).join('')}<button type="button" data-t="bilan">Mon bilan</button></div><section class="qcard" id="qcard" aria-live="polite"></section>`;
+ box.querySelectorAll('[data-t]').forEach(b=>b.onclick=()=>b.dataset.t==='bilan'?qBilan():qStart(+b.dataset.t));qStart(0);}
+function qMark(t){$('quiz').querySelectorAll('[data-t]').forEach(b=>b.classList.toggle('active',b.dataset.t===String(t)));}
+function qStart(i){qTask=i;qStage=0;qTries=0;qFirst=[];qMark(i);qRender();}
+function qRender(){const a=ACTIVITIES[qTask],s=a.steps[qStage],box=$('qcard');
+ if(!s){const r={ok:qFirst.filter(Boolean).length,total:a.steps.length,tries:qTries};qScores[qTask]=r;
+  box.innerHTML=`<div class="kicker">Situation terminée</div><h3>${esc(a.title)}</h3><p><b>${r.ok} / ${r.total}</b> décisions justes au premier essai.</p><p class="note">Chaque décision a été justifiée ; les choix erronés ont été corrigés avant de poursuivre.</p><div class="qrow"><button class="btn" type="button" id="qAgain">Recommencer</button>${qTask<ACTIVITIES.length-1?'<button class="btn primary" type="button" id="qNext">Situation suivante →</button>':''}<button class="btn" type="button" id="qB">Voir mon bilan</button></div>`;
+  $('qAgain').onclick=()=>qStart(qTask);const nx=$('qNext');if(nx)nx.onclick=()=>qStart(qTask+1);$('qB').onclick=qBilan;return;}
+ box.innerHTML=`<div class="kicker">Décision ${qStage+1} / ${a.steps.length}</div><h3>${esc(a.title)}</h3><p>${esc(a.context)}</p><div class="qrule"><b>Consigne</b> · ${esc(a.rule)}</div><h4>${esc(s.prompt)}</h4><div class="qopts">${s.options.map((o,i)=>`<button type="button" data-a="${i}">${esc(o)}</button>`).join('')}</div><div class="qfb" id="qfb" role="status"></div>`;
+ let tries=0;box.querySelectorAll('[data-a]').forEach(b=>b.onclick=()=>{tries++;qTries++;const good=+b.dataset.a===s.answer,fb=$('qfb');
+  fb.className='qfb '+(good?'ok':'ko');
+  fb.innerHTML=good?`<b>Décision validée.</b><p>${esc(s.why)}</p><button class="btn primary" type="button" id="qGo">${qStage+1===a.steps.length?'Terminer la situation':'Décision suivante →'}</button>`:`<b>Décision à reprendre.</b><p>${esc(s.hint||s.why)}</p><p class="note">Relisez la consigne et choisissez une autre action.</p>`;
+  if(good){qFirst.push(tries===1);box.querySelectorAll('[data-a]').forEach(x=>x.disabled=true);$('qGo').onclick=()=>{qStage++;qRender();};$('qGo').focus();}else b.disabled=true;});}
+function qBilan(){qMark('bilan');const rows=ACTIVITIES.map((a,i)=>{const r=qScores[i];return `<tr><td>${esc(a.title)}</td><td>${r?r.ok+' / '+r.total:'non terminée'}</td><td>${r?r.tries:'—'}</td></tr>`;}).join('');
+ $('qcard').innerHTML=`<div class="kicker">Bilan de séance</div><h3>Mon bilan</h3><p class="note">Le score compte les décisions justes au premier essai. Il reste dans la page jusqu’à son rechargement.</p><div style="overflow-x:auto"><table class="qtable"><thead><tr><th>Situation</th><th>Premier essai</th><th>Choix effectués</th></tr></thead><tbody>${rows}</tbody></table></div><label for="qRef"><b>Ce que je dois vérifier avant d’agir</b></label><textarea id="qRef" placeholder="Une règle, une erreur comprise, une question à reprendre…"></textarea><div class="qrow"><button class="btn" type="button" id="qCopy">Copier mon bilan</button><span class="note" id="qMsg"></span></div>`;
+ $('qCopy').onclick=()=>{const txt=document.title+'\n\n'+ACTIVITIES.map((a,i)=>{const r=qScores[i];return a.title+' : '+(r?r.ok+'/'+r.total+' au premier essai, '+r.tries+' choix':'non terminée');}).join('\n')+'\n\nRéflexion :\n'+$('qRef').value;
+  const done=m=>$('qMsg').textContent=m;try{navigator.clipboard.writeText(txt).then(()=>done('Bilan copié.'),()=>{$('qRef').value=txt;$('qRef').select();done('Copie refusée : le texte est sélectionné, copiez-le avec Ctrl+C.');});}catch(e){$('qRef').value=txt;$('qRef').select();done('Copiez le texte sélectionné avec Ctrl+C.');}};}
+
+/* ---------- Thème et animations ---------- */
+const root=document.documentElement;
+const SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2v2.5M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t,set=true){if(set){root.dataset.theme=t;try{localStorage.setItem(THEME_KEY,t)}catch(e){}}const d=t==='dark';$('themeIcon').innerHTML=d?SUN:MOON;$('themeTxt').textContent=d?'Thème clair':'Thème sombre';$('themeBtn').setAttribute('aria-pressed',String(!d));}
+const curTheme=()=>root.dataset.theme||((()=>{try{return matchMedia('(prefers-color-scheme: light)').matches}catch(e){return false}})()?'light':'dark');
+try{const saved=localStorage.getItem(THEME_KEY);if(saved==='light'||saved==='dark')root.dataset.theme=saved;}catch(e){}
+setTheme(curTheme(),false);
+$('themeBtn').onclick=()=>setTheme(curTheme()==='dark'?'light':'dark');
+function setPaused(p){if(p){stopPlay();stopTour();}document.body.classList.toggle('paused',p);$('pauseBtn').textContent=p?'▶ Animations':'⏸ Animations';$('pauseBtn').classList.toggle('active',p);}
+$('pauseBtn').onclick=()=>setPaused(!document.body.classList.contains('paused'));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+
+/* ---------- Démarrage ---------- */
+buildNav();buildSyn();
+(()=>{const h=(location.hash||'').slice(1);if(VIEWS[h])openView(h);else showSyn();})();
+
+</script>
+</body></html>

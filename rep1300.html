@@ -1,0 +1,1237 @@
+<!doctype html>
+<html lang="fr" data-theme="dark">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+
+<title>REP 1300 — Simulateur pédagogique</title>
+<style>
+/* ============ THÈMES ============ */
+html[data-theme="dark"]{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--equip-fill:#1b2c3f;--equip-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --pipe-edge:rgba(0,0,0,.6);--casing:#0e1926;--particle:rgba(255,255,255,.72);--focus:#ffffff;
+ --zone-p:rgba(232,85,61,.06);--zone-p-stroke:#7d4440;--zone-p-text:#f0a08c;--zone-s:rgba(92,179,230,.05);--zone-s-stroke:#35607c;--zone-s-text:#9fd0ea;
+ --tag-bg:rgba(9,16,25,.94);--tag-border:#33495f;--tag-text:#e6eef6;--shaft:#8a9aab;
+ --warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;--btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;
+ --heat:#ff9b4f;--spray:#8bdfff;}
+html[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--equip-fill:#e4ebf2;--equip-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --pipe-edge:rgba(20,32,45,.55);--casing:#fbfcfe;--particle:rgba(255,255,255,.88);--focus:#0b3b5c;
+ --zone-p:rgba(200,60,40,.045);--zone-p-stroke:#dcaaa0;--zone-p-text:#a1382a;--zone-s:rgba(31,111,168,.04);--zone-s-stroke:#a3c1d8;--zone-s-text:#1f5f8f;
+ --tag-bg:rgba(255,255,255,.96);--tag-border:#b9c7d4;--tag-text:#13202d;--shaft:#7d8b99;
+ --warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;--btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;
+ --heat:#e5741f;--spray:#1e88c7;}
+:root{--flow:1}
+
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.45 system-ui,"Segoe UI",Arial,sans-serif;transition:background .2s,color .2s}
+button,input{font:inherit;color:inherit}button{cursor:pointer}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:14px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.topright{display:flex;gap:10px;align-items:center;flex-wrap:wrap}
+.tabs{display:flex;gap:6px;flex-wrap:wrap}
+.tabs button,.actions button,.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px}
+.tabs button.active,.actions button.active,.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:8px 14px;min-height:40px}
+.theme-btn svg{width:18px;height:18px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 335px;min-height:calc(100vh - 70px)}
+.main{padding:14px;min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:17px;overflow:auto}
+.metrics{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-bottom:12px}
+.metric{border:1px solid var(--border);background:var(--panel);border-radius:10px;padding:9px 11px}
+.metric strong{display:block;font-size:19px;font-variant-numeric:tabular-nums}
+.metric small{color:var(--muted);font-size:11px}
+.drawing{position:relative;border:1px solid var(--border);background:radial-gradient(ellipse at 50% 40%,var(--canvas-glow),var(--canvas) 75%);border-radius:14px;overflow:hidden}
+.drawing svg{display:block;width:100%;height:auto;max-height:calc(100vh - 230px);min-height:370px}
+.drawing .caption{color:var(--muted);border-top:1px solid var(--border);padding:6px 12px;font-size:11px}
+.section{margin:0 0 15px}.section h2{font-size:19px;margin:0 0 8px}
+.section h3,.controls h3{font-size:13px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:15px 0 8px}
+.lead{color:var(--text)}
+.data{display:grid;grid-template-columns:1fr auto;gap:6px 12px;border-top:1px solid var(--border);padding-top:12px}
+.data span{color:var(--muted)}.data b{text-align:right}
+.swatch{display:inline-block;width:12px;height:12px;border-radius:3px;vertical-align:-1px;margin-right:6px;border:1px solid var(--pipe-edge)}
+.controls{border:1px solid var(--border);background:var(--panel);border-radius:12px;padding:13px;margin-top:12px}
+.control{margin:10px 0}.control label{display:flex;justify-content:space-between;gap:10px}
+.control input{width:100%;accent-color:var(--accent)}
+.actions{display:flex;gap:6px;flex-wrap:wrap}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:13px}
+.footer{padding:10px 17px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+
+/* ============ LÉGENDE ============ */
+.legend{display:grid;grid-template-columns:1.3fr 1.4fr 1fr auto;gap:14px;padding:14px;margin-top:12px;border:1px solid var(--border);border-radius:12px;background:var(--panel)}
+.legend h4{margin:0 0 8px;font-size:12px;text-transform:uppercase;letter-spacing:.07em;color:var(--muted)}
+.tbar{height:14px;border-radius:7px;border:1px solid var(--pipe-edge)}
+.tticks{display:flex;justify-content:space-between;font-size:11px;color:var(--muted);margin-top:4px;font-variant-numeric:tabular-nums}
+.tnotes{font-size:11px;color:var(--muted);margin-top:6px;line-height:1.5}
+.lg-row{display:flex;align-items:center;gap:8px;font-size:12px;margin:3px 0}
+.lg-row svg{flex:0 0 auto}
+.lg-tools{display:flex;flex-direction:column;gap:6px}
+@media(max-width:1100px){.legend{grid-template-columns:1fr 1fr}}
+@media(max-width:560px){.legend{grid-template-columns:1fr}}
+
+/* ============ SVG ============ */
+.view{display:none}.view.active{display:block}
+.ttl{fill:var(--text);font-size:17px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone-p{fill:var(--zone-p);stroke:var(--zone-p-stroke);stroke-dasharray:6 5}
+.zone-s{fill:var(--zone-s);stroke:var(--zone-s-stroke);stroke-dasharray:6 5}
+.zt{font-size:13px;font-weight:700;letter-spacing:.03em}.zt-p{fill:var(--zone-p-text)}.zt-s{fill:var(--zone-s-text)}
+.label{font-size:12px;fill:var(--label);text-anchor:middle;pointer-events:none}
+.smalllabel{font-size:10.5px;fill:var(--sublabel);text-anchor:middle;pointer-events:none}
+.la-s{text-anchor:start}.la-e{text-anchor:end}
+.code{font-size:11px;font-weight:700;fill:var(--label);text-anchor:middle;pointer-events:none;letter-spacing:.04em}
+.free{fill:var(--sublabel);font-size:12px}
+.equip{fill:var(--equip-fill);stroke:var(--equip-stroke);stroke-width:2}
+.over{pointer-events:none}
+.thin{fill:none;stroke:var(--equip-stroke);stroke-width:1.6;pointer-events:none}
+.shaft{stroke:var(--shaft);stroke-width:9;fill:none}
+.component{cursor:pointer;outline:none}
+.component:hover .hit,.component:focus-visible .hit,.component.selected .hit{stroke:var(--focus);stroke-width:3}
+.leader{stroke:var(--sublabel);stroke-width:1.2;fill:none}
+
+/* Conduites : couleur = température, motif = état, épaisseur = pression */
+.pipe{cursor:pointer;outline:none}
+.pipe path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.p-case{stroke:var(--casing)}
+.p-edge{stroke:var(--pipe-edge)}
+.p-body{stroke:var(--c)}
+.p-hollow{stroke:var(--canvas);opacity:.8}
+.fl-liq{stroke:var(--particle);stroke-dasharray:1 11;animation:flow calc(2.4s / var(--flow)) linear infinite}
+.fl-vap{stroke:var(--c);stroke-dasharray:10 14;animation:flow calc(.8s / var(--flow)) linear infinite}
+.fl-drop{stroke:var(--c);stroke-dasharray:0 12;animation:flow calc(1.9s / var(--flow)) linear infinite}
+.fl.still{animation:none}
+@keyframes flow{to{stroke-dashoffset:-48}}
+.pipe:hover .p-edge,.pipe:focus-visible .p-edge,.pipe.selected .p-edge{stroke:var(--focus)}
+.extr{transition:opacity .2s}
+.spray-off .fl{animation-play-state:paused;opacity:.25}
+
+/* Étiquettes T / P */
+.tag{pointer-events:none}
+.tag-bg{fill:var(--tag-bg);stroke:var(--tag-border)}
+.tag-tx{font-size:11px;fill:var(--tag-text);font-variant-numeric:tabular-nums}
+.tag-dot{stroke:var(--pipe-edge)}
+.tag-lead{stroke:var(--sublabel);stroke-width:1;stroke-dasharray:2 2;fill:none}
+svg.notags .tag{display:none}
+
+/* Animations des coupes */
+.anim-rise{animation:rise 2.6s linear infinite}
+.anim-fall{animation:fall 1.1s linear infinite}
+.anim-drop{animation:drop 1.6s ease-in infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}15%{opacity:.9}100%{transform:translateY(-120px);opacity:0}}
+@keyframes fall{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+@keyframes drop{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(100px);opacity:0}}
+body.paused .fl,body.paused .anim-rise,body.paused .anim-fall,body.paused .anim-drop{animation-play-state:paused}
+
+/* ============ BILAN THERMO ============ */
+#thermoPanel{display:none;padding:18px 20px;background:var(--panel);border:1px solid var(--border);border-radius:14px;margin:14px 0}
+#thermoPanel.active{display:block}
+.thermogrid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:10px;margin:12px 0}
+.thermocard{padding:12px;border:1px solid var(--border);background:var(--panel2);border-radius:10px}
+.thermocard small{display:block;color:var(--muted)}
+.thermocard strong{display:block;font-size:20px;margin-top:5px}
+.thermorow{display:grid;grid-template-columns:minmax(155px,1fr) minmax(130px,2fr) 70px;gap:12px;align-items:center;margin:12px 0}
+.thermorow input{width:100%;accent-color:var(--accent)}
+.thermotable{width:100%;border-collapse:collapse;font-size:12px}
+.thermotable th,.thermotable td{padding:8px;border-bottom:1px solid var(--border);text-align:left}
+.thermotable th{color:var(--muted)}
+.thermobar{height:20px;border-radius:7px;overflow:hidden;display:flex;background:var(--panel2);margin:10px 0}
+.thermobar span{height:100%;transition:width .15s}
+.thermohelp{color:var(--muted);font-size:12px;line-height:1.6}
+.thermocols{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.limit{color:var(--warn-text);background:var(--warn-bg);padding:8px 10px;border-radius:8px}
+
+/* ============ : SIMULATION DYNAMIQUE ============ */
+html[data-theme="dark"]{--alarm:#ff5d5d;--warnc:#f0b44c;--infoc:#6cb8ff;--contam:#c084fc;--alarm-bg:rgba(255,93,93,.12)}
+html[data-theme="light"]{--alarm:#cf2a2a;--warnc:#b7791f;--infoc:#1f6fa8;--contam:#8b2fd6;--alarm-bg:rgba(207,42,42,.08)}
+.simbar{display:flex;flex-wrap:wrap;gap:10px 16px;align-items:center;justify-content:space-between;border:1px solid var(--border);background:var(--panel);border-radius:12px;padding:10px 12px;margin-bottom:12px}
+.sb-group{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--border);border-radius:9px;overflow:hidden}
+.seg button{border:0;border-radius:0;background:var(--btn);padding:8px 11px}.seg button.active{background:var(--btn-active)}
+.clock{font-variant-numeric:tabular-nums;font-weight:700;min-width:84px;padding:0 6px}
+select{font:inherit;color:inherit;background:var(--btn);border:1px solid var(--border);border-radius:9px;padding:8px 10px;max-width:100%}
+.btn.danger{border-color:var(--alarm);color:var(--alarm);font-weight:700}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.status{display:flex;gap:6px;flex-wrap:wrap;width:100%}
+.chip{font-size:11px;font-weight:700;letter-spacing:.04em;padding:4px 9px;border-radius:999px;border:1px solid var(--border);color:var(--muted)}
+.chip.ok{color:var(--accent);border-color:var(--accent)}.chip.al{color:var(--alarm);border-color:var(--alarm);background:var(--alarm-bg)}.chip.wa{color:var(--warnc);border-color:var(--warnc)}
+.diagbar{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;border:2px dashed var(--warnc);border-radius:12px;padding:10px 12px;margin-bottom:12px;background:var(--warn-bg);color:var(--warn-text)}
+.diagbar[hidden]{display:none}
+.monitor{display:grid;grid-template-columns:minmax(260px,1fr) 2.2fr;gap:12px;margin-top:12px}
+.monitor>div{border:1px solid var(--border);background:var(--panel);border-radius:12px;padding:12px 13px;min-width:0}
+.monitor h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:0 0 8px}
+#alarmList{list-style:none;margin:0 0 12px;padding:0;display:flex;flex-direction:column;gap:5px;min-height:28px}
+#alarmList li{font-size:12px;padding:6px 9px;border-radius:7px;border-left:4px solid var(--infoc);background:var(--panel2)}
+#alarmList li.s2{border-color:var(--alarm);background:var(--alarm-bg);font-weight:600}
+#alarmList li.s1{border-color:var(--warnc)}
+#alarmList li.none{border-color:var(--accent);color:var(--muted)}
+#eventLog{margin:0;padding-left:0;list-style:none;font-size:12px;max-height:190px;overflow:auto;font-variant-numeric:tabular-nums}
+#eventLog li{padding:3px 0;border-bottom:1px solid var(--border)}#eventLog b{color:var(--muted);margin-right:6px}
+.tgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.tgrid figure{margin:0;min-width:0}
+.tgrid figcaption{font-size:11px;color:var(--muted);display:flex;flex-wrap:wrap;gap:4px 10px;margin-bottom:3px}
+.tgrid figcaption b{color:var(--text);font-weight:600}
+.tgrid figcaption i{display:inline-block;width:10px;height:3px;border-radius:2px;vertical-align:middle;margin-right:4px}
+.tgrid canvas{width:100%;height:120px;display:block;border:1px solid var(--border);border-radius:8px;background:var(--panel2)}
+@media(max-width:1200px){.monitor{grid-template-columns:1fr}}
+@media(max-width:700px){.tgrid{grid-template-columns:1fr 1fr}}
+@media(max-width:460px){.tgrid{grid-template-columns:1fr}}
+/* Instruments sur le synoptique */
+.instr{pointer-events:none}
+.in-bg{fill:var(--tag-bg);stroke:var(--tag-border);stroke-width:1.2}
+.in-lab{font-size:9.5px;fill:var(--muted);letter-spacing:.02em}
+.in-val{font-size:13px;font-weight:700;fill:var(--text);font-variant-numeric:tabular-nums}
+.in-track{fill:var(--border)}.in-bar{fill:var(--accent)}
+.instr.s1 .in-bg{stroke:var(--warnc);stroke-width:2}.instr.s1 .in-bar{fill:var(--warnc)}
+.instr.s2 .in-bg{stroke:var(--alarm);stroke-width:2.5;animation:blink 1s steps(2) infinite}.instr.s2 .in-bar{fill:var(--alarm)}.instr.s2 .in-val{fill:var(--alarm)}
+@keyframes blink{50%{stroke-opacity:.25}}
+/* Défauts et effets */
+.component.fault .hit{stroke:var(--alarm);stroke-width:3.5;animation:blink 1s steps(2) infinite}
+.badge{pointer-events:none}.badge path{fill:var(--alarm);stroke:var(--canvas);stroke-width:1.5}.badge text{fill:#fff;font-size:11px;font-weight:800;text-anchor:middle}
+.pipe.stopped .fl{animation-play-state:paused;opacity:.3}
+.pipe.rev .fl{animation-direction:reverse}
+.pipe.standby{opacity:.22}
+.pipe.contam .p-edge{stroke:var(--contam);animation:blink 1.2s steps(2) infinite}
+.leakfx,.plume{display:none}.leakfx.on,.plume.on{display:inline}
+.leakfx circle{fill:var(--contam)}
+.plume path{stroke:var(--sublabel);stroke-width:2.5;fill:none;stroke-linecap:round}
+body.paused .leakfx *,body.paused .plume *{animation-play-state:paused}
+/* Diagramme T-s et Sankey */
+.ax{stroke:var(--muted);stroke-width:1.2;fill:none}.gridl{stroke:var(--border);stroke-width:1}
+.axt{fill:var(--muted);font-size:11px}.dome{fill:var(--zone-s);stroke:var(--sublabel);stroke-width:2}
+.isob{stroke:var(--sublabel);stroke-width:1;stroke-dasharray:4 4}
+.cyc{fill:none;stroke-width:3.5;stroke-linejoin:round}
+.cpt{stroke:var(--canvas);stroke-width:2}.cpl{font-size:11px;fill:var(--label);font-weight:600}
+.sk-node{fill:var(--equip-fill);stroke:var(--equip-stroke);stroke-width:1.5}
+.sk-t{fill:var(--label);font-size:12px;font-weight:600}.sk-v{fill:var(--muted);font-size:11px;font-variant-numeric:tabular-nums}
+.sk-flow{fill:none;stroke-linecap:butt;opacity:.85}
+dialog{border:1px solid var(--border);border-radius:14px;background:var(--panel);color:var(--text);max-width:620px;width:calc(100% - 32px);padding:20px}
+dialog::backdrop{background:rgba(5,10,18,.6)}
+dialog h2{margin:0 0 6px;font-size:19px}
+.opts{display:grid;gap:6px;margin:12px 0;max-height:52vh;overflow:auto}
+.opts label{display:flex;gap:10px;align-items:center;padding:8px 10px;border:1px solid var(--border);border-radius:9px;cursor:pointer}
+.opts label:hover{border-color:var(--accent)}
+.res-ok{color:var(--accent);font-weight:700}.res-ko{color:var(--alarm);font-weight:700}
+.chain{margin:8px 0 0;padding-left:20px}.chain li{margin:4px 0}
+@media(max-width:980px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}.metrics{grid-template-columns:repeat(3,1fr)}.drawing svg{min-height:0;max-height:none}}
+@media(max-width:750px){.thermocols{grid-template-columns:1fr}.thermorow{grid-template-columns:1fr 1fr}.thermorow label{grid-column:1/-1}}
+@media(max-width:540px){.metrics{grid-template-columns:repeat(2,1fr)}.top h1{font-size:17px}.main{padding:8px}.aside{padding:13px}.tabs button{padding:7px 9px;font-size:12px}.drawing .caption{display:none}}
+</style>
+<style>
+/* Modules S7 intégrés — alignés sur les jetons du parcours (thèmes clair et sombre) */
+#s7host{font:14px/1.55 system-ui,"Segoe UI",Arial,sans-serif;color:var(--text)}
+#s7dialog{background:var(--bg);color:var(--text);border:1px solid var(--border);border-radius:14px;width:min(1180px,94vw);height:90vh;max-height:94vh;padding:0;box-sizing:border-box;box-shadow:0 18px 60px rgba(0,0,0,.35);overflow:auto}
+#s7dialog::backdrop{background:rgba(5,12,20,.72)}
+#s7dialog>header,#s7dialog>p,#s7dialog>nav,#s7dialog>main{margin-left:20px;margin-right:20px}
+#s7dialog button,#s7launch button{font:inherit;cursor:pointer;border:1px solid var(--border);border-radius:999px;padding:6px 13px;background:var(--btn);color:var(--text);font-size:13px}
+#s7dialog button:hover,#s7launch button:hover{border-color:var(--accent)}
+#s7dialog button[aria-current=page],#s7dialog button[aria-current=step]{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600;color:var(--text)}
+#s7dialog button:disabled{opacity:.5;cursor:default}
+#s7dialog :focus-visible,#s7launch :focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+#s7dialog h1{font-size:21px;line-height:1.25;margin:2px 0}
+#s7dialog h2{font-size:17px;line-height:1.3;margin:4px 0 8px}
+#s7dialog h3{font-size:15px;margin:12px 0 8px}
+.s7head{display:flex;justify-content:space-between;gap:14px;align-items:center;border-bottom:1px solid var(--border);padding:14px 0;margin-top:0}
+.s7head small{letter-spacing:.1em;color:var(--muted);font-size:11px;text-transform:uppercase}
+.s7intro{max-width:95ch;color:var(--muted);margin-top:12px}
+.s7tabs{display:flex;gap:6px;flex-wrap:wrap;margin:14px 0}
+.s7cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.s7cards article,.s7timeline,#s7exercise{background:var(--panel);border:1px solid var(--border);border-radius:12px;padding:16px}
+.s7cards article p{margin-bottom:0}
+.s7number{color:var(--accent);font-weight:800;font-size:13px;letter-spacing:.06em}
+.s7layout{display:grid;grid-template-columns:240px minmax(0,1fr);gap:14px;margin-bottom:20px}
+.s7menu{display:flex;flex-direction:column;gap:6px;align-self:start}
+#s7dialog .s7menu button{text-align:left;border-radius:10px}
+.s7rule,.s7barrier{padding:9px 12px;border-left:3px solid var(--accent);background:var(--panel2,var(--panel));border-radius:0 8px 8px 0}
+.s7rule p{margin-bottom:0}
+.s7choices{display:grid;gap:8px}
+#s7dialog .s7choices button{text-align:left;border-radius:10px;padding:9px 12px;font-size:14px}
+.s7ok,.s7error{padding:12px 14px;margin-top:12px;border-radius:10px}
+.s7ok{background:rgba(64,192,87,.13);border:1px solid #40c057}
+.s7error{background:rgba(250,82,82,.12);border:1px solid #fa5252}
+.s7stages{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin:14px 0}
+#s7dialog .s7stages button{display:flex;flex-direction:column;text-align:left;border-radius:10px}
+.s7stages b{font-size:18px}
+.s7controls{display:flex;align-items:center;justify-content:space-between;margin-top:14px;gap:10px}
+.s7fields{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+#s7dialog label{display:block;margin:10px 0}
+#s7dialog input,#s7dialog select,#s7dialog textarea{box-sizing:border-box;width:100%;padding:9px;font:inherit;border:1px solid var(--border);border-radius:8px;background:var(--panel);color:var(--text)}
+#s7dialog table{border-collapse:collapse;width:100%;background:var(--panel)}
+#s7dialog th,#s7dialog td{text-align:left;padding:8px;border:1px solid var(--border)}
+.s7table{overflow:auto}
+#s7launch{display:flex;gap:6px;flex-wrap:wrap;align-items:center;padding:8px 20px;background:var(--panel2,var(--panel));color:var(--text);border-bottom:1px solid var(--border);font-size:12.5px}
+#s7launch::before{content:"Activités S7";font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-right:6px}
+#s7launch button{border-color:var(--accent)}
+@media(max-width:700px){#s7dialog{width:98vw;height:96vh;max-height:96vh}.s7head{align-items:flex-start;flex-direction:column}.s7cards,.s7layout,.s7fields{grid-template-columns:1fr}.s7menu{display:grid;grid-template-columns:1fr 1fr}.s7stages{grid-template-columns:1fr 1fr}}
+@media(prefers-reduced-motion:reduce){#s7host *{scroll-behavior:auto!important}}
+</style></head>
+<body>
+<header class="top">
+ <div><h1>REP 1 300 MWe <span>/</span> Simulateur pédagogique</h1><div class="sub">Palier français 4 boucles · simulation dynamique · version 0.7</div></div>
+ <div class="topright">
+  <nav class="tabs" aria-label="Choix du synoptique">
+   <button class="active" data-view="global">Vue générale</button>
+   <button data-view="primary">Circuit primaire</button>
+   <button data-view="secondary">Circuit secondaire</button>
+   <button data-view="cyclefull">Cycle détaillé</button>
+   <button data-view="pressdetail">Zoom pressuriseur</button>
+   <button data-view="msrdetail">Zoom GSS</button>
+   <button data-view="auxiliary">Auxiliaires</button>
+   <button data-view="energy">Énergie &amp; cycle T-s</button>
+   <button id="thermoTab" type="button">Bilan thermodynamique</button>
+  </nav>
+  <button id="themeBtn" class="theme-btn" type="button" aria-label="Basculer entre le design clair et le design sombre">
+   <svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span>
+  </button>
+ </div>
+</header>
+<div id="s7launch"><button data-s7open="reacteur">Comprendre le réacteur</button></div>
+
+<div class="layout"><main class="main">
+<div class="metrics">
+ <div class="metric"><small>Puissance thermique</small><strong id="mthermal">3 817 MWth</strong></div>
+ <div class="metric"><small>Puissance électrique (modèle)</small><strong id="melectric">1 300 MWe</strong></div>
+ <div class="metric"><small>Pression primaire</small><strong id="mpressure">155 bar</strong></div>
+ <div class="metric"><small>T sortie / entrée cuve</small><strong id="mtemp">329 / 293 °C</strong></div>
+ <div class="metric"><small>Pression vapeur vive</small><strong id="msteam">70 bar</strong></div>
+</div>
+
+<div class="simbar" id="simbar">
+ <div class="sb-group">
+  <button id="simRun" class="btn" type="button">⏸ Figer le temps</button>
+  <div class="seg" role="group" aria-label="Vitesse de simulation"><button type="button" data-speed="1" class="active">×1</button><button type="button" data-speed="5">×5</button><button type="button" data-speed="15">×15</button></div>
+  <span class="clock" id="clock">t = 00:00</span>
+ </div>
+ <div class="sb-group">
+  <label for="scenario" class="sub">Scénario</label>
+  <select id="scenario"></select>
+  <button id="scLaunch" class="btn primary" type="button">▶ Lancer</button>
+  <button id="diagBtn" class="btn" type="button">Défi diagnostic</button>
+  <button id="auBtn" class="btn danger" type="button">AU manuel</button>
+  <button id="simReset" class="btn" type="button">↺ Réinitialiser</button>
+ </div>
+ <div class="status" id="status"></div>
+</div>
+<div class="diagbar" id="diagbar" hidden><div><b id="diagTitle">Défi diagnostic</b> — observez le synoptique, les alarmes et les tendances, puis identifiez l’origine du défaut. <span id="diagScore"></span></div><button id="diagAnswer" class="btn primary" type="button">Je donne mon diagnostic</button></div>
+
+<section id="thermoPanel" aria-label="Bilan thermodynamique simplifié">
+<h2 style="margin:0">Bilan énergétique — cycle secondaire</h2>
+<p class="thermohelp">Modèle énergétique pédagogique à propriétés vapeur approchées et sous-bilans explicités. Les corrélations ne sont PAS IAPWS-IF97. Les débits et puissances sont recalculés à chaque modification ; les hypothèses sont affichées ci-dessous. Ce n’est pas un modèle qualifié du palier P4/P’4.</p>
+<div class="thermogrid">
+ <div class="thermocard"><small>Puissance thermique GV</small><strong id="tQ">—</strong></div>
+ <div class="thermocard"><small>Débit vapeur vive</small><strong id="tm">—</strong></div>
+ <div class="thermocard"><small>Puissance nette modélisée</small><strong id="tW">—</strong></div>
+ <div class="thermocard"><small>Rendement net</small><strong id="teta">—</strong></div>
+ <div class="thermocard"><small>Débit chauffant GSS</small><strong id="tMSR">—</strong></div>
+ <div class="thermocard"><small>Titre vapeur sortie BP</small><strong id="tQuality">—</strong></div>
+ <div class="thermocard"><small>Chaleur rejetée (solde)</small><strong id="tReject">—</strong></div>
+</div>
+<div class="thermocols"><div><h3>Expériences</h3>
+ <div class="thermorow"><label for="tpower">Puissance thermique</label><input id="tpower" type="range" min="40" max="100" step="5" value="100"><b id="vtpower">100 %</b></div>
+ <div class="thermorow"><label for="tcond">Pression condenseur</label><input id="tcond" type="range" min="0.04" max="0.16" step="0.01" value="0.05"><b id="vtcond">0,05 bar</b></div>
+ <div class="thermorow"><label for="textract">Fraction de soutirage HP (régénération)</label><input id="textract" type="range" min="0" max="14" step="1" value="8"><b id="vtextract">8 %</b></div>
+ <div class="thermorow"><label for="treheat">Réchauffage GSS</label><input id="treheat" type="range" min="0" max="100" step="10" value="100"><b id="vtreheat">100 %</b></div>
+ <button id="treset" type="button" class="btn">↺ Hypothèses de référence</button>
+ <h3>Répartition de l’énergie thermique</h3>
+ <div class="thermobar"><span id="tbarPower" style="background:#3fae7a"></span><span id="tbarReject" style="background:#ec8a2c"></span></div>
+ <p id="tbarCaption" class="thermohelp"></p>
+</div><div><h3>États et flux calculés</h3><table class="thermotable"><thead><tr><th>Grandeur</th><th>Valeur</th></tr></thead><tbody id="trows"></tbody></table><p class="thermohelp" id="tcomment"></p></div></div>
+<h3>Bilans et hypothèses</h3>
+<p class="thermohelp">États de vapeur <strong>approchés</strong>, bilans massiques et énergétiques explicités. Vapeur vive supposée saturée sèche à ≈ 69 bar ; détentes HP et BP représentées par des enthalpies indicatives. La vapeur chauffante du GSS est prélevée sur la vapeur vive puis condensée : son débit découle du bilan de l’échangeur. Le soutirage régénératif est prélevé en sortie HP et son énergie est transférée à l’eau alimentaire.</p>
+<p class="thermohelp">Bilans : ṁ<sub>vive</sub> = ṁ<sub>BP</sub> + ṁ<sub>soutirage</sub> + ṁ<sub>chauffage GSS</sub> ; Q̇<sub>GSS</sub> = ṁ<sub>BP</sub> Δh<sub>réchauffage</sub> = ṁ<sub>chauffage GSS</sub> (h<sub>vive</sub> − h<sub>purge GSS</sub>) ; Q̇<sub>GV</sub> = ṁ<sub>vive</sub>(h<sub>vive</sub> − h<sub>alimentaire</sub>). Le rejet au condenseur est estimé par différence globale.</p>
+<p class="thermohelp limit"><strong>Limite de validation :</strong> pas d’équations IAPWS-IF97. Températures de saturation interpolées ; enthalpies approchées. Ne pas utiliser pour une étude de sûreté ni pour la conduite d’une tranche.</p>
+</section>
+
+<div class="drawing" id="drawing">
+<svg id="syn" viewBox="0 0 1120 660" role="img" aria-label="Synoptiques interactifs d’un réacteur à eau pressurisée français 1300 MWe">
+ <defs id="defs"></defs>
+ <g id="global" class="view active"></g>
+ <g id="primary" class="view"></g>
+ <g id="secondary" class="view"></g>
+ <g id="cyclefull" class="view"></g>
+ <g id="pressdetail" class="view"></g>
+ <g id="msrdetail" class="view"></g>
+ <g id="auxiliary" class="view"></g>
+ <g id="energy" class="view"></g>
+</svg>
+<div class="caption">Cliquez sur un équipement ou une conduite pour afficher sa fiche</div>
+</div>
+
+<div class="legend" id="legend">
+ <div><h4>Couleur = température</h4><div class="tbar" id="tbar"></div><div class="tticks"><span>10 °C</span><span>100</span><span>200</span><span>300</span><span>345 °C</span></div>
+  <div class="tnotes">Eau de mer ≈ 12 °C · condenseur ≈ 33 °C · eau alimentaire ≈ 230 °C · vapeur vive ≈ 286 °C · primaire 293 → 329 °C</div></div>
+ <div><h4>Motif = état du fluide</h4><div id="lgPhase"></div></div>
+ <div><h4>Épaisseur = pression</h4><div id="lgPress"></div><div class="tnotes">Classe de pression, pas le diamètre réel</div></div>
+ <div class="lg-tools"><h4>Affichage</h4><button class="btn active" id="tagBtn" type="button" aria-pressed="true">Étiquettes T / P</button><button class="btn" id="pause" type="button">⏸ Animation</button></div>
+</div>
+
+<section class="monitor" id="monitor" aria-label="Alarmes et tendances">
+ <div><h3>Alarmes actives</h3><ul id="alarmList"></ul><h3>Chronologie</h3><ol id="eventLog"></ol></div>
+ <div><h3>Tendances — 4 dernières minutes simulées</h3><div class="tgrid" id="tgrid"></div></div>
+</section>
+
+<div class="controls"><h3 style="margin:0 0 6px">Consignes de conduite — modèle dynamique qualitatif</h3>
+ <div class="control"><label for="power">Consigne puissance réacteur <strong id="vpower">100 %</strong></label><input id="power" type="range" min="20" max="100" step="5" value="100"></div>
+ <div class="control"><label for="load">Demande turbine (réseau) <strong id="vload">100 %</strong></label><input id="load" type="range" min="20" max="100" step="5" value="100"></div>
+ <div class="control"><label for="spray">Commande manuelle pressuriseur <strong id="vspray">Automatique</strong></label><input id="spray" type="range" min="-2" max="2" step="1" value="0"></div>
+ <div class="actions"><button id="reset" type="button">↺ Valeurs nominales</button></div>
+ <div id="explanation" class="note" style="margin-top:9px"></div>
+</div>
+<div class="controls"><h3 style="margin:0 0 8px">Zoom technique — paramètres des équipements</h3>
+ <div class="control"><label for="waterlevel">Consigne de niveau pressuriseur (RCV) <strong id="vwaterlevel">60 %</strong></label><input id="waterlevel" type="range" min="25" max="80" step="5" value="60"></div>
+ <div class="control"><label for="msrquality">Humidité en sortie HP (illustrative) <strong id="vmsrquality">12 %</strong></label><input id="msrquality" type="range" min="5" max="20" step="1" value="12"></div>
+ <div class="control"><label for="msrheat">Surchauffe disponible au GSS <strong id="vmsrheat">100 %</strong></label><input id="msrheat" type="range" min="0" max="100" step="10" value="100"></div>
+ <div class="note">Le niveau, l’humidité et la surchauffe sont des variables didactiques indépendantes. Elles ne représentent ni les lois de régulation ni un état calculé de la tranche.</div>
+</div>
+<div class="controls"><h3 style="margin:0 0 6px">Expériences sur le cycle secondaire</h3>
+ <div class="control"><label for="vacuum">Pression absolue au condenseur <strong id="vvacuum">0,05 bar</strong></label><input type="range" id="vacuum" min="0.04" max="0.16" step="0.01" value="0.05"></div>
+ <div class="control"><label for="extraction">Soutirages vers les réchauffeurs <strong id="vextraction">100 %</strong></label><input type="range" id="extraction" min="0" max="100" step="10" value="100"></div>
+ <div class="control"><label for="feedtemp">Température eau alimentaire (entrée GV) <strong id="vfeedtemp">230 °C</strong></label><input type="range" id="feedtemp" min="160" max="240" step="5" value="230"></div>
+ <div class="note" id="cycleExplain"></div>
+</div>
+</main>
+<aside class="aside">
+ <div class="section"><div class="sub">FICHE TECHNIQUE INTERACTIVE</div><h2 id="detail-title">Vue générale du REP</h2><p class="lead" id="detail-lead">Sélectionnez un équipement ou une conduite dans le synoptique pour ouvrir sa fiche.</p><div id="detail-body"></div></div>
+ <div class="warning">Valeurs indicatives, relations entre curseurs volontairement simplifiées. Les coupes sont des représentations fonctionnelles non à l’échelle. Cette application ne constitue ni un simulateur de conduite ni une documentation d’exploitation EDF.</div>
+ <div class="section"><h3>Lire le code couleur</h3><p class="note"><b>Couleur</b> : température (bleu froid → rouge chaud). <b>Motif</b> : tube plein + particules = eau liquide ; tube creux + traits rapides = vapeur ; tube creux + gouttes = vapeur humide (diphasique). <b>Épaisseur</b> : niveau de pression. Les particules avancent dans le sens de l’écoulement, plus vite à forte puissance.</p></div>
+ <div class="section"><h3>Parcours conseillé</h3><p class="note">1. Cuve → pompes primaires → GV → pressuriseur. 2. Turbine HP → GSS → turbines BP → condenseur → poste d’eau → GV. 3. Auxiliaires et sauvegardes.</p></div>
+</aside></div>
+<dialog id="diagDlg" aria-labelledby="diagDlgTitle"><div id="diagDlgBody"></div></dialog>
+<footer class="footer">REP 1 300 MWe · Référence pédagogique générique du palier français, non spécifique à une tranche. Grandeurs nominales arrondies ; topologie fonctionnelle simplifiée. Aucun calcul de sûreté ou de conduite.</footer>
+
+<script>
+"use strict";
+/* =====================================================================
+   1. ÉTAT PHYSIQUE (ordres de grandeur, palier 1300 MWe)
+   ===================================================================== */
+const S={Pprim:155,Thot:329,Tcold:293,Tpress:344.8,Psteam:70,Tsteam:285.8,Pcond:0.05,Tcond:32.9,Tfeed:230,Tbpin:265,Tmid:220,Tsea_in:12,Tsea_out:24};
+// Saturation de l'eau (bar abs → °C), interpolation en log(P) — table de référence, pas IF97
+const TSAT=[[0.02,17.5],[0.04,29.0],[0.05,32.9],[0.06,36.2],[0.08,41.5],[0.1,45.8],[0.16,55.3],[0.2,60.1],[0.3,69.1],[0.5,81.3],[1,99.6],[1.5,111.4],[2,120.2],[3,133.5],[5,151.8],[8,170.4],[10,179.9],[11,184.1],[15,198.3],[20,212.4],[25,224.0],[30,233.9],[40,250.4],[50,263.9],[60,275.6],[70,285.8],[80,295.0],[90,303.4],[100,311.0],[120,324.7],[140,336.7],[155,344.8],[160,347.4]];
+function tsat(p){if(p<=TSAT[0][0])return TSAT[0][1];for(let i=1;i<TSAT.length;i++){if(p<=TSAT[i][0]){const a=TSAT[i-1],b=TSAT[i],t=(Math.log(p)-Math.log(a[0]))/(Math.log(b[0])-Math.log(a[0]));return a[1]+t*(b[1]-a[1]);}}return TSAT[TSAT.length-1][1];}
+const val=k=>typeof k==='number'?k:S[k];
+
+/* Échelle de couleur des températures */
+const TSTOPS=[[10,[37,99,168]],[40,[31,155,180]],[110,[47,174,122]],[180,[214,176,38]],[240,[236,138,44]],[290,[234,98,38]],[345,[158,14,62]]];
+function tColor(T){const s=TSTOPS;if(T<=s[0][0])return rgb(s[0][1]);for(let i=1;i<s.length;i++){if(T<=s[i][0]){const a=s[i-1],b=s[i],t=(T-a[0])/(b[0]-a[0]);return rgb(a[1].map((v,j)=>v+t*(b[1][j]-v)));}}return rgb(s[s.length-1][1]);}
+function rgb(c){return '#'+c.map(v=>Math.round(v).toString(16).padStart(2,'0')).join('');}
+const nf=(x,n=0)=>Number(x).toLocaleString('fr-FR',{minimumFractionDigits:n,maximumFractionDigits:n});
+const fT=T=>nf(T)+' °C';
+const fP=P=>(P<1?nf(P,2):P<10?nf(P,1):nf(P))+' bar';
+
+/* =====================================================================
+   2. FICHES TECHNIQUES
+   ===================================================================== */
+const info={
+core:{title:'Cuve, cœur et combustible',lead:'La fission chauffe l’eau primaire, qui reste liquide grâce à la forte pression.',facts:[['Fonction','Production de chaleur par fission'],['Architecture','Assemblages combustibles, grappes de commande, internes de cuve'],['Ordre de grandeur','≈ 3 800 MW thermiques à pleine puissance'],['Températures typiques','≈ 293 °C en entrée / 329 °C en sortie de cuve'],['État du fluide','Liquide sous-refroidi : ≈ 16 °C sous la saturation à 155 bar']],detail:'L’eau entre par les branches froides, descend dans l’espace annulaire entre cuve et enveloppe de cœur, puis remonte à travers les assemblages où elle s’échauffe (dégradé bleu-rouge du cœur sur le schéma). La puissance thermique et la puissance électrique sont différentes : une partie de la chaleur est rejetée à la source froide.'},
+gv:{title:'Générateurs de vapeur (GV)',lead:'Quatre échangeurs à tubes en U qui transfèrent l’énergie du primaire au secondaire sans mélange des fluides.',facts:[['Nombre','4, un par boucle primaire'],['Côté primaire','Eau à 155 bar dans les tubes : 329 °C → 293 °C'],['Côté secondaire','Eau alimentaire ≈ 230 °C vaporisée côté enveloppe'],['Vapeur produite','≈ 70 bar, ≈ 286 °C, saturée sèche (pleine puissance)'],['À faible charge','Pression vapeur plus élevée (≈ 80 bar et plus)']],detail:'Les tubes appartiennent à l’enveloppe du circuit primaire, deuxième des trois barrières du REP. Ils séparent les fluides primaire et secondaire. La vapeur passe par des séparateurs et sécheurs en partie haute avant de quitter le GV. Le dégradé des tubes en U montre le refroidissement du primaire entre la boîte à eau chaude et la boîte à eau froide.'},
+pump:{title:'Groupes motopompes primaires (GMPP)',lead:'Chaque boucle comporte une pompe assurant la circulation forcée du fluide primaire.',facts:[['Nombre','4'],['Implantation','Sur la branche en U, entre la sortie GV et la branche froide'],['Enjeux','Débit, étanchéité (joints), paliers, vibrations, alimentation électrique']],detail:'La circulation transfère la chaleur du cœur vers les GV. À l’arrêt des pompes, une circulation naturelle peut s’établir selon les conditions ; elle n’est pas représentée.'},
+pressurizer:{title:'Pressuriseur',lead:'Maintient la pression primaire pour éviter l’ébullition dans le cœur.',facts:[['Pression nominale','≈ 155 bar absolus'],['Contenu','Eau et vapeur saturées ≈ 345 °C'],['Raccordement','Ligne d’expansion sur une branche chaude'],['Aspersion','Eau prélevée sur des branches froides (≈ 293 °C)'],['Faire monter P','Chaufferettes : vaporisation'],['Faire baisser P','Aspersion : condensation de vapeur'],['Protection','Soupapes vers le réservoir de décharge (voir le détail du pressuriseur)']],detail:'C’est le seul point du primaire où l’eau est à saturation : il fixe la pression de tout le circuit. L’aspersion introduit de l’eau plus froide dans le ciel de vapeur ; les chaufferettes vaporisent de l’eau. Ne pas confondre pression primaire (155 bar) et pression vapeur secondaire (≈ 70 bar).'},
+hp:{title:'Turbine haute pression (HP)',lead:'La vapeur vive se détend et cède une première partie de son énergie à l’arbre.',facts:[['Admission','≈ 66 bar, ≈ 282 °C, vapeur saturée'],['Échappement','≈ 11 bar, ≈ 184 °C, vapeur humide (≈ 12 %)'],['Soutirages','Vers réchauffeurs HP et bâche alimentaire']],detail:'La détente fait baisser pression et température ; une partie de la vapeur se condense (dégradé rouge → jaune sur le corps HP). Avant les corps BP, le GSS assèche puis surchauffe la vapeur pour limiter l’érosion des aubages.'},
+msr:{title:'Sécheur-surchauffeur (GSS)',lead:'Sépare l’eau de la vapeur issue de la turbine HP puis la surchauffe avant les turbines BP.',facts:[['Étape 1','Séparation mécanique des gouttelettes (chicanes)'],['Étape 2','Surchauffe 1er étage : vapeur soutirée HP'],['Étape 3','Surchauffe 2e étage : vapeur vive'],['Entrée / sortie','≈ 184 °C humide → ≈ 265 °C surchauffée, ≈ 10 bar'],['Fluides','Uniquement du secondaire : pas d’eau primaire']],detail:'Le GSS n’est pas raccordé au primaire. La vapeur chauffante se condense dans les faisceaux tubulaires ; ses condensats sont renvoyés vers les réchauffeurs HP. L’eau séparée est renvoyée vers la bâche alimentaire.'},
+lp:{title:'Turbines basse pression (BP)',lead:'La vapeur surchauffée poursuit sa détente jusqu’au vide du condenseur.',facts:[['Architecture','3 corps BP sur le groupe 1 300 MWe'],['Admission','≈ 10 bar, ≈ 265 °C, surchauffée'],['Échappement','≈ 0,05 bar, ≈ 33 °C, vapeur humide'],['Soutirages','Vers les réchauffeurs BP']],detail:'La vapeur traverse la courbe de saturation pendant la détente : elle redevient humide en fin de détente (dégradé orange → bleu). Le vide du condenseur augmente la chute d’enthalpie utile.'},
+condenser:{title:'Condenseur',lead:'Condense la vapeur d’échappement BP et entretient le vide en sortie turbine.',facts:[['Pression','≈ 0,05 bar abs. → saturation ≈ 33 °C'],['Côté vapeur','Vapeur humide → eau liquide saturée'],['Côté tubes','Eau de mer en circuit ouvert'],['Paramètre critique','Vide au condenseur']],detail:'L’eau de mer circule dans les tubes et ne se mélange pas au condensat. La température de condensation dépend directement de la pression : modifiez la pression condenseur pour voir la couleur évoluer.'},
+cex:{title:'Pompes d’extraction (CEX)',lead:'Reprennent le condensat au puits du condenseur et le refoulent vers les réchauffeurs BP.',facts:[['Aspiration','Puits du condenseur, ≈ 0,05 bar, ≈ 33 °C'],['Refoulement','Quelques dizaines de bar'],['Vigilance','Eau proche de la saturation à l’aspiration (NPSH)']],detail:'L’eau aspirée est à saturation : la hauteur d’eau dans le puits et la conception des pompes évitent la cavitation. On remarque sur le schéma le changement d’épaisseur (passage du vide à quelques dizaines de bar) sans changement de couleur.'},
+abp:{title:'Réchauffeurs basse pression (ABP)',lead:'Préchauffent le condensat avec de la vapeur soutirée sur les corps BP.',facts:[['Côté eau','≈ 33 °C → ≈ 150 °C (ordre de grandeur)'],['Côté vapeur','Soutirages BP, condensés dans l’échangeur'],['Purges','En cascade puis vers le condenseur']],detail:'Chaque réchauffeur récupère de la chaleur qui serait sinon perdue au condenseur : c’est le principe de la régénération du cycle de Rankine.'},
+adg:{title:'Bâche alimentaire dégazante (ADG)',lead:'Réserve d’eau alimentaire et dégazage thermique par contact avec de la vapeur.',facts:[['Pression','≈ 10 bar'],['Température','≈ 180 °C, eau saturée'],['Fonctions','Stockage, dégazage (O₂), charge à l’aspiration des pompes alimentaires'],['Reçoit','Vapeur d’échappement HP, eau séparée du GSS, purges des AHP']],detail:'La bâche est placée en hauteur pour garantir la charge à l’aspiration des pompes alimentaires et éviter leur cavitation.'},
+app:{title:'Pompes alimentaires (APP)',lead:'Portent l’eau alimentaire d’environ 10 bar à la pression nécessaire pour entrer dans les GV.',facts:[['Aspiration','Bâche ADG ≈ 10 bar, ≈ 180 °C'],['Refoulement','≈ 80 à 90 bar'],['Entraînement','Turbopompes alimentaires (TPA) entraînées par de la vapeur']],detail:'C’est le plus fort saut de pression du secondaire (le trait s’épaissit nettement). Le débit est régulé pour maintenir le niveau dans les GV (ARE).'},
+ahp:{title:'Réchauffeurs haute pression (AHP)',lead:'Dernier préchauffage de l’eau alimentaire avant les GV.',facts:[['Côté eau','≈ 180 °C → ≈ 230 °C'],['Côté vapeur','Soutirage HP et condensats de surchauffe du GSS'],['Purges','Vers la bâche ADG']],detail:'Plus l’eau entre chaude dans les GV, moins il faut de chaleur primaire pour la vaporiser : le rendement du cycle augmente.'},
+cooling:{title:'Source froide — circuit d’eau de mer',lead:'Évacue vers l’environnement la chaleur non transformée en électricité.',facts:[['Circuit','Ouvert, indépendant du primaire et du secondaire'],['Échangeur','Condenseur'],['Échauffement','≈ +10 à +12 °C à pleine puissance (ordre de grandeur)']],detail:'L’eau de mer est pompée, traverse les tubes du condenseur puis est rejetée : ce n’est pas une boucle fermée. Encrassement, corrosion et filtration sont des enjeux de maintenance importants.'},
+alternator:{title:'Alternateur et évacuation de puissance',lead:'Transforme la puissance mécanique de la ligne d’arbres en électricité.',facts:[['Conversion','Mécanique → électrique'],['Puissance de référence','≈ 1 300 MWe, classe 1 300 MWe'],['Aval','Transformateurs, protections et réseau']],detail:'La ligne d’arbres couple le corps HP, les trois corps BP et l’alternateur. Excitation, refroidissement et protections ne sont pas détaillés.'},
+rcv:{title:'RCV — contrôle volumétrique et chimique',lead:'Contribue au contrôle de l’inventaire en eau et de la chimie du primaire.',facts:[['Fonctions','Ajustement d’inventaire, purification et contrôle chimique'],['Interface','Circuit primaire'],['Surveillance','Bore, qualité chimique, température et pression']],detail:'Le RCV comprend des équipements de prélèvement, de traitement et de réinjection. Les fonctions précises dépendent de l’état de tranche.'},
+rra:{title:'RRA — refroidissement à l’arrêt',lead:'Évacue la puissance résiduelle dans les domaines de fonctionnement prévus.',facts:[['Mission','Refroidissement à l’arrêt'],['Transfert thermique','Vers des échangeurs et systèmes de refroidissement associés']],detail:'Le RRA n’est pas un cinquième circuit primaire : son raccordement est soumis à des conditions de température, pression et configuration.'},
+asgv:{title:'ASG — alimentation de secours des GV',lead:'Alimente les GV en eau lorsque l’alimentation normale n’est pas disponible.',facts:[['Mission','Conserver l’évacuation de chaleur par les GV'],['Interface','Côté secondaire des générateurs de vapeur']],detail:'L’ASG est distinct de l’alimentation normale (ARE). Pompes et réserves d’eau permettent d’alimenter les GV pour évacuer la puissance résiduelle.'},
+ris:{title:'RIS — injection de sécurité',lead:'Système de sauvegarde injectant de l’eau borée dans le primaire dans les situations prévues par la conception.',facts:[['Mission','Apport d’eau borée'],['Attention','Fonction et conditions d’action dépendantes du scénario']],detail:'Ce synoptique n’inclut aucune logique de déclenchement ni procédure de conduite.'},
+eas:{title:'EAS — aspersion enceinte',lead:'Participe à la maîtrise de la pression et de la température dans l’enceinte.',facts:[['Mission','Aspersion de l’enceinte selon les situations'],['Attention','À distinguer de l’aspersion du pressuriseur']],detail:'Les fonctions d’aspersion enceinte et d’aspersion pressuriseur sont différentes, avec des équipements propres.'},
+rri:{title:'RRI / SEC — refroidissement intermédiaire et eau brute secourue',lead:'Chaîne de transfert thermique vers la source froide pour des matériels importants.',facts:[['RRI','Circuit de refroidissement intermédiaire'],['SEC','Eau brute secourue'],['Mission','Évacuer la chaleur de matériels et d’échangeurs']],detail:'Chaîne distincte du circuit de refroidissement du condenseur. La disponibilité de cette chaîne contribue au refroidissement des matériels de sûreté.'}
+};
+
+/* Fluides : nom et rôle de chaque conduite */
+const FL={
+hot:['Branche chaude','Primaire','Eau sortant du cœur vers le générateur de vapeur.'],
+cross:['Branche en U','Primaire','Eau refroidie sortant du GV, aspirée par la pompe primaire.'],
+cold:['Branche froide','Primaire','Eau refoulée par la pompe vers l’entrée de la cuve.'],
+surge:['Ligne d’expansion','Primaire','Relie le pressuriseur à une branche chaude ; débit alterné selon les dilatations du primaire.'],
+spray:['Ligne d’aspersion','Primaire','Prélevée sur des branches froides ; l’eau plus froide condense la vapeur du pressuriseur.'],
+vvp:['Vapeur vive (VVP)','Secondaire','Vapeur saturée sèche produite par les GV, envoyée à la turbine HP.'],
+vvpgss:['Vapeur vive de surchauffe','Secondaire','Vapeur vive utilisée comme fluide chauffant du 2e étage du GSS.'],
+hpx:['Échappement HP','Secondaire','Vapeur humide (≈ 12 % d’eau) sortant de la turbine HP vers le GSS.'],
+bpin:['Vapeur surchauffée vers BP','Secondaire','Vapeur asséchée et surchauffée par le GSS, admise dans les corps BP.'],
+bpx:['Échappement BP','Secondaire','Vapeur humide à très basse pression entrant au condenseur.'],
+cond:['Condensat','Secondaire','Eau saturée récupérée au puits du condenseur.'],
+cex:['Refoulement CEX','Secondaire','Condensat remis en pression par les pompes d’extraction.'],
+abp:['Sortie réchauffeurs BP','Secondaire','Eau préchauffée par les soutirages BP, vers la bâche.'],
+adg:['Aspiration pompes alimentaires','Secondaire','Eau saturée de la bâche dégazante.'],
+app:['Refoulement pompes alimentaires','Secondaire','Eau alimentaire portée à haute pression.'],
+are:['Eau alimentaire vers GV (ARE)','Secondaire','Eau préchauffée par les AHP, réglée en débit, entrant dans les GV.'],
+sepdr:['Eau séparée du GSS','Secondaire','Gouttelettes retirées de la vapeur, renvoyées vers la bâche.'],
+gssdr:['Condensats de surchauffe','Secondaire','Vapeur chauffante condensée dans le GSS, renvoyée vers les AHP.'],
+gssh1:['Vapeur de soutirage HP (surchauffe 1er étage)','Secondaire','Vapeur soutirée sur la turbine HP chauffant le 1er étage du GSS.'],
+gssd1:['Condensats 1er étage GSS','Secondaire','Vapeur de soutirage condensée, renvoyée vers les AHP.'],
+hpext:['Soutirage HP → AHP','Secondaire','Vapeur prélevée en cours de détente HP pour réchauffer l’eau alimentaire.'],
+hpxadg:['Vapeur vers bâche','Secondaire','Vapeur d’échappement HP qui chauffe et dégaze l’eau de la bâche.'],
+bpext:['Soutirages BP → ABP','Secondaire','Vapeur prélevée sur les corps BP pour les réchauffeurs BP.'],
+ahpdr:['Purges AHP → bâche','Secondaire','Condensats des réchauffeurs HP renvoyés en cascade vers la bâche.'],
+abpdr:['Purges ABP → condenseur','Secondaire','Condensats des réchauffeurs BP renvoyés au condenseur.'],
+gct:['Contournement turbine (GCT)','Secondaire','Vapeur envoyée directement au condenseur (GCT-C) — ou à l’atmosphère si le vide est perdu — quand la turbine ne peut plus l’absorber.'],
+asg:['Alimentation de secours des GV (ASG)','Secondaire','Eau de secours injectée dans les GV quand l’alimentation normale est perdue.'],
+relief:['Décharge du pressuriseur','Primaire','Vapeur évacuée par les soupapes de protection vers le réservoir de décharge (RDP).'],
+seain:['Eau de mer — prise','Source froide','Eau pompée en mer, dirigée vers les tubes du condenseur.'],
+seaout:['Eau de mer — rejet','Source froide','Eau réchauffée par la condensation, rejetée en mer.']
+};
+
+/* =====================================================================
+   3. CONSTRUCTION DES CONDUITES
+   ===================================================================== */
+const PIPES={},TAGS=[];
+function wOf(P){return P>=100?13:P>=40?10:P>=5?8:6;}
+// P(vue, fluide, tracé, T, P, état L|V|D, options)
+function P(v,f,d,T,Pr,ph,o={}){
+ const id=v+'-'+f+(o.n||'');
+ PIPES[id]={id,f,d,T,P:Pr,ph,n:o.n};
+ const w=+(wOf(val(Pr))*(o.s||1)).toFixed(1),still=o.dir===0?' still':'';
+ let s=`<g class="pipe ph-${ph} ${o.cls||''}" data-pipe="${id}" tabindex="0" role="button">`;
+ if(!o.noCase)s+=`<path class="p-case" d="${d}" stroke-width="${w+7}"/>`;
+ s+=`<path class="p-edge" d="${d}" stroke-width="${w+2}"/><path class="p-body" d="${d}" stroke-width="${w}"/>`;
+ if(ph!=='L')s+=`<path class="p-hollow" d="${d}" stroke-width="${Math.max(1.5,w-4).toFixed(1)}"/>`;
+ if(ph==='L')s+=`<path class="fl fl-liq${still}" d="${d}" stroke-width="${(w*.42).toFixed(1)}"/>`;
+ else s+=`<path class="fl fl-vap${still}" d="${d}" stroke-width="${Math.max(1.6,w*.3).toFixed(1)}"/>`;
+ if(ph==='D')s+=`<path class="fl fl-drop${still}" d="${d}" stroke-width="${(w*.6).toFixed(1)}"/>`;
+ return s+'<title></title></g>';
+}
+// Étiquette T/P : {p:id conduite} ou {T,P}, position du centre, point d'ancrage optionnel
+function TAG(t){const i=TAGS.push(t)-1,[x,y]=t.pos;
+ return `<g class="tag" data-tag="${i}">${t.at?`<path class="tag-lead" d="M${t.at[0]} ${t.at[1]}L${x} ${y}"/>`:''}<rect class="tag-bg" y="${y-9}" height="18" rx="9"/><circle class="tag-dot" cy="${y}" r="4.5"/><text class="tag-tx" y="${y+4}"></text></g>`;}
+// Instrument indicateur posé sur le synoptique
+function INS(k,x,y,w=122){return `<g class="instr" data-instr="${k}" transform="translate(${x} ${y})"><rect class="in-bg" width="${w}" height="40" rx="7"/><text class="in-lab" x="8" y="12"></text><text class="in-val" x="8" y="27"></text><rect class="in-track" x="8" y="32" width="${w-16}" height="4" rx="2"/><rect class="in-bar" x="8" y="32" width="0" height="4" rx="2" data-w="${w-16}"/></g>`;}
+// Effets : fuite de tube GV et panache de soupapes
+const LEAK=(x,y,loop)=>`<g class="leakfx" ${loop?`data-loop="${loop}"`:''}>${[[0,0,0],[8,-6,.5],[-7,-3,1],[3,6,1.4],[-4,8,.8]].map(([dx,dy,d])=>`<circle class="anim-rise" cx="${x+dx}" cy="${y+dy}" r="3.5" style="animation-delay:${d}s"/>`).join('')}</g>`;
+const PLUME=(x,y)=>`<g class="plume">${[0,10,20].map((dx,i)=>`<path class="anim-rise" d="M${x+dx} ${y} q-4 -8 0 -16 t0 -16" style="animation-delay:${i*.4}s"/>`).join('')}</g>`;
+function comp(id,inner,labels=[],attrs=''){const t=(info[id]||{}).title||id;
+ return `<g class="component" data-id="${id}" tabindex="0" role="button" aria-label="${t}" ${attrs}>${inner}${labels.map(([x,y,txt,c])=>`<text class="${c||'label'}" x="${x}" y="${y}">${txt}</text>`).join('')}</g>`;}
+function mirror(d){return d.replace(/([MLHVQ])([^MLHVQZ]*)/g,(m,c,a)=>{let n=a.trim().split(/[ ,]+/).map(Number);if(c==='H')n=n.map(x=>1110-x);else if(c!=='V')n=n.map((v,i)=>i%2?v:1110-v);return c+n.join(' ')+' ';});}
+
+/* Dégradés (couleurs mises à jour dynamiquement) */
+function grad(id,stops,a={x1:0,y1:0,x2:1,y2:0},user){return `<linearGradient id="${id}" x1="${a.x1}" y1="${a.y1}" x2="${a.x2}" y2="${a.y2}"${user?' gradientUnits="userSpaceOnUse"':''}>${stops.map(([o,t])=>`<stop offset="${o}" data-t="${t}"/>`).join('')}</linearGradient>`;}
+document.getElementById('defs').innerHTML=[
+ grad('gCore',[[0,'Tcold'],[1,'Thot']],{x1:0,y1:1,x2:0,y2:0}),
+ grad('gTubeHL',[[0,'Thot'],[1,'Tcold']]),
+ grad('gTubeHR',[[0,'Tcold'],[1,'Thot']]),
+ grad('gHP',[[0,'Tsteam'],[1,184]]),
+ grad('gLP',[[0,'Tbpin'],[1,'Tcond']]),
+ grad('gMSR',[[0,184],[.35,182],[1,'Tbpin']]),
+ grad('gABP',[[0,150],[1,'Tcond']]),
+ grad('gAHP',[[0,'Tfeed'],[1,180]]),
+ grad('gShell',[[0,184],[.22,182],[.6,'Tmid'],[1,'Tbpin']],{x1:215,y1:0,x2:955,y2:0},true),
+ `<clipPath id="cpPz"><rect x="437" y="117" width="150" height="320" rx="72"/></clipPath>`,
+ `<clipPath id="cpPzP"><rect x="511" y="57" width="91" height="131" rx="36"/></clipPath>`
+].join('');
+
+/* =====================================================================
+   4. VUES
+   ===================================================================== */
+const rods=(x,y,h,n,gap)=>Array.from({length:n},(_,i)=>`M${x+i*gap} ${y}V${y+h}`).join('');
+
+function vGlobal(){const v='g';
+ let s=`<text class="ttl" x="28" y="36">Vue d’ensemble des transferts d’énergie</text>
+ <rect class="zone-p" x="20" y="62" width="410" height="540" rx="17"/><text class="zt zt-p" x="36" y="84">ÎLOT NUCLÉAIRE — CIRCUIT PRIMAIRE</text>
+ <rect class="zone-s" x="445" y="62" width="655" height="540" rx="17"/><text class="zt zt-s" x="461" y="84">SALLE DES MACHINES — CIRCUIT SECONDAIRE</text>`;
+ // conduites
+ s+=P(v,'hot','M186 240 H280 V395 H333 V365','Thot','Pprim','L');
+ s+=P(v,'cross','M373 365 V410 H271','Tcold','Pprim','L');
+ s+=P(v,'cold','M221 410 H205 V330 H186','Tcold','Pprim','L');
+ s+=P(v,'surge','M252 240 V222 H215 V205','Thot','Pprim','L',{s:.55,dir:0,noCase:true});
+ s+=P(v,'spray','M205 370 H60 V108 H215 V120','Tcold','Pprim','L',{s:.45,noCase:true});
+ s+=P(v,'vvp','M353 150 V135 H500 V225 H521','Tsteam','Psteam','V');
+ s+=P(v,'vvpgss','M465 135 V112 H691 V170','Tsteam','Psteam','V',{s:.6,noCase:true});
+ s+=P(v,'hpx','M616 225 H660',184,11,'D');
+ s+=P(v,'bpin','M722 225 H786','Tbpin',10,'V');
+ s+=P(v,'bpx','M860 278 V360','Tcond','Pcond','D');
+ s+=P(v,'cond','M890 434 V480 H840','Tcond','Pcond','L');
+ s+=P(v,'cex','M800 480 H770','Tcond',30,'L');
+ s+=P(v,'abp','M700 480 H660',150,28,'L');
+ s+=P(v,'adg','M590 480 H562',180,10,'L');
+ s+=P(v,'app','M518 480 H490',180,85,'L');
+ s+=P(v,'are','M420 480 H405 V300 H395','Tfeed',80,'L');
+ s+=P(v,'seain','M1060 505 V392 H1015','Tsea_in',2,'L');
+ s+=P(v,'seaout','M1015 418 H1035 V505','Tsea_out',1.5,'L');
+ s+=P(v,'gct','M480 135 V100 H925 V360','Tsteam','Psteam','V',{s:.6,noCase:true});
+ s+=P(v,'asg','M418 556 V330 H395',40,90,'L',{s:.6});
+ s+=`<path class="shaft" d="M898 230 H982"/><text class="smalllabel la-s" x="932" y="122">GCT</text><text class="smalllabel la-s" x="424" y="566">ASG</text>`;
+ // équipements
+ s+=comp('core',`<rect class="equip hit" x="86" y="194" width="100" height="158" rx="40"/><rect class="over" x="111" y="244" width="50" height="78" rx="6" fill="url(#gCore)"/><path class="over" d="${rods(122,250,66,3,13)}" stroke="rgba(0,0,0,.35)" stroke-width="4"/>`,[[136,228,'Cuve et cœur']]);
+ s+=comp('gv',`<rect class="equip hit" x="311" y="150" width="84" height="215" rx="30"/><rect class="over" x="316" y="160" width="74" height="78" rx="22" data-fill="Tsteam" fill-opacity=".14"/><rect class="over" x="316" y="238" width="74" height="122" rx="6" data-fill="Tsteam" fill-opacity=".35" data-lvl="ngv" data-top="160" data-bot="360"/><path class="over" d="M333 362 V215 Q353 188 373 215 V362" fill="none" stroke="url(#gTubeHL)" stroke-width="6"/>${LEAK(360,300)}${PLUME(322,146)}`,[[353,455,'GV × 4']]);
+ s+=comp('pump',`<circle class="equip hit" cx="246" cy="410" r="25"/><path class="over" d="M233 399 L259 410 L233 421Z" data-fill="Tcold"/>`,[[246,455,'GMPP × 4']]);
+ s+=comp('pressurizer',`<rect class="equip hit" x="190" y="120" width="50" height="85" rx="22"/><rect class="over" x="195" y="160" width="40" height="40" rx="8" data-fill="Tpress" fill-opacity=".7" data-lvl="npz" data-top="126" data-bot="201"/><rect class="over" x="195" y="126" width="40" height="34" rx="14" data-fill="Tpress" fill-opacity=".16"/><path class="over" d="M199 192 H231" stroke="var(--heat)" stroke-width="3"/>`,[[183,165,'Pressuriseur','smalllabel la-e']]);
+ s+=comp('hp',`<path class="equip hit" d="M521 200 L616 178 V272 L521 250Z"/><path class="over" d="M521 200 L616 178 V272 L521 250Z" fill="url(#gHP)" fill-opacity=".55"/><path class="thin" d="M540 205 L598 194 M540 225 L598 225 M540 245 L598 256"/>`,[[568,295,'Turbine HP']]);
+ s+=comp('msr',`<rect class="equip hit" x="660" y="170" width="62" height="110" rx="14"/><rect class="over" x="660" y="170" width="62" height="110" rx="14" fill="url(#gMSR)" fill-opacity=".45"/><path class="over" d="M672 195 H710 M672 210 H710 M672 225 H710 M672 240 H710 M672 255 H710" data-stroke="Tsteam" stroke-width="2.5"/>`,[[691,300,'Sécheur-'],[691,314,'surchauffeur']]);
+ s+=comp('lp',`<path class="equip hit" d="M786 200 L898 168 V292 L786 250Z"/><path class="over" d="M786 200 L898 168 V292 L786 250Z" fill="url(#gLP)" fill-opacity=".55"/><path class="thin" d="M806 207 L878 188 M806 225 L878 230 M806 243 L878 272"/>`,[[872,150,'Turbines BP × 3']]);
+ s+=comp('alternator',`<rect class="equip hit" x="982" y="195" width="87" height="69" rx="13"/><text class="label" x="1025" y="238" style="font-size:22px;font-weight:700">~</text>`,[[1025,284,'Alternateur']]);
+ s+=comp('condenser',`<rect class="equip hit" x="834" y="360" width="181" height="74" rx="18"/><path class="over" d="M850 392 H1000" data-stroke="Tsea_in" stroke-width="4"/><path class="over" d="M850 412 H1000" data-stroke="Tsea_out" stroke-width="4"/><rect class="over" x="842" y="422" width="165" height="8" rx="3" data-fill="Tcond" fill-opacity=".8"/>`,[[978,352,'Condenseur']]);
+ s+=comp('cex',`<circle class="equip hit" cx="820" cy="480" r="20"/>`,[[820,484,'CEX','code'],[820,522,'Pompes','smalllabel'],[820,535,'d’extraction','smalllabel']]);
+ s+=comp('abp',`<rect class="equip hit" x="700" y="462" width="70" height="36" rx="10"/><rect class="over" x="704" y="474" width="62" height="12" rx="4" fill="url(#gABP)"/>`,[[735,470,'ABP','code'],[735,522,'Réchauffeurs','smalllabel'],[735,535,'BP','smalllabel']]);
+ s+=comp('adg',`<rect class="equip hit" x="590" y="458" width="70" height="44" rx="22"/><rect class="over" x="596" y="480" width="58" height="17" rx="8" data-fill="180" fill-opacity=".55"/>`,[[625,476,'ADG','code'],[625,522,'Bâche','smalllabel'],[625,535,'dégazante','smalllabel']]);
+ s+=comp('app',`<circle class="equip hit" cx="540" cy="480" r="22"/>`,[[540,484,'APP','code'],[540,522,'Pompes','smalllabel'],[540,535,'alimentaires','smalllabel']]);
+ s+=comp('ahp',`<rect class="equip hit" x="420" y="462" width="70" height="36" rx="10"/><rect class="over" x="424" y="474" width="62" height="12" rx="4" fill="url(#gAHP)"/>`,[[455,470,'AHP','code'],[455,522,'Réchauffeurs','smalllabel'],[455,535,'HP','smalllabel']]);
+ s+=comp('cooling',`<rect class="equip hit" x="950" y="505" width="135" height="48" rx="10"/><path class="over" d="M962 543 q8 -6 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" fill="none" data-stroke="Tsea_in" stroke-width="2"/>`,[[1017,521,'Source froide (mer)'],[1017,536,'','smalllabel sea-txt']]);
+ s+=`<text class="free" x="36" y="588">Les fluides primaire et secondaire ne se mélangent pas (tubes des GV).</text><text class="free" x="461" y="588">Source froide en circuit ouvert : prise d’eau → condenseur → rejet.</text>`;
+ // étiquettes
+ s+=TAG({p:'g-hot',pos:[238,262]})+TAG({p:'g-cross',pos:[325,428]})+TAG({p:'g-vvp',pos:[447,151]})+TAG({p:'g-hpx',pos:[620,150],at:[638,225]})+TAG({p:'g-bpin',pos:[740,150],at:[754,225]})+TAG({p:'g-bpx',pos:[792,322],at:[860,322]})+TAG({p:'g-are',pos:[455,440],at:[405,440]})+TAG({p:'g-cond',pos:[880,452]});
+ s+=INS('ppr',32,466)+INS('npz',162,466)+INS('fp',32,511)+INS('msat',162,511)+INS('ngv',292,466,118)+INS('psg',292,511,118)+INS('pcond',960,98,128)+INS('pe',960,142,128);
+ return s;}
+
+function vPrimary(){const v='p';
+ let s=`<text class="ttl" x="30" y="35">Circuit primaire — quatre boucles</text><text class="subt" x="30" y="57">Schéma fonctionnel, non à l’échelle</text>`;
+ const U={hot:'M450 270 H180 V250',cross:'M140 250 V300 H297',cold:'M343 300 H450',gv:[115,100],tube:'M180 248 V150 Q160 122 140 150 V248',pump:[320,300],vvp:'M160 100 V72',are:'M75 200 H115',lab:[215,118],plab:[320,340]};
+ const Lo={hot:'M450 410 H230 V590 H180 V570',cross:'M140 570 V610 H297',cold:'M343 610 H420 V440 H450',gv:[115,420],tube:'M180 568 V470 Q160 442 140 470 V568',pump:[320,610],vvp:'M160 420 V392',are:'M75 520 H115',lab:[245,470],plab:[320,648]};
+ let pp='',eq='';
+ for(const L of [{n:1,m:0,g:U},{n:2,m:1,g:U},{n:3,m:0,g:Lo},{n:4,m:1,g:Lo}]){
+  const g=L.g,M=d=>L.m?mirror(d):d,X=x=>L.m?1110-x:x;
+  pp+=P(v,'hot',M(g.hot),'Thot','Pprim','L',{n:L.n})+P(v,'cross',M(g.cross),'Tcold','Pprim','L',{n:L.n})+P(v,'cold',M(g.cold),'Tcold','Pprim','L',{n:L.n});
+  pp+=P(v,'vvp',M(g.vvp),'Tsteam','Psteam','V',{n:L.n,s:.6})+P(v,'are',M(g.are),'Tfeed',80,'L',{n:L.n,s:.6});
+  const gx=L.m?1110-g.gv[0]-90:g.gv[0],gy=g.gv[1],px=X(g.pump[0]),py=g.pump[1];
+  eq+=comp('gv',`<rect class="equip hit" x="${gx}" y="${gy}" width="90" height="150" rx="30"/><rect class="over" x="${gx+5}" y="${gy+50}" width="80" height="96" rx="6" data-fill="Tsteam" fill-opacity=".3" data-lvl="ngv" data-top="${gy+8}" data-bot="${gy+146}"/><rect class="over" x="${gx+5}" y="${gy+5}" width="80" height="45" rx="25" data-fill="Tsteam" fill-opacity=".12"/><path class="over" d="${M(g.tube)}" fill="none" stroke="url(#${L.m?'gTubeHL':'gTubeHR'})" stroke-width="6"/>${L.n===2?LEAK(gx+45,gy+80,2):''}${PLUME(gx+25,gy-2)}`,[[X(g.lab[0]),g.lab[1],'GV '+L.n,'label '+(L.m?'la-e':'la-s')]],`data-loop="${L.n}"`);
+  eq+=comp('pump',`<circle class="equip hit" cx="${px}" cy="${py}" r="23"/><path class="over" d="M${px+(L.m?11:-11)} ${py-11} L${px+(L.m?-12:12)} ${py} L${px+(L.m?11:-11)} ${py+11}Z" data-fill="Tcold"/>`,[[px,g.plab[1],'GMPP '+L.n,'smalllabel']],`data-loop="${L.n}"`);
+ }
+ pp+=P(v,'surge','M720 270 V215 H556 V190','Thot','Pprim','L',{s:.6,dir:0,noCase:true});
+ pp+=P(v,'spray','M745 300 V35 H556 V55','Tcold','Pprim','L',{s:.45,noCase:true});
+ s+=pp;
+ s+=comp('core',`<rect class="equip hit" x="450" y="232" width="210" height="240" rx="70"/><rect class="over" x="505" y="292" width="100" height="130" rx="8" fill="url(#gCore)"/><path class="over" d="${rods(522,298,118,4,22)}" stroke="rgba(0,0,0,.35)" stroke-width="7"/><path class="over" d="M470 300 V420 M640 300 V420" data-stroke="Tcold" stroke-width="3" stroke-dasharray="6 6"/>`,[[555,497,'Cuve · cœur · grappes']]);
+ s+=eq;
+ s+=comp('pressurizer',`<rect class="equip hit" x="509" y="55" width="95" height="135" rx="38"/><g clip-path="url(#cpPzP)" class="over"><rect x="509" y="118" width="95" height="72" data-fill="Tpress" fill-opacity=".7" data-lvl="npz" data-top="57" data-bot="190"/><rect x="509" y="55" width="95" height="63" data-fill="Tpress" fill-opacity=".14"/></g><path class="over" d="M522 172 H590" stroke="var(--heat)" stroke-width="5"/><path class="over" d="M556 58 V78 M542 80 H570" stroke="var(--spray)" stroke-width="3"/>`,[[500,90,'Pressuriseur','label la-e'],[500,106,'Chauffage / aspersion','smalllabel la-e']]);
+ s+=`<text class="smalllabel la-s" x="608" y="200">ligne d’expansion</text><text class="smalllabel la-s" x="752" y="48">aspersion (branche froide)</text>`;
+ s+=TAG({p:'p-hot1',pos:[330,256]})+TAG({p:'p-cold1',pos:[397,318]})+TAG({T:'Tpress',P:'Pprim',pos:[668,124],at:[604,124]})+TAG({p:'p-vvp1',pos:[232,78],at:[160,80]})+TAG({p:'p-are1',pos:[62,232],at:[90,200]});
+ s+=INS('ppr',437,512,116)+INS('npz',558,512,116)+INS('fp',437,556,116)+INS('msat',558,556,116);
+ return s;}
+
+function vCycle(v,detail){
+ let s=`<text class="ttl" x="25" y="34">${detail?'Cycle secondaire détaillé — soutirages, purges et régénération':'Circuit secondaire — cycle eau-vapeur'}</text><text class="subt" x="25" y="56">${detail?'Soutirages (vapeur) et purges (eau) ajoutés · cheminements fonctionnels simplifiés':'Chemin principal : GV → HP → GSS → BP → condenseur → poste d’eau → GV'}</text>`;
+ s+=P(v,'hot','M90 395 V358','Thot','Pprim','L',{s:.6})+P(v,'cold','M130 358 V395','Tcold','Pprim','L',{s:.6});
+ s+=P(v,'vvp','M110 150 V110 H230 V225 H260','Tsteam','Psteam','V');
+ s+=P(v,'vvpgss','M200 110 V80 H530 V160','Tsteam','Psteam','V',{s:.6,noCase:true});
+ s+=P(v,'hpx','M380 225 H450',184,11,'D');
+ s+=P(v,'bpin','M560 225 H650','Tbpin',10,'V');
+ s+=P(v,'bpx','M740 286 V390','Tcond','Pcond','D');
+ s+=P(v,'cond','M710 460 V520 H660','Tcond','Pcond','L');
+ s+=P(v,'cex','M620 520 H580','Tcond',30,'L');
+ s+=P(v,'abp','M510 520 H460',150,28,'L');
+ s+=P(v,'adg','M370 520 H342',180,10,'L');
+ s+=P(v,'app','M298 520 H270',180,85,'L');
+ s+=P(v,'are','M200 520 H185 V300 H160','Tfeed',80,'L');
+ s+=P(v,'sepdr','M475 290 V440 H430 V497',182,10.5,'L',{s:.6});
+ s+=P(v,'gssdr','M535 290 V400 H245 V502',280,68,'L',{s:.6});
+ if(detail){
+  s+=P(v,'hpext','M330 264 V380 H225 V502',234,30,'D',{s:.6,cls:'extr'});
+  s+=P(v,'hpxadg','M415 225 V497',184,11,'D',{s:.6,cls:'extr',noCase:true});
+  s+=P(v,'bpext','M665 256 V350 H560 V502',111,1.5,'D',{s:.7,cls:'extr'});
+  s+=P(v,'ahpdr','M235 538 V605 H415 V543',190,25,'L',{s:.5});
+  s+=P(v,'abpdr','M545 538 V612 H770 V460',60,.3,'L',{s:.6});
+ }
+ s+=P(v,'seain','M1010 565 V410 H830','Tsea_in',2,'L');
+ s+=P(v,'seaout','M830 440 H950 V565','Tsea_out',1.5,'L');
+ s+=P(v,'gct','M150 110 V66 H815 V390','Tsteam','Psteam','V',{s:.6,noCase:true});
+ s+=P(v,'asg','M30 600 V320 H60',40,90,'L',{s:.6});
+ s+=`<path class="shaft" d="M780 225 H880"/><text class="smalllabel la-s" x="822" y="170">GCT</text><text class="smalllabel la-s" x="22" y="616">ASG</text>`;
+ const nm=detail?()=>[]:a=>a;
+ s+=comp('gv',`<rect class="equip hit" x="60" y="150" width="100" height="210" rx="34"/><rect class="over" x="65" y="160" width="90" height="75" rx="26" data-fill="Tsteam" fill-opacity=".14"/><rect class="over" x="65" y="235" width="90" height="120" rx="6" data-fill="Tsteam" fill-opacity=".35" data-lvl="ngv" data-top="160" data-bot="355"/><path class="over" d="M90 352 V215 Q110 188 130 215 V352" fill="none" stroke="url(#gTubeHL)" stroke-width="6"/>${LEAK(110,290)}${PLUME(70,146)}`,[[110,415,'Générateurs'],[110,429,'de vapeur × 4']]);
+ s+=comp('hp',`<path class="equip hit" d="M260 200 L380 175 V275 L260 250Z"/><path class="over" d="M260 200 L380 175 V275 L260 250Z" fill="url(#gHP)" fill-opacity=".55"/><path class="thin" d="M280 204 L360 188 M280 225 L360 225 M280 246 L360 262"/>`,[[320,165,'Turbine HP']]);
+ s+=comp('msr',`<rect class="equip hit" x="450" y="160" width="110" height="130" rx="20"/><rect class="over" x="450" y="160" width="110" height="130" rx="20" fill="url(#gMSR)" fill-opacity=".45"/><path class="thin" d="M462 180 l8 8 -8 8 8 8 -8 8 8 8 -8 8 8 8 -8 8 8 8 -8 8 M478 180 l8 8 -8 8 8 8 -8 8 8 8 -8 8 8 8 -8 8 8 8 -8 8"/><path class="over" d="M502 182 H550 M502 198 H550 M502 214 H550 M502 230 H550 M502 246 H550 M502 262 H550" data-stroke="Tsteam" stroke-width="3"/><text class="code" x="505" y="282">GSS</text>`,[[520,150,'Sécheur-surchauffeur','label la-e']]);
+ s+=comp('lp',`<path class="equip hit" d="M650 200 L780 150 V300 L650 250Z"/><path class="over" d="M650 200 L780 150 V300 L650 250Z" fill="url(#gLP)" fill-opacity=".55"/><path class="thin" d="M670 200 L760 167 M670 225 L760 225 M670 250 L760 283"/>`,[[700,140,'Turbines BP × 3']]);
+ s+=comp('alternator',`<rect class="equip hit" x="880" y="190" width="110" height="70" rx="14"/><text class="label" x="935" y="234" style="font-size:24px">~</text>`,[[935,282,'Alternateur']]);
+ s+=comp('condenser',`<rect class="equip hit" x="650" y="390" width="180" height="70" rx="20"/><path class="over" d="M665 412 H815" data-stroke="Tsea_in" stroke-width="4"/><path class="over" d="M665 432 H815" data-stroke="Tsea_out" stroke-width="4"/><rect class="over" x="658" y="445" width="164" height="9" rx="3" data-fill="Tcond" fill-opacity=".8"/>`,[[645,382,'Condenseur','label la-e']]);
+ s+=comp('cex',`<circle class="equip hit" cx="640" cy="520" r="20"/>`,[[640,524,'CEX','code'],...nm([[640,562,'Pompes','smalllabel'],[640,575,'d’extraction','smalllabel']])]);
+ s+=comp('abp',`<rect class="equip hit" x="510" y="502" width="70" height="36" rx="10"/><rect class="over" x="514" y="514" width="62" height="12" rx="4" fill="url(#gABP)"/>`,[[545,510,'ABP','code'],...nm([[545,562,'Réchauffeurs','smalllabel'],[545,575,'BP','smalllabel']])]);
+ s+=comp('adg',`<rect class="equip hit" x="370" y="497" width="90" height="46" rx="23"/><rect class="over" x="376" y="520" width="78" height="18" rx="8" data-fill="180" fill-opacity=".55"/>`,[[415,515,'ADG','code'],...nm([[415,562,'Bâche','smalllabel'],[415,575,'dégazante','smalllabel']])]);
+ s+=comp('app',`<circle class="equip hit" cx="320" cy="520" r="22"/>`,[[320,524,'APP','code'],...nm([[320,562,'Pompes','smalllabel'],[320,575,'alimentaires','smalllabel']])]);
+ s+=comp('ahp',`<rect class="equip hit" x="200" y="502" width="70" height="36" rx="10"/><rect class="over" x="204" y="514" width="62" height="12" rx="4" fill="url(#gAHP)"/>`,[[235,510,'AHP','code'],...nm([[235,562,'Réchauffeurs','smalllabel'],[235,575,'HP','smalllabel']])]);
+ s+=comp('cooling',`<rect class="equip hit" x="880" y="565" width="200" height="55" rx="12"/><path class="over" d="M895 610 q8 -6 16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0 t16 0" fill="none" data-stroke="Tsea_in" stroke-width="2"/>`,[[980,584,'Source froide (mer)'],[980,599,'','smalllabel sea-txt']]);
+ if(detail)s+=`<text class="free" x="25" y="645" style="font-size:11px">CEX extraction · ABP réchauffeurs BP · ADG bâche dégazante · APP pompes alimentaires · AHP réchauffeurs HP · GSS sécheur-surchauffeur</text>`;
+ s+=TAG({p:v+'-vvp',pos:[170,128]})+TAG({p:v+'-hpx',pos:[392,330],at:[415,225]})+TAG({p:v+'-bpin',pos:[605,205]})+TAG({p:v+'-bpx',pos:[786,368],at:[740,368]})+TAG({p:v+'-cond',pos:[770,490],at:[710,490]})+TAG({p:v+'-abp',pos:[485,486]})+TAG({p:v+'-app',pos:[284,486]})+TAG({p:v+'-are',pos:[128,452],at:[185,452]})+TAG({p:v+'-gssdr',pos:[372,414],at:[372,400]});
+ if(detail)s+=TAG({p:v+'-hpext',pos:[278,364]})+TAG({p:v+'-bpext',pos:[612,334]})+TAG({p:v+'-ahpdr',pos:[325,590]})+TAG({p:v+'-abpdr',pos:[660,597]});
+ s+=INS('ngv',845,70,126)+INS('psg',980,70,126)+INS('pcond',845,116,126)+INS('pe',980,116,126);
+ return s;}
+
+function vPress(){const v='z';
+ let s=`<text class="ttl" x="35" y="40">Pressuriseur — équilibre eau / vapeur</text><text class="subt" x="35" y="62">Seul point du primaire à saturation : il fixe la pression de tout le circuit.</text><text id="pressState" x="35" y="518" style="font-size:13.5px;fill:var(--warn-text)"></text>`;
+ s+=P(v,'hot','M40 560 H1080','Thot','Pprim','L');
+ s+=P(v,'cold','M1080 620 H40','Tcold','Pprim','L');
+ s+=P(v,'surge','M512 442 V560','Thot','Pprim','L',{s:.8,dir:0,noCase:true});
+ s+=P(v,'spray','M1000 620 V90 H512 V122','Tcold','Pprim','L',{s:.6,noCase:true,cls:'spray-line'});
+ s+=P(v,'relief','M447 168 H400 V455 H362','Tpress','Pprim','V',{s:.6});
+ s+=`<rect x="232" y="430" width="130" height="50" rx="14" fill="var(--equip-fill)" stroke="var(--equip-stroke)" stroke-width="2"/><text class="code" x="297" y="452">RDP</text><text class="smalllabel" x="297" y="468">réservoir de décharge</text>
+ <path d="M390 288 L410 312 H390 L410 288Z" fill="var(--equip-fill)" stroke="var(--equip-stroke)" stroke-width="2"/><text class="smalllabel la-e" x="384" y="298">Soupapes de</text><text class="smalllabel la-e" x="384" y="311">protection</text>`;
+ s+=INS('ppr',40,205,140)+INS('npz',40,251,140)+INS('msat',40,297,140);
+ s+=`<rect x="432" y="112" width="160" height="330" rx="77" fill="var(--equip-fill)" stroke="var(--equip-stroke)" stroke-width="5"/>
+ <g clip-path="url(#cpPz)"><rect x="437" y="117" width="150" height="330" data-fill="Tpress" fill-opacity=".14"/><rect id="pressWater" x="437" y="283" width="150" height="170" data-fill="Tpress" fill-opacity=".72"/>
+ <g id="pzBub" fill="#ffffff" fill-opacity=".85">${[[462,425,0],[490,430,.5],[520,428,1.1],[548,432,.3],[566,426,1.7],[476,431,2.0],[534,433,1.4],[505,429,2.3]].map(([x,y,d])=>`<circle class="anim-rise" cx="${x}" cy="${y}" r="4" style="animation-delay:${d}s"/>`).join('')}</g>
+ <g id="pzSpray" stroke="var(--spray)" stroke-width="3" stroke-linecap="round">${[[480,0],[497,.3],[512,.6],[528,.15],[545,.45],[465,.75],[560,.9]].map(([x,d])=>`<path class="anim-fall" d="M${x} 140 v8" style="animation-delay:${d}s"/>`).join('')}</g></g>
+ <path id="pressHeaters" d="M455 418H572M467 428H560" stroke="var(--heat)" stroke-width="6" stroke-linecap="round"/>
+ <path d="M496 122 H528" stroke="var(--spray)" stroke-width="5" stroke-linecap="round"/>
+ <path d="M988 236 L1012 252 V236 L988 252Z" fill="var(--equip-fill)" stroke="var(--equip-stroke)" stroke-width="2"/>`;
+ s+=comp('pressurizer',`<rect class="hit" x="432" y="112" width="160" height="330" rx="77" fill="transparent" stroke="none"/>`);
+ s+=`<g class="leader"><path d="M528 122 L615 135 M590 180 H615 M592 340 H615 M572 423 H615"/></g>
+ <g style="font-size:15px;fill:var(--label)"><text x="622" y="140">Buse d’aspersion (eau ≈ 293 °C)</text><text x="622" y="185">Ciel de vapeur saturée</text><text x="622" y="345">Eau liquide saturée</text><text x="622" y="428">Chaufferettes électriques</text></g>
+ <text class="smalllabel la-e" x="980" y="230">vanne d’aspersion</text>
+ <text class="free" x="50" y="592">Branche chaude ≈ 329 °C (ligne d’expansion)</text><text class="free" x="50" y="650">Branche froide ≈ 293 °C, refoulement pompe (prise d’aspersion)</text>`;
+ s+=TAG({T:'Tpress',P:'Pprim',pos:[300,140],at:[437,140]})+TAG({p:'z-hot',pos:[720,540]})+TAG({p:'z-cold',pos:[720,600]});
+ return s;}
+
+function vMsr(){const v='m';
+ let s=`<text class="ttl" x="32" y="40">Sécheur-surchauffeur (GSS) — trajet de la vapeur</text><text class="subt" x="32" y="62">Toute l’énergie de surchauffe vient du secondaire : aucune circulation d’eau primaire dans cet appareil.</text><text id="msrState" x="32" y="92" style="font-size:15px;fill:var(--warn-text)"></text>`;
+ s+=P(v,'hpx','M40 312 H215',184,11,'D');
+ s+=P(v,'bpin','M955 312 H1090','Tbpin',10,'V');
+ s+=P(v,'gssh1','M520 112 V192',234,30,'D',{s:.8});
+ s+=P(v,'vvpgss','M780 112 V192','Tsteam','Psteam','V',{s:.8});
+ s+=P(v,'sepdr','M300 442 V540 H60',182,10.5,'L',{s:.8});
+ s+=P(v,'gssd1','M610 442 V600 H60',228,29,'L',{s:.8});
+ s+=P(v,'gssdr','M860 442 V540 H1090',280,68,'L',{s:.8});
+ s+=`<rect x="215" y="192" width="740" height="250" rx="42" fill="var(--equip-fill)" stroke="var(--equip-stroke)" stroke-width="4"/>
+ <rect x="219" y="196" width="732" height="242" rx="38" fill="url(#gShell)" fill-opacity=".35"/>
+ <path d="M375 196 V438 M645 196 V438" stroke="var(--equip-stroke)" stroke-width="2" stroke-dasharray="10 7"/>
+ <path class="thin" d="M250 215 l14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14 M300 215 l14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14 14 14 -14 14" style="stroke-width:2.5"/>
+ <path d="M410 235H630M410 265H630M410 295H630M410 325H630M410 355H630M410 385H630" data-stroke="234" stroke-width="6" stroke-linecap="round"/>
+ <path d="M670 235H890M670 265H890M670 295H890M670 325H890M670 355H890M670 385H890" data-stroke="Tsteam" stroke-width="6" stroke-linecap="round"/>
+ ${[250,312,374].map(y=>`<path class="fl fl-vap" d="M222 ${y} H948" style="stroke:url(#gShell);stroke-width:3;opacity:.9"/>`).join('')}
+ <g id="msrDrops" fill="var(--spray)">${[[262,250,0],[285,280,.4],[318,240,.8],[340,300,1.2],[296,330,.2],[270,360,.6],[330,350,1.0]].map(([x,y,d])=>`<circle class="anim-drop" cx="${x}" cy="${y}" r="5" style="animation-delay:${d}s"/>`).join('')}</g>`;
+ s+=comp('msr',`<rect x="215" y="192" width="740" height="250" rx="42" class="hit" fill="transparent" stroke="none"/>`);
+ s+=`<g style="font-size:13px;font-weight:700;fill:var(--label);text-anchor:middle"><text x="295" y="428">SÉPARATION</text><text x="520" y="428">SURCHAUFFE 1</text><text x="780" y="428">SURCHAUFFE 2</text></g>
+ <g class="free" style="font-size:13px"><text x="40" y="280">Vapeur humide</text><text x="40" y="296">sortie HP</text><text x="1085" y="292" text-anchor="end">Vers turbines BP</text>
+ <text x="532" y="122">1er étage : vapeur soutirée HP</text><text x="792" y="122">2e étage : vapeur vive</text>
+ <text x="70" y="532">Eau séparée → bâche ADG</text><text x="70" y="592">Condensats 1er étage → réchauffeurs HP</text><text x="1085" y="600" text-anchor="end">Condensats 2e étage → réchauffeurs HP</text></g>`;
+ s+=TAG({p:'m-hpx',pos:[120,345]})+TAG({p:'m-bpin',pos:[1025,345]})+TAG({p:'m-gssh1',pos:[455,150],at:[520,150]})+TAG({p:'m-vvpgss',pos:[715,150],at:[780,150]})+TAG({p:'m-sepdr',pos:[190,564]})+TAG({p:'m-gssdr',pos:[975,564]});
+ return s;}
+
+function vAux(){
+ const aux=[['rcv','RCV','Contrôle volumétrique et chimique'],['rra','RRA','Refroidissement à l’arrêt'],['asgv','ASG','Alimentation de secours des GV'],['ris','RIS','Injection de sécurité'],['eas','EAS','Aspersion enceinte'],['rri','RRI / SEC','Refroidissement vers source froide']];
+ return `<text class="ttl" x="30" y="35">Auxiliaires et systèmes de sauvegarde — carte fonctionnelle</text><text class="subt" x="30" y="57">Systèmes distincts : leurs fonctions ne se confondent pas avec celles du circuit principal</text>`+
+ aux.map(([id,t,st],i)=>{const x=70+(i%2)*510,y=115+Math.floor(i/2)*145;return comp(id,`<rect class="equip hit" x="${x}" y="${y}" width="450" height="104" rx="16"/>`,[[x+225,y+44,t,'label" style="font-size:16px;font-weight:700'],[x+225,y+68,st,'smalllabel" style="font-size:12px']]);}).join('');}
+
+document.getElementById('global').innerHTML=vGlobal();
+document.getElementById('primary').innerHTML=vPrimary();
+document.getElementById('secondary').innerHTML=vCycle('s',false);
+document.getElementById('cyclefull').innerHTML=vCycle('c',true);
+document.getElementById('pressdetail').innerHTML=vPress();
+document.getElementById('msrdetail').innerHTML=vMsr();
+document.getElementById('auxiliary').innerHTML=vAux();
+
+/* Légende : échantillons dessinés avec les mêmes conduites */
+(function legend(){
+ const span=345-10;document.getElementById('tbar').style.background='linear-gradient(90deg,'+TSTOPS.map(([t,c])=>`${rgb(c)} ${((t-10)/span*100).toFixed(1)}%`).join(',')+')';
+ const sample=(f,T,Pr,ph,txt)=>`<div class="lg-row"><svg width="74" height="22" viewBox="0 0 74 22" style="--flow:1">${P('lg',f,'M6 11 H68',T,Pr,ph)}</svg><span>${txt}</span></div>`;
+ document.getElementById('lgPhase').innerHTML=sample('cond',180,10,'L','Eau liquide')+sample('vvp',286,10,'V','Vapeur (saturée ou surchauffée)')+sample('hpx',184,10,'D','Vapeur humide (eau + vapeur)');
+ document.getElementById('lgPress').innerHTML=[[13,'≥ 100 bar (primaire)'],[10,'40 – 100 bar'],[8,'5 – 40 bar'],[6,'< 5 bar (vide, mer)']].map(([w,t])=>`<div class="lg-row"><svg width="60" height="18" viewBox="0 0 60 18"><path d="M6 9H54" stroke="var(--pipe-edge)" stroke-width="${w+2}" stroke-linecap="round"/><path d="M6 9H54" stroke="var(--muted)" stroke-width="${w}" stroke-linecap="round"/></svg><span>${t}</span></div>`).join('');
+})();
+
+/* =====================================================================
+   5. RAFRAÎCHISSEMENT DES COULEURS, ÉTIQUETTES ET INFOBULLES
+   ===================================================================== */
+function phaseTxt(ph,T,Pr){const ts=tsat(Pr);
+ if(ph==='L'){const d=ts-T;return d>3?`Liquide sous-refroidi (${nf(d)} °C sous la saturation)`:'Liquide saturé';}
+ if(ph==='V'){const d=T-ts;return d>3?`Vapeur surchauffée (+${nf(d)} °C au-dessus de la saturation)`:'Vapeur saturée sèche';}
+ return 'Mélange diphasique eau + vapeur (vapeur humide)';}
+function refresh(){
+ document.querySelectorAll('[data-pipe]').forEach(g=>{const sp=PIPES[g.dataset.pipe];if(!sp)return;const T=val(sp.T),Pr=val(sp.P),fl=FL[sp.f]||[sp.f];
+  g.style.setProperty('--c',tColor(T));const lab=`${fl[0]} — ${phaseTxt(sp.ph,T,Pr)} — ${fT(T)}, ${fP(Pr)}`;g.querySelector('title').textContent=lab;g.setAttribute('aria-label',lab);});
+ document.querySelectorAll('[data-fill]').forEach(e=>e.setAttribute('fill',tColor(val(isNaN(+e.dataset.fill)?e.dataset.fill:+e.dataset.fill))));
+ document.querySelectorAll('[data-stroke]').forEach(e=>e.setAttribute('stroke',tColor(val(isNaN(+e.dataset.stroke)?e.dataset.stroke:+e.dataset.stroke))));
+ document.querySelectorAll('stop[data-t]').forEach(e=>e.setAttribute('stop-color',tColor(val(isNaN(+e.dataset.t)?e.dataset.t:+e.dataset.t))));
+ document.querySelectorAll('.tag').forEach(g=>{const t=TAGS[+g.dataset.tag];let T,Pr;if(t.p){const sp=PIPES[t.p];T=val(sp.T);Pr=val(sp.P);}else{T=val(t.T);Pr=val(t.P);}
+  const txt=`${fT(T)} · ${fP(Pr)}`,w=Math.round(txt.length*6.1+26),x0=t.pos[0]-w/2;
+  const r=g.querySelector('.tag-bg');r.setAttribute('x',x0);r.setAttribute('width',w);
+  const c=g.querySelector('.tag-dot');c.setAttribute('cx',x0+11);c.setAttribute('fill',tColor(T));
+  const tx=g.querySelector('.tag-tx');tx.setAttribute('x',x0+20);tx.textContent=txt;});
+ document.querySelectorAll('.sea-txt').forEach(e=>e.textContent=`prise ${nf(S.Tsea_in)} °C → rejet ${nf(S.Tsea_out)} °C`);
+ if(currentPipe)selectPipe(currentPipe);
+}
+
+/* =====================================================================
+   6. SÉLECTION (équipements et conduites)
+   ===================================================================== */
+let currentPipe=null;
+const dT=document.getElementById('detail-title'),dL=document.getElementById('detail-lead'),dB=document.getElementById('detail-body');
+function clearSel(){document.querySelectorAll('.component.selected,.pipe.selected').forEach(e=>e.classList.remove('selected'));}
+function select(id){const item=info[id];if(!item)return;currentPipe=null;clearSel();
+ document.querySelectorAll('.view.active .component').forEach(e=>e.classList.toggle('selected',e.dataset.id===id));
+ dT.textContent=item.title;dL.textContent=item.lead;
+ dB.innerHTML=`<div class="data">${item.facts.map(([a,b])=>`<span>${a}</span><b>${b}</b>`).join('')}</div><h3>Principe de fonctionnement</h3><p>${item.detail}</p>`;}
+function selectPipe(id){const sp=PIPES[id];if(!sp)return;currentPipe=id;clearSel();
+ document.querySelectorAll(`[data-pipe="${id}"]`).forEach(e=>e.classList.add('selected'));
+ const T=val(sp.T),Pr=val(sp.P),fl=FL[sp.f]||[sp.f,'',''],ts=tsat(Pr);
+ dT.textContent=fl[0];dL.textContent=fl[2];
+ const etat={L:'Liquide',V:'Vapeur',D:'Diphasique'}[sp.ph];
+ dB.innerHTML=`<div class="data"><span>Circuit</span><b>${fl[1]}</b><span>État</span><b>${etat}</b><span>Température</span><b><i class="swatch" style="background:${tColor(T)}"></i>${fT(T)}</b><span>Pression</span><b>${fP(Pr)}</b><span>Saturation à cette pression</span><b>${fT(ts)}</b></div><h3>Lecture physique</h3><p>${phaseTxt(sp.ph,T,Pr)}. ${sp.ph==='L'&&ts-T>3?'L’eau reste liquide car sa température est inférieure à la température de saturation correspondant à sa pression.':sp.ph==='V'&&T-ts>3?'La vapeur est plus chaude que la saturation : aucune goutte ne peut se former tant qu’elle ne se refroidit pas de cet écart.':sp.ph==='D'?'Liquide et vapeur coexistent à la température de saturation : la pression fixe la température.':'Le fluide est exactement à saturation : le moindre apport ou retrait de chaleur provoque vaporisation ou condensation.'}</p><p class="note">Valeurs d’ordre de grandeur, palier 1300 MWe, non issues d’une tranche particulière.</p>`;}
+const syn=document.getElementById('syn');
+syn.addEventListener('click',e=>{const p=e.target.closest('.pipe');if(p&&p.dataset.pipe&&!p.dataset.pipe.startsWith('lg-')){selectPipe(p.dataset.pipe);return;}const c=e.target.closest('.component');if(c)select(c.dataset.id);});
+syn.addEventListener('keydown',e=>{if(e.key!=='Enter'&&e.key!==' ')return;const p=e.target.closest('.pipe'),c=e.target.closest('.component');if(p){e.preventDefault();selectPipe(p.dataset.pipe);}else if(c){e.preventDefault();select(c.dataset.id);}});
+
+/* Onglets */
+const titles={global:'Vue générale du REP',primary:'Circuit primaire',secondary:'Circuit secondaire',cyclefull:'Cycle secondaire détaillé',auxiliary:'Auxiliaires et sauvegardes',pressdetail:'Pressuriseur — coupe animée',msrdetail:'Sécheur-surchauffeur — coupe animée',energy:'Énergie et cycle thermodynamique'};
+let currentView='global';
+const panel=document.getElementById('thermoPanel'),thermoTab=document.getElementById('thermoTab'),drawing=document.getElementById('drawing'),legendEl=document.getElementById('legend');
+document.querySelectorAll('[data-view]').forEach(btn=>btn.addEventListener('click',()=>{
+ document.querySelectorAll('[data-view]').forEach(b=>b.classList.toggle('active',b===btn));thermoTab.classList.remove('active');
+ document.querySelectorAll('.view').forEach(v=>v.classList.toggle('active',v.id===btn.dataset.view));
+ panel.classList.remove('active');drawing.style.display='';legendEl.style.display='';
+ currentPipe=null;clearSel();dT.textContent=titles[btn.dataset.view];dL.textContent='Sélectionnez un équipement ou une conduite pour afficher sa fiche.';dB.innerHTML='';
+ currentView=btn.dataset.view;if(window.onView)window.onView(currentView);}));
+thermoTab.addEventListener('click',()=>{document.querySelectorAll('[data-view]').forEach(b=>b.classList.remove('active'));thermoTab.classList.add('active');panel.classList.add('active');drawing.style.display='none';legendEl.style.display='none';});
+
+/* =====================================================================
+   7. THÈME CLAIR / SOMBRE
+   ===================================================================== */
+const root=document.documentElement,themeBtn=document.getElementById('themeBtn');
+const ICON_SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>';
+const ICON_MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t){root.dataset.theme=t;const dark=t==='dark';document.getElementById('themeIcon').innerHTML=dark?ICON_SUN:ICON_MOON;document.getElementById('themeTxt').textContent=dark?'Thème clair':'Thème sombre';themeBtn.setAttribute('aria-pressed',String(!dark));}
+let initialTheme='dark';try{if(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)initialTheme='light';}catch(e){}
+setTheme(initialTheme);
+themeBtn.addEventListener('click',()=>setTheme(root.dataset.theme==='dark'?'light':'dark'));
+
+/* =====================================================================
+   8. SIMULATION DYNAMIQUE — modèle à inerties, qualitatif et pédagogique
+   Seuils et constantes de temps didactiques : ce n'est pas un simulateur de conduite.
+   ===================================================================== */
+const $=id=>document.getElementById(id);
+const power=$('power'),load=$('load'),spray=$('spray'),wl=$('waterlevel'),mq=$('msrquality'),mh=$('msrheat'),vacuum=$('vacuum'),extraction=$('extraction'),feedtemp=$('feedtemp');
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+const Tref=p=>297+14*p;
+function psat(T){if(T<=TSAT[0][1])return TSAT[0][0];for(let i=1;i<TSAT.length;i++){if(T<=TSAT[i][1]){const a=TSAT[i-1],b=TSAT[i],t=(T-a[1])/(b[1]-a[1]);return Math.exp(Math.log(a[0])+t*(Math.log(b[0])-Math.log(a[0])));}}return TSAT[TSAT.length-1][0];}
+const mmss=t=>{t=Math.max(0,Math.floor(t));return String(Math.floor(t/60)).padStart(2,'0')+':'+String(t%60).padStart(2,'0');};
+
+/* ---------- Scénarios de défauts ---------- */
+const SCEN={
+ gmpp:{name:'Arrêt d’une pompe primaire (GMPP 1)',flags:{gmpp1:1},targets:[['pump',1]],
+  lead:'La pompe primaire de la boucle 1 s’arrête (perte de son alimentation électrique, par exemple).',
+  chain:['Le débit primaire total chute d’environ 30 % ; la boucle 1 est parcourue à contre-sens par un faible débit (particules inversées).','À puissance égale, l’échauffement dans le cœur augmente : T chaude monte, la marge à la saturation diminue.','Protection : arrêt automatique réacteur (AU) sur débit primaire bas.','Turbine déclenchée, la puissance résiduelle est évacuée par le contournement GCT vers le condenseur.'],
+  look:'Débit primaire, écart T chaude / T froide, marge à la saturation, sens d’écoulement dans la boucle 1.'},
+ vide:{name:'Perte de vide au condenseur (entrée d’air)',flags:{vacuum:1},targets:[['condenser']],
+  lead:'De l’air entre dans le condenseur : la pression absolue monte progressivement.',
+  chain:['La pression condenseur monte, donc la température de condensation aussi (couleur de l’échappement BP qui vire au vert).','La détente en turbine BP est moins efficace : la puissance électrique baisse à vapeur égale.','Au seuil de vide insuffisant, la turbine déclenche, ce qui entraîne l’AU (logique simplifiée).','Si le vide est perdu, le contournement ne peut plus se faire vers le condenseur : la vapeur part à l’atmosphère.'],
+  look:'Pression condenseur, puissance électrique, couleur de l’échappement BP, diagramme T-s (palier bas qui remonte).'},
+ encr:{name:'Encrassement de la source froide (eau de mer)',flags:{fouling:1},targets:[['cooling'],['condenser']],
+  lead:'Les filtres ou les tubes côté eau de mer s’encrassent : le débit d’eau de mer diminue lentement.',
+  chain:['Moins d’eau de mer pour la même chaleur à évacuer : l’échauffement de l’eau de mer augmente fortement.','La pression condenseur monte lentement, la puissance électrique s’érode.','Évolution lente : c’est un défaut que l’on détecte par les tendances plutôt que par une alarme brutale.'],
+  look:'Échauffement de la mer (prise → rejet), pression condenseur, tendance de la puissance électrique.'},
+ rtgv:{name:'Fuite d’un tube de générateur de vapeur (RTGV, GV 2)',flags:{rtgv:1},targets:[['gv',2]],
+  lead:'Un tube du GV 2 fuit : de l’eau primaire passe côté secondaire.',
+  chain:['Activité détectée côté vapeur (eau primaire contaminée dans le secondaire, contour violet des conduites).','Le primaire perd de l’inventaire : le contrôle volumétrique (RCV) compense partiellement, le niveau et la pression du pressuriseur baissent.','AU sur pression pressuriseur basse ; la contraction thermique après l’arrêt accentue la baisse.','Injection de sécurité (RIS) lorsque la pression devient très basse.'],
+  look:'Alarme d’activité secondaire, niveau et pression pressuriseur, chronologie AU puis RIS.'},
+ are:{name:'Perte de l’alimentation normale des GV (pompes APP)',flags:{are:1},targets:[['app']],
+  lead:'Les pompes alimentaires s’arrêtent : plus d’eau ne rentre dans les GV.',
+  chain:['Le débit d’eau alimentaire devient inférieur au débit vapeur : le niveau des GV baisse rapidement.','Démarrage de l’ASG (alimentation de secours) sur niveau GV bas.','AU sur niveau GV très bas, turbine déclenchée.','Avec la puissance résiduelle, l’ASG suffit : le niveau remonte lentement.'],
+  look:'Niveau GV, débits dans le poste d’eau (particules arrêtées), conduite ASG qui s’active.'},
+ turb:{name:'Déclenchement turbine',flags:{turb:1},targets:[['hp'],['lp'],['alternator']],
+  lead:'Les vannes d’arrêt turbine se ferment brutalement.',
+  chain:['La puissance électrique tombe à zéro ; la vapeur ne trouve plus de débouché dans la turbine.','La pression vapeur monte : le contournement GCT s’ouvre vers le condenseur, voire les soupapes vapeur vers l’atmosphère.','AU (logique simplifiée de ce simulateur).','La température moyenne primaire se stabilise grâce au GCT.'],
+  look:'Puissance électrique, pression vapeur GV, conduite GCT, panache des soupapes au-dessus des GV.'},
+ chauff:{name:'Chaufferettes du pressuriseur bloquées en service',flags:{heaters:1},targets:[['pressurizer']],
+  lead:'Les chaufferettes restent alimentées en permanence.',
+  chain:['La vaporisation augmente : la pression primaire monte.','La régulation ouvre l’aspersion en continu, mais elle ne compense pas complètement.','La pression atteint le seuil haut : AU sur pression pressuriseur haute.'],
+  look:'Pression pressuriseur, alarmes « chaufferettes » et « aspersion » simultanées, zoom pressuriseur.'},
+ asp:{name:'Vanne d’aspersion du pressuriseur bloquée ouverte',flags:{spray:1},targets:[['pressurizer']],
+  lead:'La vanne d’aspersion reste ouverte : de l’eau froide condense en permanence la vapeur du pressuriseur.',
+  chain:['La pression chute rapidement malgré les chaufferettes au maximum.','AU sur pression pressuriseur basse.','Après l’arrêt, la pression continue de baisser : risque d’atteindre le seuil d’injection de sécurité.'],
+  look:'Pression pressuriseur, gouttes d’aspersion dans le zoom, chaufferettes en service en même temps.'},
+ soup:{name:'Ouverture intempestive d’une soupape du pressuriseur',flags:{soupape:1},targets:[['pressurizer']],
+  lead:'Une soupape de protection du pressuriseur s’ouvre et ne se referme pas : de la vapeur part vers le réservoir de décharge.',
+  chain:['La pression primaire chute très vite ; la ligne de décharge s’échauffe.','AU sur pression basse, puis RIS sur pression très basse.','Piège : quand la pression atteint la saturation, de la vapeur se forme dans le primaire et le niveau du pressuriseur MONTE alors que l’eau est perdue (cas de Three Mile Island, 1979).'],
+  look:'Pression, marge à la saturation, niveau pressuriseur qui remonte, température de la ligne de décharge.'},
+ ahp:{name:'Perte des réchauffeurs haute pression (AHP isolés)',flags:{ahp:1},targets:[['ahp']],
+  lead:'Les réchauffeurs HP sont isolés : l’eau alimentaire n’est plus préchauffée par les soutirages HP.',
+  chain:['La température de l’eau alimentaire chute d’environ 230 °C à 180 °C (couleur de la ligne ARE).','Il faut plus de chaleur dans les GV pour produire la même vapeur : le rendement du cycle baisse.','La puissance électrique diminue de quelques pour cent, sans arrêt de la tranche.'],
+  look:'Température eau alimentaire, puissance électrique, point 2 du diagramme T-s.'},
+ gss:{name:'Perte de la surchauffe du GSS',flags:{gss:1},targets:[['msr']],
+  lead:'La vapeur de chauffe du sécheur-surchauffeur est isolée.',
+  chain:['La vapeur entre dans les turbines BP à saturation (≈ 182 °C) au lieu d’environ 265 °C.','L’humidité en fin de détente augmente : risque d’érosion des aubages.','La puissance électrique baisse de quelques pour cent.'],
+  look:'Température entrée BP, point 5 du diagramme T-s, puissance électrique.'}
+};
+
+/* ---------- État ---------- */
+let X,F,sim,speed=1,running=true,energyU=0;
+function initState(){
+ X={Pth:1,Lt:1,Fp:1,Tmoy:310.7,Thot:328.7,Tcold:292.7,Psg:70,Ppr:155,inv:60,Nreal:60,Npz:60,swell:0,NGV:50,Wfeed:1,Pcond:.05,air:0,sea:1,Tfeed:230,Tbpin:265,Wturb:1,Wgct:0,Wsv:0,Wasg:0,heat:0,spr:0,leak:0,risInj:0,Qgv:1,Pe:1300,eta:1,Tsea_out:24};
+ F={};
+ sim={t:0,AU:false,tAU:0,auCause:'',trip:false,tripCause:'',RIS:false,ASG:false,pzSv:false,scen:null,tFault:1e9,faultOn:false,diag:false,activity:0,alarms:new Map(),events:[],hist:[],lastRec:-1};
+}
+initState();
+function inputs(){return{Pset:+power.value/100,Lset:+load.value/100,man:+spray.value,Nset:+wl.value,heatF:+mh.value/100,Pvac:+vacuum.value,extr:+extraction.value/100,Tfeed:+feedtemp.value};}
+function logEvent(txt,sev=1,mark=''){sim.events.push({t:sim.t,txt,sev,mark});renderLog();}
+function doAU(cause){if(sim.AU)return;sim.AU=true;sim.auCause=cause;sim.tAU=0;logEvent('ARRÊT AUTOMATIQUE RÉACTEUR — '+cause,3,'AU');if(!sim.trip){sim.trip=true;sim.tripCause='suite à l’AU';logEvent('Turbine déclenchée (suite à l’AU)',3);}}
+function doTrip(cause){if(sim.trip)return;sim.trip=true;sim.tripCause=cause;logEvent('Turbine déclenchée — '+cause,3,'Turb.');}
+
+function step(dt,I){
+ sim.t+=dt;
+ if(sim.scen&&!sim.faultOn&&sim.t>=sim.tFault){sim.faultOn=true;Object.assign(F,SCEN[sim.scen].flags);
+  logEvent(sim.diag?'Perturbation en cours… (origine à identifier)':'Défaut injecté : '+SCEN[sim.scen].name,2,'Défaut');if(F.turb)doTrip('fermeture des vannes d’arrêt');}
+ // Réacteur : suit sa consigne, contre-réaction modérateur sur l'écart à Tréf
+ if(!sim.AU){const tgt=clamp(I.Pset-0.05*(X.Tmoy-Tref(I.Pset)),0,1.2);X.Pth+=(tgt-X.Pth)*dt/6;}
+ else{sim.tAU+=dt;const res=0.065*Math.pow(1+sim.tAU/10,-0.3);X.Pth+=(res-X.Pth)*Math.min(1,dt/0.7);}
+ // Débit primaire (inertie des volants des GMPP)
+ X.Fp+=((F.gmpp1?0.72:1)-X.Fp)*Math.min(1,dt/4);
+ // Transfert de chaleur dans les GV (dégradé si niveau GV très bas)
+ const Tsg=tsat(X.Psg),fgv=clamp(X.NGV/22,0.12,1);
+ X.Qgv=Math.max(-0.05,(X.Tmoy-Tsg)/24.9*fgv*(0.7+0.3*X.Fp));
+ X.Tmoy+=(X.Pth-X.Qgv-X.risInj*0.03)*1.5*dt;
+ const dT=36*X.Pth/Math.max(X.Fp,0.3);X.Thot=X.Tmoy+dT/2;X.Tcold=X.Tmoy-dT/2;
+ // Turbine, contournement GCT, soupapes vapeur
+ const ltT=sim.trip?0:I.Lset;X.Lt+=(ltT-X.Lt)*Math.min(1,dt/(sim.trip?0.4:5));
+ X.Wturb=Math.max(0,X.Lt*X.Psg/70);
+ const pG=sim.trip?79:83-13*I.Lset+4;
+ X.Wgct=clamp((X.Psg-pG)/5,0,0.5);X.Wsv=clamp((X.Psg-86)/2,0,0.6);
+ const Wst=X.Wturb+X.Wgct+X.Wsv;
+ const dPsg=(X.Qgv-Wst)*2.2*dt;X.Psg=clamp(X.Psg+dPsg,5,95);
+ // Alimentation des GV : ARE régulée, ASG en secours
+ const areT=F.are?0:clamp(Wst+0.04*(50-X.NGV),0,1.3);X.Wfeed+=(areT-X.Wfeed)*Math.min(1,dt/2);
+ if(!sim.ASG&&(X.NGV<25||(sim.AU&&F.are))){sim.ASG=true;logEvent('Démarrage de l’ASG (alimentation de secours des GV)',2,'ASG');}
+ X.Wasg=sim.ASG?0.09:0;
+ X.NGV=clamp(X.NGV+(X.Wfeed+X.Wasg-Wst)*1.2*dt-0.8*dPsg,0,100);
+ // Inventaire primaire : RCV, fuites, RIS
+ const chg=clamp(0.06*(I.Nset-X.inv),-0.25,0.45);
+ X.leak=F.rtgv?0.9:0;
+ if(X.Ppr>166&&!sim.pzSv){sim.pzSv=true;logEvent('Ouverture des soupapes du pressuriseur (pression haute)',3);}if(X.Ppr<160&&sim.pzSv)sim.pzSv=false;
+ const relief=(F.soupape||sim.pzSv)?1:0;
+ if(!sim.RIS&&X.Ppr<119){sim.RIS=true;logEvent('Injection de sécurité (RIS) — pression primaire très basse',3,'RIS');}
+ X.risInj=sim.RIS?0.9*clamp((128-X.Ppr)/20,0,1):0;
+ X.inv+=(chg-X.leak-relief*0.5+X.risInj)*dt;
+ // Pressuriseur : dilatation, gonflement par vide si ébullition, régulation de pression
+ const margin=tsat(X.Ppr)-X.Thot;
+ X.swell+=((margin<0?Math.min(45,-margin*3):0)-X.swell)*Math.min(1,dt/3);
+ const Nr=X.inv+1.0*(X.Tmoy-310.7),dN=Nr-X.Nreal;X.Nreal=Nr;
+ X.Npz=clamp(Nr+X.swell,0,100);
+ const u=clamp((155-X.Ppr)/1.2,-1,1);
+ X.heat=Math.max(u,0)+(I.man>0?I.man*0.5:0)+(F.heaters?3.4:0);if(X.Npz<14)X.heat=0;
+ X.spr=(Math.max(-u,0)+(I.man<0?-I.man*0.5:0)+(F.spray?1.4:0))*(X.Fp>0.5?1:0.3);
+ let dPp=1.2*dN+(0.25*X.heat-0.7*X.spr-relief*2.0)*dt;
+ if(dPp<0&&X.Ppr+dPp<psat(X.Thot))dPp*=0.15;
+ X.Ppr=clamp(X.Ppr+dPp,1,175);
+ // Condenseur et source froide
+ X.sea+=((F.fouling?Math.max(0.4,1-0.006*(sim.t-sim.tFault)):1)-X.sea)*Math.min(1,dt/3);
+ if(F.vacuum)X.air=Math.min(0.4,X.air+0.0045*dt);
+ const Wcond=X.Wturb+(X.Pcond<0.3?X.Wgct:0);
+ X.Pcond+=((I.Pvac+0.1*Wcond*(1/X.sea-1)+X.air)-X.Pcond)*Math.min(1,dt/4);
+ X.Tsea_out=Math.min(45,12+12*Wcond/X.sea);
+ // Poste d'eau, GSS, rendement
+ X.Tfeed+=((F.ahp?178:I.Tfeed)-X.Tfeed)*Math.min(1,dt/8);
+ X.Tbpin+=((F.gss?182:182+83*I.heatF)-X.Tbpin)*Math.min(1,dt/6);
+ X.eta=1-1.3*Math.max(0,X.Pcond-0.05)-0.0006*Math.max(0,230-X.Tfeed)-0.0005*Math.max(0,265-X.Tbpin)-0.03*(1-I.extr);
+ X.Pe=sim.trip?Math.max(0,X.Pe-400*dt):1300*X.Wturb*X.eta;
+ if(F.rtgv)sim.activity+=dt;
+ // Protections (seuils didactiques)
+ if(!sim.AU){
+  if(X.Ppr<131)doAU('pression pressuriseur basse');
+  else if(X.Ppr>165)doAU('pression pressuriseur haute');
+  else if(X.NGV<20)doAU('niveau GV très bas');
+  else if(X.Fp<0.88&&X.Pth>0.3)doAU('débit primaire bas');
+  else if(X.Pth>1.08)doAU('flux neutronique haut');
+  else if(sim.trip&&X.Pth>0.3)doAU('déclenchement turbine (logique simplifiée)');
+ }
+ if(!sim.trip&&X.Pcond>0.25)doTrip('vide condenseur insuffisant');
+ if(sim.t-sim.lastRec>=0.5){sim.lastRec=sim.t;sim.hist.push({t:sim.t,pth:X.Pth*100,pe:X.Pe/13,thot:X.Thot,tcold:X.Tcold,tsat:tsat(X.Ppr),ppr:X.Ppr,npz:X.Npz,ngv:X.NGV,psg:X.Psg,pcond:X.Pcond});if(sim.hist.length>480)sim.hist.shift();}
+}
+
+/* ---------- Alarmes (symptômes, jamais la cause) ---------- */
+const AL=[
+ ['au',()=>sim.AU?3:0,()=>'Arrêt automatique réacteur — '+sim.auCause],
+ ['trip',()=>sim.trip?3:0,()=>'Turbine déclenchée'],
+ ['ris',()=>sim.RIS?3:0,()=>'Injection de sécurité (RIS) en service'],
+ ['msat',()=>{const m=tsat(X.Ppr)-X.Thot;return m<0?3:m<12?2:0;},()=>tsat(X.Ppr)-X.Thot<0?'Ébullition dans le circuit primaire (marge à la saturation perdue)':'Marge à la saturation faible'],
+ ['pprL',()=>X.Ppr<131?3:X.Ppr<150?2:0,()=>'Pression pressuriseur basse'],
+ ['pprH',()=>X.Ppr>165?3:X.Ppr>158?2:0,()=>'Pression pressuriseur haute'],
+ ['npzL',()=>X.Npz<15?3:X.Npz<30?2:0,()=>'Niveau pressuriseur bas'],
+ ['npzH',()=>X.Npz>90?3:X.Npz>75?2:0,()=>'Niveau pressuriseur haut'],
+ ['flow',()=>X.Fp<0.9?3:X.Fp<0.97?2:0,()=>'Débit primaire bas'],
+ ['act',()=>sim.activity>4?3:0,()=>'Activité élevée côté secondaire (mesure KRT)'],
+ ['tdech',()=>(F.soupape||sim.pzSv)?3:0,()=>'Température ligne de décharge pressuriseur élevée'],
+ ['ngvL',()=>X.NGV<20?3:X.NGV<35?2:0,()=>'Niveau GV bas'],
+ ['ngvH',()=>X.NGV>80?3:X.NGV>65?2:0,()=>'Niveau GV haut'],
+ ['feed',()=>(!sim.AU&&X.Wfeed+X.Wasg<X.Wturb+X.Wgct-0.15)?3:0,()=>'Débit d’eau alimentaire inférieur au débit vapeur'],
+ ['sv',()=>X.Wsv>0.01?3:0,()=>'Soupapes vapeur ouvertes à l’atmosphère'],
+ ['psgH',()=>X.Psg>86?3:X.Psg>81?2:0,()=>'Pression vapeur GV haute'],
+ ['pcond',()=>X.Pcond>0.2?3:X.Pcond>0.08?2:0,()=>'Vide condenseur dégradé'],
+ ['sea',()=>X.Tsea_out-12>17?2:0,()=>'Échauffement de l’eau de mer élevé'],
+ ['tfeed',()=>X.Tfeed<215?2:0,()=>'Température eau alimentaire basse'],
+ ['tbp',()=>X.Tbpin<240?2:0,()=>'Température vapeur entrée BP basse'],
+ ['gct',()=>X.Wgct>0.02?1:0,()=>X.Pcond<0.3?'Contournement turbine (GCT) ouvert vers le condenseur':'Contournement turbine vers l’atmosphère (vide perdu)'],
+ ['asg',()=>sim.ASG?1:0,()=>'ASG en service'],
+ ['spr',()=>X.spr>0.4?1:0,()=>'Aspersion pressuriseur en service'],
+ ['heat',()=>X.heat>0.8?1:0,()=>'Chaufferettes pressuriseur en service']
+];
+function evalAlarms(){
+ let changed=false;
+ for(const [id,c,txt] of AL){const s=c(),prev=sim.alarms.get(id);
+  if(s>0){if(!prev||s>prev.s){sim.alarms.set(id,{s,txt:txt(),t:prev?prev.t:sim.t});if(s>=2&&!['au','trip','ris'].includes(id))logEvent((s===3?'ALARME : ':'Pré-alarme : ')+txt(),s);changed=true;}else{prev.txt=txt();}}
+  else if(prev){sim.alarms.delete(id);changed=true;}}
+ return changed;}
+const alarmList=$('alarmList'),eventLog=$('eventLog');
+function renderAlarms(){const a=[...sim.alarms.values()].sort((p,q)=>q.s-p.s||p.t-q.t);
+ alarmList.innerHTML=a.length?a.map(x=>`<li class="${x.s===3?'s2':x.s===2?'s1':''}">${x.txt}</li>`).join(''):'<li class="none">Aucune alarme — fonctionnement normal</li>';}
+function renderLog(){eventLog.innerHTML=sim.events.slice(-60).reverse().map(e=>`<li><b>${mmss(e.t)}</b>${e.txt}</li>`).join('')||'<li>—</li>';}
+
+/* ---------- Instruments ---------- */
+const INST={
+ ppr:{l:'P pressuriseur',v:()=>X.Ppr,f:v=>nf(v,1)+' bar',min:100,max:175,s:v=>v<131||v>165?2:v<150||v>158?1:0},
+ npz:{l:'Niveau pressu.',v:()=>X.Npz,f:v=>nf(v)+' %',min:0,max:100,s:v=>v<15||v>90?2:v<30||v>75?1:0},
+ fp:{l:'Débit primaire',v:()=>X.Fp*100,f:v=>nf(v)+' %',min:0,max:110,s:v=>v<90?2:v<97?1:0},
+ msat:{l:'Marge saturation',v:()=>tsat(X.Ppr)-X.Thot,f:v=>nf(v)+' °C',min:0,max:40,s:v=>v<0?2:v<12?1:0},
+ ngv:{l:'Niveau GV',v:()=>X.NGV,f:v=>nf(v)+' %',min:0,max:100,s:v=>v<20||v>80?2:v<35||v>65?1:0},
+ psg:{l:'P vapeur GV',v:()=>X.Psg,f:v=>nf(v,1)+' bar',min:50,max:95,s:v=>v>86?2:v>81?1:0},
+ pcond:{l:'P condenseur',v:()=>X.Pcond,f:v=>nf(v,2)+' bar',min:0,max:.35,s:v=>v>.2?2:v>.08?1:0},
+ pe:{l:'P électrique',v:()=>X.Pe,f:v=>nf(v)+' MWe',min:0,max:1400,s:()=>0}
+};
+document.querySelectorAll('.instr').forEach(g=>{g.querySelector('.in-lab').textContent=INST[g.dataset.instr].l;});
+function updInstr(){document.querySelectorAll('.view.active .instr').forEach(g=>{const d=INST[g.dataset.instr],v=d.v(),st=d.s(v);
+ g.querySelector('.in-val').textContent=d.f(v);const b=g.querySelector('.in-bar');b.setAttribute('width',(+b.dataset.w*clamp((v-d.min)/(d.max-d.min),0,1)).toFixed(1));
+ g.classList.toggle('s1',st===1);g.classList.toggle('s2',st===2);});}
+
+/* ---------- Écoulements, niveaux et effets visuels ---------- */
+const SECF=new Set(['vvp','vvpgss','hpx','bpin','bpx','cond','cex','abp','adg','app','are','sepdr','gssdr','gssh1','gssd1','hpext','hpxadg','bpext','ahpdr','abpdr','gct']);
+function flowOf(sp){const W=X.Wturb,ex=+extraction.value/100;
+ switch(sp.f){
+  case'hot':case'cross':case'cold':return(sp.n===1&&F.gmpp1)?-0.25:X.Fp;
+  case'surge':return 0;case'spray':return X.spr>0.05?Math.min(1.2,X.spr):0;case'relief':return(F.soupape||sim.pzSv)?1.3:0;
+  case'vvp':return W+X.Wgct+X.Wsv;case'vvpgss':case'gssh1':case'gssd1':case'gssdr':return F.gss?0:W;
+  case'hpx':case'bpin':case'bpx':case'sepdr':case'cond':case'cex':case'abp':case'adg':return W;
+  case'app':case'are':return X.Wfeed;case'asg':return X.Wasg>0?0.7:0;case'gct':return X.Wgct>0.01?Math.max(.4,X.Wgct*2):0;
+  case'hpext':case'hpxadg':case'bpext':case'ahpdr':case'abpdr':return W*ex;
+  case'seain':case'seaout':return X.sea;}
+ return 1;}
+const STANDBY=new Set(['gct','asg','relief']);
+function updFlows(){const contam=sim.activity>4;
+ document.querySelectorAll('.pipe[data-pipe]').forEach(g=>{const sp=PIPES[g.dataset.pipe];if(!sp||sp.id.startsWith('lg-'))return;
+  const f=flowOf(sp),q=Math.round(Math.abs(f)*10)/10,key=q+(f<0?'r':'')+(contam&&SECF.has(sp.f)?'c':'');
+  if(g._k===key)return;g._k=key;
+  g.classList.toggle('stopped',q<0.05);g.classList.toggle('rev',f<0);g.classList.toggle('standby',STANDBY.has(sp.f)&&q<0.05);
+  g.classList.toggle('contam',contam&&SECF.has(sp.f));g.style.setProperty('--flow',clamp(q,0.2,2));});}
+function updLevels(){document.querySelectorAll('[data-lvl]').forEach(e=>{const v=e.dataset.lvl==='ngv'?X.NGV:X.Npz,top=+e.dataset.top,bot=+e.dataset.bot,y=bot-(bot-top)*clamp(v,0,100)/100;e.setAttribute('y',y.toFixed(1));e.setAttribute('height',(bot-y).toFixed(1));});
+ const h=320*clamp(X.Npz,0,100)/100;$('pressWater').setAttribute('y',437-h);$('pressWater').setAttribute('height',h+10);}
+function updEffects(){
+ document.querySelectorAll('.leakfx').forEach(e=>e.classList.toggle('on',!!F.rtgv&&!sim.diag));
+ document.querySelectorAll('.plume').forEach(e=>e.classList.toggle('on',X.Wsv>0.01));
+ $('pressHeaters').setAttribute('opacity',clamp(X.heat/1.2,.15,1).toFixed(2));
+ $('pzBub').setAttribute('opacity',X.heat>0.1?'1':'.15');$('pzSpray').setAttribute('opacity',X.spr>0.05?'1':'0');
+ const margin=tsat(X.Ppr)-X.Thot;
+ $('pressState').textContent=(F.soupape||sim.pzSv)?'Soupape ouverte : la vapeur s’échappe vers le RDP, la pression chute.':margin<0?'Ébullition dans le primaire : des bulles de vapeur gonflent le niveau du pressuriseur.':X.spr>0.3&&X.heat>0.3?'Chaufferettes et aspersion en service simultanément : situation anormale.':X.heat>0.3?'Chaufferettes en service : vaporisation accrue → la pression remonte.':X.spr>0.3?'Aspersion en service : condensation de vapeur → la pression baisse.':'Équilibre : pression régulée autour de 155 bar.';
+ $('msrDrops').setAttribute('opacity',Math.min(1,+mq.value/14).toFixed(2));
+ $('msrState').textContent=F.gss?'Surchauffe isolée : la vapeur entre en BP à saturation, humidité accrue en fin de détente.':`Humidité en sortie HP : ${mq.value} % · entrée BP ≈ ${nf(X.Tbpin)} °C.`;}
+let faultKey='';
+function applyFaults(force){const key=(sim.faultOn&&!sim.diag?sim.scen:'')+'|'+currentView;if(!force&&key===faultKey)return;faultKey=key;
+ document.querySelectorAll('.component.fault').forEach(e=>e.classList.remove('fault'));document.querySelectorAll('.badge').forEach(e=>e.remove());
+ if(!(sim.faultOn&&!sim.diag&&sim.scen))return;
+ for(const [id,loop] of SCEN[sim.scen].targets){document.querySelectorAll(`.component[data-id="${id}"]`).forEach(c=>{if(loop&&c.dataset.loop&&+c.dataset.loop!==loop)return;c.classList.add('fault');
+  if(c.closest('.view')&&c.closest('.view').classList.contains('active')){const b=c.querySelector('.hit').getBBox(),x=b.x+b.width-4,y=b.y+4;
+   c.closest('.view').insertAdjacentHTML('beforeend',`<g class="badge"><path d="M${x} ${y-11} L${x+11} ${y+8} H${x-11}Z"/><text x="${x}" y="${y+5}">!</text></g>`);}});}}
+
+/* ---------- Tendances ---------- */
+const TR=[
+ {t:'Puissance (%)',min:0,max:110,s:[['Réacteur','pth','#2f7ed8'],['Électrique','pe','#2b9a66']]},
+ {t:'Primaire (°C)',min:280,max:350,s:[['T chaude','thot','#b3123f'],['T froide','tcold','#e8590c'],['T saturation','tsat','#8a9aab',1]]},
+ {t:'Pression pressuriseur (bar)',min:100,max:175,ref:[131,165],s:[['P','ppr','#2f7ed8']]},
+ {t:'Niveaux (%)',min:0,max:100,s:[['Pressuriseur','npz','#e8590c'],['GV','ngv','#2f7ed8']]},
+ {t:'Pression vapeur GV (bar)',min:50,max:95,ref:[86],s:[['P vapeur','psg','#e8590c']]},
+ {t:'Pression condenseur (bar)',min:0,max:.35,ref:[.25],s:[['P cond.','pcond','#1f9bb4']]}
+];
+$('tgrid').innerHTML=TR.map((c,i)=>`<figure><figcaption><b>${c.t}</b>${c.s.map(([n,,col,d])=>`<span><i style="background:${col};${d?'opacity:.6':''}"></i>${n}</span>`).join('')}</figcaption><canvas id="tr${i}" aria-label="Courbe ${c.t}"></canvas></figure>`).join('');
+function drawTrends(){const cs=getComputedStyle(root),mut=cs.getPropertyValue('--muted').trim(),grid=cs.getPropertyValue('--border').trim(),al=cs.getPropertyValue('--alarm').trim(),dpr=window.devicePixelRatio||1;
+ const tEnd=Math.max(240,sim.t),t0=tEnd-240;
+ TR.forEach((c,i)=>{const cv=$('tr'+i),w=cv.clientWidth,h=cv.clientHeight;if(!w)return;if(cv.width!==Math.round(w*dpr)){cv.width=Math.round(w*dpr);cv.height=Math.round(h*dpr);}
+  const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);g.clearRect(0,0,w,h);
+  const L=34,R=6,T=6,B=14,X_=t=>L+(t-t0)/240*(w-L-R),Y=v=>T+(1-(v-c.min)/(c.max-c.min))*(h-T-B);
+  g.font='10px system-ui,sans-serif';g.fillStyle=mut;g.strokeStyle=grid;g.lineWidth=1;
+  for(let k=0;k<=4;k++){const v=c.min+(c.max-c.min)*k/4,y=Y(v);g.beginPath();g.moveTo(L,y);g.lineTo(w-R,y);g.stroke();if(k%2===0)g.fillText(c.max<1?nf(v,2):nf(v),2,y+3);}
+  (c.ref||[]).forEach(v=>{g.save();g.strokeStyle=al;g.setLineDash([4,3]);g.beginPath();g.moveTo(L,Y(v));g.lineTo(w-R,Y(v));g.stroke();g.restore();});
+  sim.events.filter(e=>e.mark&&e.t>=t0).forEach(e=>{const x=X_(e.t);g.save();g.strokeStyle=al;g.globalAlpha=.6;g.setLineDash([2,3]);g.beginPath();g.moveTo(x,T);g.lineTo(x,h-B);g.stroke();g.restore();g.fillStyle=al;g.fillText(e.mark,x+2,T+9);});
+  g.fillStyle=mut;g.fillText(mmss(t0),L,h-2);g.fillText(mmss(tEnd),w-R-28,h-2);
+  c.s.forEach(([,k,col,d])=>{g.save();g.strokeStyle=col;g.lineWidth=d?1.4:2;if(d){g.setLineDash([4,3]);g.globalAlpha=.7;}g.beginPath();let first=true;
+   for(const p of sim.hist){if(p.t<t0)continue;const x=X_(p.t),y=Y(clamp(p[k],c.min,c.max));if(first){g.moveTo(x,y);first=false;}else g.lineTo(x,y);}g.stroke();g.restore();});});}
+
+/* ---------- Vue Énergie : diagramme T-s et bilan de puissance ---------- */
+const DOME=[[10,.151,8.9],[33,.476,8.394],[50,.704,8.075],[75,1.016,7.683],[100,1.307,7.354],[125,1.581,7.069],[150,1.842,6.837],[180,2.139,6.585],[200,2.331,6.43],[230,2.61,6.211],[250,2.793,6.072],[275,3.018,5.888],[286,3.122,5.814],[300,3.255,5.705],[320,3.448,5.536],[340,3.659,5.336],[350,3.778,5.211],[360,3.916,5.053],[370,4.111,4.8],[373.9,4.41,4.41]];
+function sfg(T){if(T<=DOME[0][0])return[DOME[0][1],DOME[0][2]];for(let i=1;i<DOME.length;i++){if(T<=DOME[i][0]){const a=DOME[i-1],b=DOME[i],t=(T-a[0])/(b[0]-a[0]);return[a[1]+t*(b[1]-a[1]),a[2]+t*(b[2]-a[2])];}}const l=DOME[DOME.length-1];return[l[1],l[2]];}
+const tsX=s=>70+s*50,tsY=T=>600-T*1.3;
+function vEnergy(){
+ let s=`<text class="ttl" x="30" y="35">Énergie &amp; cycle — diagramme T-s et bilan de puissance</text><text class="subt" x="30" y="57">Les points du cycle et les flux d’énergie suivent l’état simulé (consignes, curseurs, scénarios)</text>`;
+ for(let T=0;T<=350;T+=50)s+=`<path class="gridl" d="M70 ${tsY(T)} H520"/><text class="axt" x="62" y="${tsY(T)+4}" text-anchor="end">${T}</text>`;
+ for(let v=0;v<=9;v++)s+=`<path class="gridl" d="M${tsX(v)} 110 V600"/><text class="axt" x="${tsX(v)}" y="616" text-anchor="middle">${v}</text>`;
+ s+=`<path class="ax" d="M70 110 V600 H520"/><text class="axt" x="520" y="634" text-anchor="end">entropie s (kJ/kg·K)</text><text class="axt" x="70" y="100">température T (°C)</text>`;
+ const L=DOME.map(([T,sf])=>`${tsX(sf).toFixed(1)} ${tsY(T).toFixed(1)}`),Rr=DOME.slice().reverse().map(([T,,sg])=>`${tsX(sg).toFixed(1)} ${tsY(T).toFixed(1)}`);
+ s+=`<path class="dome" d="M${L.join(' L')} L${Rr.join(' L')}"/>`;
+ for(const P of [155,70,10,0.05]){const T=tsat(P),[a,b]=sfg(T);s+=`<path class="isob" d="M${tsX(a)} ${tsY(T)} H${tsX(b)}"/><text class="axt" x="${tsX(b)+6}" y="${tsY(T)+4}">${fP(P)}</text>`;}
+ s+=`<text class="axt" x="${tsX(.5)}" y="${tsY(225)}">liquide</text><text class="axt" x="${tsX(7.3)}" y="${tsY(225)}">vapeur</text><text class="axt" x="${tsX(4.7)}" y="${tsY(80)}" text-anchor="middle">mélange liquide + vapeur</text>`;
+ s+=`<g id="tsPrim"></g><g id="tsCyc"></g><circle id="tsDot" r="6" fill="var(--text)" stroke="var(--canvas)" stroke-width="2"/>`;
+ s+=`<text class="axt" x="70" y="652">1 condensat · 2 entrée GV · 3 vapeur vive · 4 sortie HP · 5 entrée BP · 6 échappement BP</text>`;
+ s+=`<text class="ttl" x="600" y="100" style="font-size:15px">Bilan de puissance instantané</text><g id="sankey"></g>`;
+ return s;}
+$('energy').innerHTML=vEnergy();
+let tsPts=[];
+function updateEnergy(){
+ const hum=+mq.value/100,Tc=tsat(X.Pcond),Tsg=tsat(X.Psg);
+ const [sfc,sgc]=sfg(Tc),[sfS,sgS]=sfg(Tsg),[sf184,sg184]=sfg(184),[,sg182]=sfg(182);
+ const sHP=sf184+(1-hum)*(sg184-sf184),sSH=sg182+(X.Tbpin-182)*0.0042,sLP=Math.min(sgc-0.05,sSH+0.4);
+ const P=[[sfc,Tc,'1'],[sfg(150)[0],150],[sfg(180)[0],180],[sfg(X.Tfeed)[0],X.Tfeed,'2'],[sfS,Tsg],[sgS,Tsg,'3'],[sHP,184,'4'],[sg182,182],[sSH,X.Tbpin,'5'],[sLP,Tc,'6'],[sfc,Tc]];
+ tsPts=P.map(([a,T])=>[tsX(a),tsY(T)]);
+ let s='';for(let i=0;i<P.length-1;i++)s+=`<path class="cyc" d="M${tsPts[i][0]} ${tsPts[i][1]} L${tsPts[i+1][0]} ${tsPts[i+1][1]}" stroke="${tColor((P[i][1]+P[i+1][1])/2)}"/>`;
+ P.forEach(([a,T,lab],i)=>{if(!lab)return;const[x,y]=tsPts[i];s+=`<circle class="cpt" cx="${x}" cy="${y}" r="5" fill="${tColor(T)}"/><text class="cpl" x="${x+(lab==='6'||lab==='5'?8:-14)}" y="${y-8}">${lab}</text>`;});
+ $('tsCyc').innerHTML=s;
+ const a=sfg(X.Tcold)[0]-.03,b=sfg(X.Thot)[0]-.03;
+ $('tsPrim').innerHTML=`<path d="M${tsX(a)} ${tsY(X.Tcold)} L${tsX(b)} ${tsY(X.Thot)}" stroke="${tColor(X.Thot)}" stroke-width="7" stroke-linecap="round"/><text class="cpl" x="${tsX(a)-10}" y="${tsY(X.Thot)-12}" text-anchor="end">primaire ${fP(X.Ppr)}</text>`;
+ // Sankey : bilan de puissance instantané
+ const k=300/3817,Qth=X.Pth*3817,Wst=X.Wturb+X.Wgct+X.Wsv,Qs=Math.max(0,X.Qgv*3817),fr=w=>Wst>1e-3?w/Wst:0;
+ const Et=Qs*fr(X.Wturb),Eg=Qs*fr(X.Wgct),Ev=Qs*fr(X.Wsv),Pe=Math.min(X.Pe,Et),vac=X.Pcond<0.3;
+ const c2g=Math.min(Qth,Qs),dIn=Math.max(0,Qs-Qth),dOut=Math.max(0,Qth-Qs);
+ const fl=(x1,y1,x2,y2,w,col)=>{if(w<0.6)return'';const m=(x1+x2)/2,d=`M${x1} ${y1} C${m} ${y1},${m} ${y2},${x2} ${y2}`;return`<path class="sk-flow" d="${d}" stroke="${col}" stroke-width="${w.toFixed(1)}"/>${w>3?`<path class="fl" d="${d}" fill="none" stroke="rgba(255,255,255,.55)" stroke-width="${Math.min(4,w*.2).toFixed(1)}" stroke-linecap="round" stroke-dasharray="1 16" style="animation:flow calc(1.6s / var(--flow)) linear infinite;--flow:1"/>`:''}`;};
+ const node=(x,y,h,t,v)=>`<rect class="sk-node" x="${x}" y="${y}" width="24" height="${Math.max(3,h).toFixed(1)}" rx="3"/><text class="sk-t" x="${x}" y="${y-22}">${t}</text><text class="sk-v" x="${x}" y="${y-8}">${v}</text>`;
+ const y0=170,hC=Qth*k,hG=Qs*k;
+ let o='',nn=node(600,y0,hC,'Cœur',nf(Qth)+' MWth')+node(780,y0,hG,'GV → vapeur',nf(Qs)+' MW');
+ o+=fl(624,y0+c2g*k/2,780,y0+c2g*k/2,c2g*k,tColor(X.Thot));
+ if(dIn>15){const yd=y0+Math.max(hC,40)+70;nn+=node(600,yd,dIn*k,'Déstockage du primaire',nf(dIn)+' MW');o+=fl(624,yd+dIn*k/2,780,y0+c2g*k+dIn*k/2,dIn*k,tColor(X.Tmoy));}
+ if(dOut>15){const yd=y0+Math.max(hG,40)+70;nn+=node(780,yd,dOut*k,'Échauffement du primaire',nf(dOut)+' MW');o+=fl(624,y0+c2g*k+dOut*k/2,780,yd+dOut*k/2,dOut*k,tColor(X.Thot));}
+ const outs=[['Électricité',Pe,'#2b9a66','MWe'],['Rejet à la mer',Math.max(0,Et-Pe)+(vac?Eg:0),tColor(X.Tsea_out+15),'MW'],['Atmosphère',Ev+(vac?0:Eg),'#8a9aab','MW']];
+ let yG=y0,yO=y0;
+ outs.forEach(([n,v,col,u])=>{const w=v*k;o+=fl(804,yG+w/2,950,yO+w/2,w,col);nn+=node(950,yO,w,n,nf(v)+' '+u);yG+=w;yO+=Math.max(3,w)+58;});
+ o+=nn+`<text class="sk-t" x="600" y="600">Rendement instantané : ${Qth>50?nf(100*X.Pe/Qth,1)+' %':'—'}</text><text class="sk-v" x="600" y="620">Puissance électrique / puissance thermique du cœur</text>`;
+ $('sankey').innerHTML=o;}
+function moveDot(dtr){if(currentView!=='energy'||tsPts.length<2)return;
+ energyU=(energyU+dtr*(running?speed:0)*0.06*Math.max(0.05,X.Wturb+X.Wgct))%1;
+ const seg=[];let tot=0;for(let i=0;i<tsPts.length-1;i++){const l=Math.hypot(tsPts[i+1][0]-tsPts[i][0],tsPts[i+1][1]-tsPts[i][1]);seg.push(l);tot+=l;}
+ let d=energyU*tot,i=0;while(i<seg.length-1&&d>seg[i]){d-=seg[i];i++;}const r=seg[i]?d/seg[i]:0,x=tsPts[i][0]+r*(tsPts[i+1][0]-tsPts[i][0]),y=tsPts[i][1]+r*(tsPts[i+1][1]-tsPts[i][1]);
+ const dot=$('tsDot');dot.setAttribute('cx',x.toFixed(1));dot.setAttribute('cy',y.toFixed(1));}
+
+/* ---------- Mise à jour de l'interface ---------- */
+const VSPRAY={'-2':'Aspersion forte','-1':'Aspersion','0':'Automatique','1':'Chauffage','2':'Chauffage fort'};
+function ui(){
+ Object.assign(S,{Thot:X.Thot,Tcold:X.Tcold,Pprim:X.Ppr,Tpress:tsat(X.Ppr),Psteam:X.Psg,Tsteam:tsat(X.Psg),Pcond:X.Pcond,Tcond:tsat(X.Pcond),Tfeed:X.Tfeed,Tbpin:X.Tbpin,Tmid:182+(X.Tbpin-182)*.45,Tsea_out:X.Tsea_out});
+ $('vpower').textContent=power.value+' %';$('vload').textContent=load.value+' %';$('vspray').textContent=VSPRAY[spray.value];
+ $('vwaterlevel').textContent=wl.value+' %';$('vmsrquality').textContent=mq.value+' %';$('vmsrheat').textContent=mh.value+' %';
+ $('vvacuum').textContent=nf(+vacuum.value,2)+' bar';$('vextraction').textContent=extraction.value+' %';$('vfeedtemp').textContent=feedtemp.value+' °C';
+ $('mthermal').textContent=nf(3817*X.Pth)+' MWth';$('melectric').textContent=nf(X.Pe)+' MWe';$('mpressure').textContent=nf(X.Ppr,1)+' bar';
+ $('mtemp').textContent=nf(X.Thot)+' / '+nf(X.Tcold)+' °C';$('msteam').textContent=nf(X.Psg,1)+' bar';
+ $('clock').textContent='t = '+mmss(sim.t);
+ const ch=[];
+ ch.push(sim.AU?['al','RÉACTEUR À L’ARRÊT (AU)']:['ok','RÉACTEUR '+nf(X.Pth*100)+' %']);
+ ch.push(sim.trip?['al','TURBINE DÉCLENCHÉE']:['ok','TURBINE COUPLÉE']);
+ if(X.Wgct>0.02)ch.push(['wa','GCT OUVERT']);if(sim.RIS)ch.push(['al','RIS EN SERVICE']);if(sim.ASG)ch.push(['wa','ASG EN SERVICE']);
+ if(sim.scen)ch.push(['',sim.diag?'DÉFI DIAGNOSTIC EN COURS':'SCÉNARIO : '+SCEN[sim.scen].name.toUpperCase()]);
+ if(!running)ch.push(['wa','TEMPS FIGÉ']);
+ $('status').innerHTML=ch.map(([c,t])=>`<span class="chip ${c}">${t}</span>`).join('');
+ $('explanation').textContent=sim.scen&&!sim.diag?SCEN[sim.scen].lead+' Suivez les tendances et la chronologie.':Math.abs(+power.value-+load.value)>=5?'Consigne réacteur et demande turbine différentes : la température moyenne primaire dérive jusqu’à ce que la contre-réaction du modérateur rééquilibre les puissances.':'Le modèle évolue dans le temps : modifiez une consigne et observez les inerties sur les tendances.';
+ $('cycleExplain').textContent=`Condensation à ${nf(tsat(X.Pcond),1)} °C pour ${nf(X.Pcond,2)} bar. Rendement relatif du cycle : ${nf(100*X.eta,1)} %. Les soutirages réduits dégradent la régénération ; la température d’eau alimentaire suit sa consigne avec une inertie.`;
+ if(evalAlarms())renderAlarms();
+ updFlows();updLevels();updEffects();updInstr();applyFaults();refresh();
+ if(currentView==='energy')updateEnergy();}
+window.onView=v=>{applyFaults(true);updInstr();if(v==='energy')updateEnergy();};
+
+/* ---------- Commandes ---------- */
+const scSel=$('scenario');scSel.innerHTML='<option value="">— Fonctionnement normal —</option>'+Object.entries(SCEN).map(([k,s])=>`<option value="${k}">${s.name}</option>`).join('');
+function resetSliders(){power.value=100;load.value=100;spray.value=0;wl.value=60;mq.value=12;mh.value=100;vacuum.value='0.05';extraction.value='100';feedtemp.value='230';}
+function resetAll(){initState();faultKey='x';running=true;$('simRun').textContent='⏸ Figer le temps';renderAlarms();renderLog();ui();}
+function showScenario(k){const sc=SCEN[k];currentPipe=null;clearSel();dT.textContent=sc.name;dL.textContent=sc.lead;
+ dB.innerHTML=`<h3>Enchaînement attendu</h3><ol class="chain">${sc.chain.map(c=>`<li>${c}</li>`).join('')}</ol><h3>À observer</h3><p>${sc.look}</p><p class="note">Le défaut apparaît 5 s après le lancement. Passez en ×5 pour les évolutions lentes.</p>`;}
+$('scLaunch').addEventListener('click',()=>{endDiag();resetSliders();resetAll();const k=scSel.value;if(k){sim.scen=k;sim.tFault=5;logEvent('Lancement du scénario : '+SCEN[k].name,1);showScenario(k);}});
+$('simReset').addEventListener('click',()=>{endDiag();resetSliders();resetAll();});
+$('reset').addEventListener('click',()=>{endDiag();resetSliders();resetAll();});
+$('auBtn').addEventListener('click',()=>doAU('arrêt manuel'));
+$('simRun').addEventListener('click',e=>{running=!running;e.currentTarget.textContent=running?'⏸ Figer le temps':'▶ Reprendre le temps';});
+document.querySelectorAll('[data-speed]').forEach(b=>b.addEventListener('click',()=>{speed=+b.dataset.speed;document.querySelectorAll('[data-speed]').forEach(x=>x.classList.toggle('active',x===b));}));
+[power,load,spray,wl,mq,mh,vacuum,extraction,feedtemp].forEach(el=>el.addEventListener('input',ui));
+const pauseBtn=$('pause');function setPaused(on){document.body.classList.toggle('paused',on);pauseBtn.textContent=on?'▶ Animation':'⏸ Animation';pauseBtn.classList.toggle('active',on);}
+pauseBtn.addEventListener('click',()=>setPaused(!document.body.classList.contains('paused')));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+const tagBtn=$('tagBtn');tagBtn.addEventListener('click',()=>{const off=syn.classList.toggle('notags');tagBtn.classList.toggle('active',!off);tagBtn.setAttribute('aria-pressed',String(!off));});
+
+/* ---------- Défi diagnostic ---------- */
+const score={ok:0,n:0},dlg=$('diagDlg'),dlgBody=$('diagDlgBody');
+function endDiag(){$('diagbar').hidden=true;if(sim)sim.diag=false;}
+function startDiag(){resetSliders();resetAll();scSel.value='';const keys=Object.keys(SCEN);sim.scen=keys[Math.floor(Math.random()*keys.length)];sim.diag=true;sim.tFault=6+Math.random()*12;
+ $('diagbar').hidden=false;$('diagTitle').textContent='Défi n° '+(score.n+1);$('diagScore').textContent=score.n?`Score : ${score.ok} / ${score.n}`:'';
+ currentPipe=null;clearSel();dT.textContent='Défi diagnostic';dL.textContent='Un défaut va apparaître dans les prochaines secondes. Les équipements en cause ne sont pas signalés : à vous de remonter des symptômes à la cause.';
+ dB.innerHTML='<h3>Méthode</h3><ol class="chain"><li>Lisez les alarmes dans l’ordre d’apparition (chronologie).</li><li>Repérez la première grandeur qui a dérivé sur les tendances.</li><li>Vérifiez sur le synoptique : écoulements arrêtés, couleurs, niveaux.</li><li>Formulez une hypothèse, puis répondez.</li></ol>';}
+$('diagBtn').addEventListener('click',startDiag);
+$('diagAnswer').addEventListener('click',()=>{if(!sim.diag)return;
+ const opts=Object.entries(SCEN).map(([k,s])=>`<label><input type="radio" name="dg" value="${k}"> ${s.name}</label>`).join('');
+ dlgBody.innerHTML=`<h2 id="diagDlgTitle">Votre diagnostic</h2><p class="note">Temps écoulé depuis l’apparition du défaut : ${sim.faultOn?mmss(sim.t-sim.tFault):'le défaut n’est pas encore apparu'}.</p><div class="opts">${opts}</div><div class="actions"><button class="btn primary" type="button" id="dgOk">Valider</button><button class="btn" type="button" id="dgCancel">Continuer d’observer</button></div>`;
+ dlg.showModal();$('dgCancel').onclick=()=>dlg.close();
+ $('dgOk').onclick=()=>{const r=dlgBody.querySelector('input[name=dg]:checked');if(!r)return;const good=r.value===sim.scen,sc=SCEN[sim.scen];score.n++;if(good)score.ok++;
+  sim.diag=false;applyFaults(true);logEvent('Réponse au défi : '+(good?'correcte':'incorrecte')+' — '+sc.name,1);
+  dlgBody.innerHTML=`<h2 id="diagDlgTitle" class="${good?'res-ok':'res-ko'}">${good?'Diagnostic correct':'Diagnostic incorrect'}</h2><p>Le défaut était : <b>${sc.name}</b>.</p>${good?'':`<p class="note">Vous aviez proposé : ${SCEN[r.value].name}.</p>`}<h3>Enchaînement</h3><ol class="chain">${sc.chain.map(c=>`<li>${c}</li>`).join('')}</ol><p><b>Indices clés :</b> ${sc.look}</p><p>Score : ${score.ok} / ${score.n}</p><div class="actions"><button class="btn primary" type="button" id="dgNext">Nouveau défi</button><button class="btn" type="button" id="dgClose">Fermer et revoir le scénario</button></div>`;
+  $('dgNext').onclick=()=>{dlg.close();startDiag();};$('dgClose').onclick=()=>{dlg.close();$('diagbar').hidden=true;showScenario(sim.scen);};};});
+
+/* ---------- Boucle principale ---------- */
+let last=performance.now(),uiAcc=0,trAcc=0;
+function loop(now){const dtr=Math.min(0.1,(now-last)/1000);last=now;
+ if(running){let simDt=dtr*speed;const I=inputs();while(simDt>1e-6){const h=Math.min(0.05,simDt);step(h,I);simDt-=h;}}
+ uiAcc+=dtr;trAcc+=dtr;if(uiAcc>0.12){uiAcc=0;ui();}if(trAcc>0.4){trAcc=0;drawTrends();}
+ moveDot(dtr);requestAnimationFrame(loop);}
+renderAlarms();renderLog();ui();drawTrends();requestAnimationFrame(loop);
+
+/* =====================================================================
+   9. BILAN THERMODYNAMIQUE (inchangé sur le fond)
+   ===================================================================== */
+(()=>{
+const el=id=>document.getElementById(id),fmt=nf;const ids=['tpower','tcond','textract','treheat'];
+const sat=[[.04,29.0,121.5,2554],[.05,32.9,137.8,2561],[.06,36.2,151.5,2567],[.08,41.5,173.9,2577],[.10,45.8,191.8,2584],[.12,49.4,206.6,2590],[.14,52.6,220.0,2595],[.16,55.3,231.6,2600]];
+function saturation(p){for(let i=1;i<sat.length;i++){if(p<=sat[i][0]){let a=sat[i-1],b=sat[i],t=(p-a[0])/(b[0]-a[0]);return a.slice(1).map((v,j)=>v+t*(b[j+1]-v));}}return sat[sat.length-1].slice(1);}
+function calc(){
+ const f=+el('tpower').value/100,p=+el('tcond').value,a=+el('textract').value/100,r=+el('treheat').value/100;
+ const Q=3817*f,hLive=2778,hHP=2510,hDrainMSR=750,hSep=2535,hBP=hSep+190*r;
+ const [tSat,hf,hg]=saturation(p),hfg=hg-hf;
+ const hExhaust=Math.max(hf+0.78*hfg,Math.min(hBP-40,2330+820*(p-.05)+0.18*(hBP-2535)));
+ const x=Math.max(0,Math.min(1,(hExhaust-hf)/hfg));
+ const heatPerKg=Math.max(0,hBP-hSep),heatRatio=heatPerKg/(hLive-hDrainMSR);
+ const heatingFraction=(1-a)*heatRatio/(1+heatRatio),bpFraction=1-a-heatingFraction;
+ const hFeedBase=710,hFeed=hFeedBase+0.85*a*(hHP-hFeedBase)+0.85*heatingFraction*(hDrainMSR-hFeedBase);
+ const m=Q*1000/(hLive-hFeed),mBP=m*bpFraction,mRegen=m*a,mHeat=m*heatingFraction;
+ const WHP=(m-mHeat)*(hLive-hHP)/1000,WBP=mBP*(hBP-hExhaust)/1000;
+ const gross=WHP+WBP,conversionLoss=gross*.04,aux=30*f,net=Math.max(0,gross-conversionLoss-aux),reject=Q-net,eta=100*net/Q;
+ const msrHeat=mBP*heatPerKg/1000,msrHot=mHeat*(hLive-hDrainMSR)/1000,regenHeat=.85*mRegen*(hHP-hFeedBase)/1000;
+ el('vtpower').textContent=fmt(f*100)+' %';el('vtcond').textContent=fmt(p,2)+' bar';el('vtextract').textContent=fmt(a*100)+' %';el('vtreheat').textContent=fmt(r*100)+' %';
+ el('tQ').textContent=fmt(Q)+' MWth';el('tm').textContent=fmt(m)+' kg/s';el('tW').textContent=fmt(net)+' MWe';el('teta').textContent=fmt(eta,1)+' %';el('tReject').textContent=fmt(reject)+' MW';el('tMSR').textContent=fmt(mHeat)+' kg/s';el('tQuality').textContent=fmt(100*x,1)+' %';
+ el('tbarPower').style.width=eta+'%';el('tbarReject').style.width=(100-eta)+'%';el('tbarCaption').textContent=fmt(eta,1)+' % en électricité nette ; '+fmt(100-eta,1)+' % rejetés ou dissipés (solde).';
+ const rows=[['Vapeur vive (hypothèse)',fmt(hLive)+' kJ/kg'],['Sortie turbine HP',fmt(hHP)+' kJ/kg'],['Sortie séparateur',fmt(hSep)+' kJ/kg'],['Entrée turbine BP',fmt(hBP)+' kJ/kg'],['Sortie turbine BP',fmt(hExhaust)+' kJ/kg'],['Température saturation condenseur',fmt(tSat,1)+' °C'],['Enthalpie eau alimentaire',fmt(hFeed)+' kJ/kg'],['Débit soutirage régénératif',fmt(mRegen)+' kg/s'],['Débit vapeur chauffante GSS',fmt(mHeat)+' kg/s'],['Débit admission BP',fmt(mBP)+' kg/s'],['Chaleur reçue GSS',fmt(msrHeat,1)+' MW'],['Chaleur cédée GSS',fmt(msrHot,1)+' MW'],['Chaleur régénération utile',fmt(regenHeat,1)+' MW'],['Puissance turbine HP',fmt(WHP)+' MW'],['Puissance turbines BP',fmt(WBP)+' MW'],['Pertes électromécaniques',fmt(conversionLoss)+' MW'],['Auxiliaires (hypothèse)',fmt(aux)+' MW'],['Puissance électrique nette',fmt(net)+' MW']];
+ el('trows').innerHTML=rows.map(([k,v])=>'<tr><td>'+k+'</td><td>'+v+'</td></tr>').join('');
+ el('tcomment').textContent='Bilan du GSS : écart '+fmt(Math.abs(msrHeat-msrHot),5)+' MW (arrondi numérique). La pression du condenseur modifie l’enthalpie de sortie BP. Le titre affiché est une estimation à partir des enthalpies saturées. Données vapeur approximatives, sans IF97.';}
+ids.forEach(id=>el(id).addEventListener('input',calc));el('treset').addEventListener('click',()=>{[100,.05,8,100].forEach((v,i)=>el(ids[i]).value=v);calc();});calc();
+})();
+</script>
+<script>const S7DATA={"reacteur": {"title": "Comprendre le réacteur", "intro": "Relier réaction nucléaire, évacuation de la chaleur et confinement.", "cards": [{"title": "Fission et chaîne", "body": "Un neutron peut provoquer la fission d’un noyau fissile. La fission libère de l’énergie et des neutrons, dont certains peuvent produire d’autres fissions. Dans un REP, l’eau ralentit les neutrons : elle joue le rôle de modérateur, en plus de transporter la chaleur. Les absorptions et les fuites de neutrons participent au bilan de la chaîne."}, {"title": "Régler et arrêter", "body": "Les grappes absorbantes et le bore dissous contribuent à maîtriser la réactivité. L’insertion des grappes réduit fortement la réaction en chaîne. Les produits radioactifs continuent cependant à se désintégrer : la puissance résiduelle impose le refroidissement même après l’arrêt."}, {"title": "Trois barrières du REP", "body": "1. La gaine des crayons sépare le combustible de l’eau primaire. 2. L’enveloppe du circuit primaire contient cette eau : les tubes des générateurs de vapeur en font partie. 3. L’enceinte de confinement limite les rejets en situation accidentelle. La céramique combustible retient une partie des produits de fission, mais ne remplace pas la gaine dans cette présentation conventionnelle des trois barrières."}, {"title": "Gestion du combustible", "body": "Lors d’un arrêt programmé, une partie des assemblages est remplacée et le chargement est réorganisé selon une étude validée. Les assemblages déchargés séjournent sous eau : refroidissement, protection contre les rayonnements et maîtrise de la criticité restent nécessaires. Le transport n’intervient qu’après vérification des conditions admissibles du contenu et de son emballage."}, {"title": "Recherche et nouvelles familles", "body": "L’EPR appartient aux réacteurs à eau sous pression. Un SMR désigne un réacteur de petite puissance modulaire : le sigle ne fixe pas à lui seul le fluide ou la technologie. Les réacteurs à neutrons rapides utilisent un spectre neutronique différent et ouvrent des possibilités de gestion des matières fissiles. Chaque concept doit démontrer sa sûreté. Les centres du CEA étudient notamment combustibles, matériaux et systèmes ; un concept étudié ne doit pas être confondu avec une installation autorisée en service."}], "activities": [{"title": "Observer les fonctions de sûreté", "context": "Le réacteur vient de s’arrêter automatiquement. Les grappes sont insérées.", "rule": "Relier chaque constat à la fonction qui reste nécessaire.", "steps": [{"prompt": "La réaction en chaîne a fortement diminué. Que devient la chaleur ?", "options": ["Elle disparaît instantanément", "Une puissance résiduelle demeure et doit être évacuée", "Elle vient uniquement de la turbine"], "answer": 1, "why": "L’arrêt de la fission ne supprime pas les désintégrations des produits radioactifs."}, {"prompt": "Un tube de GV fuit. Quelle barrière est affectée ?", "options": ["La gaine du combustible", "L’enceinte", "L’enveloppe primaire"], "answer": 2, "why": "Le tube du GV sépare le fluide primaire du secondaire et appartient à la deuxième barrière."}]}]}};</script><script>(() => {
+'use strict';
+const host=document.createElement('div');host.id='s7host';document.body.append(host);
+const escape=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+let active=null,taskIndex=0,stage=0,attempts=0,answers=[],scores={},returnFocus=null;
+const standalone=document.body.dataset.s7;
+function open(key){active=S7DATA[key];if(!active)return;returnFocus=document.activeElement;host.innerHTML=`<dialog id="s7dialog" aria-labelledby="s7title"><header class="s7head"><div><small>INSTALLATIONS NUCLÉAIRES · TIIN</small><h1 id="s7title">${escape(active.title)}</h1></div><button id="s7close">${standalone?'Accueil des parcours':'Revenir au synoptique'}</button></header><p class="s7intro">${escape(active.intro)}</p><nav class="s7tabs" aria-label="Rubriques"><button data-section="learn">Comprendre</button>${active.timelines?'<button data-section="timeline">Chronologies</button>':''}${active.activities.length?'<button data-section="work">Mises en situation</button><button data-section="results">Mon bilan</button>':''}${key==='dechets'?'<button data-section="record">Fiche de contrôle</button>':''}</nav><main id="s7body"></main></dialog>`;
+host.querySelector('#s7close').onclick=()=>{if(standalone)window.top.location.href='index.html';else host.querySelector('dialog').close();};
+host.querySelector('dialog').addEventListener('cancel',e=>{if(standalone){e.preventDefault();window.top.location.href='index.html';}});
+host.querySelector('dialog').addEventListener('close',()=>returnFocus?.focus());
+host.querySelectorAll('[data-section]').forEach(b=>b.onclick=()=>section(b.dataset.section));
+host.querySelector('dialog').showModal();section(key==='dechets'?'work':'learn');}
+function section(kind){host.querySelectorAll('[data-section]').forEach(b=>b.setAttribute('aria-current',b.dataset.section===kind?'page':'false'));const body=host.querySelector('#s7body');
+if(kind==='learn'){body.innerHTML=`<div class="s7cards">${active.cards.map((c,i)=>`<article><span class="s7number">${String(i+1).padStart(2,'0')}</span><h2>${escape(c.title)}</h2><p>${escape(c.body)}</p></article>`).join('')}</div>`;}
+if(kind==='work'){body.innerHTML=`<div class="s7layout"><aside class="s7menu">${active.activities.map((t,i)=>`<button data-task="${i}">${escape(t.title)}</button>`).join('')}</aside><section id="s7exercise" aria-live="polite"></section></div>`;body.querySelectorAll('[data-task]').forEach(b=>b.onclick=()=>start(+b.dataset.task));start(0);}
+if(kind==='timeline'){let chosen=0,pos=0;const render=()=>{const a=active.timelines[chosen],s=a.steps[pos];body.innerHTML=`<div class="s7tabs">${active.timelines.map((t,i)=>`<button data-case="${i}" aria-current="${i===chosen?'page':'false'}">${escape(t.title.split(' · ')[0])}</button>`).join('')}</div><article class="s7timeline"><small>${escape(a.type)}</small><h2>${escape(a.title)}</h2><div class="s7stages">${a.steps.map((t,i)=>`<button data-stage="${i}" aria-current="${i===pos?'step':'false'}"><b>${i+1}</b>${escape(t[0])}</button>`).join('')}</div><h3>${escape(s[0])}</h3><p>${escape(s[1])}</p><div class="s7barrier"><b>Fonctions et barrières</b><p>${escape(s[2])}</p></div><div class="s7controls"><button id="s7prev" ${pos===0?'disabled':''}>Précédent</button><span>Étape ${pos+1} / 4</span><button id="s7next" ${pos===3?'disabled':''}>Suivant</button></div></article>`;body.querySelectorAll('[data-case]').forEach(b=>b.onclick=()=>{chosen=+b.dataset.case;pos=0;render()});body.querySelectorAll('[data-stage]').forEach(b=>b.onclick=()=>{pos=+b.dataset.stage;render()});body.querySelector('#s7prev').onclick=()=>{pos--;render()};body.querySelector('#s7next').onclick=()=>{pos++;render()};};render();}
+if(kind==='results'){const rows=active.activities.map((t,i)=>{const r=scores[active.title+'|'+i];return `<tr><td>${escape(t.title)}</td><td>${r?r.correct+' / '+r.total:'Non terminé'}</td><td>${r?r.attempts:'—'}</td></tr>`}).join('');body.innerHTML=`<h2>Mon bilan de séance</h2><p>Le résultat compte les décisions justes au premier essai. Les réponses erronées doivent être corrigées pour poursuivre. Le bilan reste dans cette page jusqu’à sa fermeture ou son rechargement.</p><div class="s7table"><table><thead><tr><th>Situation</th><th>Premier essai</th><th>Choix effectués</th></tr></thead><tbody>${rows}</tbody></table></div><label>Ce que je dois vérifier avant d’agir<textarea id="s7reflection" rows="4" placeholder="Une règle, une erreur comprise, une question à reprendre…"></textarea></label><button id="s7export">Télécharger mon bilan</button>`;body.querySelector('#s7export').onclick=()=>{const text=active.title+'\n\n'+active.activities.map((t,i)=>{const r=scores[active.title+'|'+i];return t.title+': '+(r?r.correct+'/'+r.total+' au premier essai ; '+r.attempts+' choix':'non terminé')}).join('\n')+'\n\nRéflexion :\n'+body.querySelector('#s7reflection').value;download('bilan_seance.txt',text)};}
+if(kind==='record')record(body);
+}
+function start(i){taskIndex=i;stage=0;attempts=0;answers=[];host.querySelectorAll('[data-task]').forEach(b=>b.setAttribute('aria-current',+b.dataset.task===i?'page':'false'));renderTask();}
+function renderTask(){const t=active.activities[taskIndex],s=t.steps[stage],box=host.querySelector('#s7exercise');if(!s){const result={correct:answers.filter(x=>x===1).length,total:t.steps.length,attempts};scores[active.title+'|'+taskIndex]=result;box.innerHTML=`<h2>Situation terminée</h2><p>${result.correct} / ${result.total} décisions justes au premier essai.</p><p>Chaque décision a été justifiée et les écarts ont été corrigés.</p><button id="s7again">Recommencer</button><button id="s7balance">Voir mon bilan</button>`;box.querySelector('#s7again').onclick=()=>start(taskIndex);box.querySelector('#s7balance').onclick=()=>section('results');return;}
+box.innerHTML=`<small>DÉCISION ${stage+1} / ${t.steps.length}</small><h2>${escape(t.title)}</h2><p>${escape(t.context)}</p><details open class="s7rule"><summary>Consigne à appliquer</summary><p>${escape(t.rule)}</p></details><h3>${escape(s.prompt)}</h3><div class="s7choices">${s.options.map((o,i)=>`<button data-answer="${i}">${escape(o)}</button>`).join('')}</div><div id="s7feedback" role="status"></div>`;let tries=0;
+box.querySelectorAll('[data-answer]').forEach(b=>b.onclick=()=>{tries++;attempts++;const good=+b.dataset.answer===s.answer;const feedback=box.querySelector('#s7feedback');feedback.className=good?'s7ok':'s7error';feedback.innerHTML=good?`<b>Décision validée.</b><p>${escape(s.why)}</p><button id="s7continue">${stage+1===t.steps.length?'Terminer la situation':'Décision suivante'}</button>`:`<b>Décision à reprendre.</b><p>${escape(s.why)}</p><p>Relisez la consigne et choisissez une autre action.</p>`;if(good){answers.push(tries===1?1:0);box.querySelectorAll('[data-answer]').forEach(x=>x.disabled=true);feedback.querySelector('button').onclick=()=>{stage++;renderTask()};feedback.querySelector('button').focus();}else{b.disabled=true;}});
+}
+function record(body){body.innerHTML=`<h2>Rapprocher le colis et sa fiche</h2><p class="s7rule">Dossier fictif : colis <b>P-042</b> ; lot <b>B-17</b> ; gravats TFA secs ; origine ZppDN ; contenant intact ; contrôle <b>CT-042</b> réalisé et conforme ; validation de transfert <b>absente</b>. Consigne : aucune sortie sans validation. Conservez l’identité du colis et son statut.</p><form id="s7form"><div class="s7fields"><label>Identifiant du colis<input name="id" required autocomplete="off"></label><label>Lot d’origine<input name="lot" required autocomplete="off"></label><label>Référence de contrôle<input name="control" required autocomplete="off"></label><label>Décision<select name="decision"><option value="">Choisir…</option><option value="wait">Maintien en attente de validation</option><option value="go">Transfert immédiat</option><option value="ordinary">Déchets conventionnels</option></select></label></div><label>Observation de ronde<textarea name="note" required rows="3" placeholder="Localisation, état, contrôle manquant, action demandée…"></textarea></label><button>Vérifier ma fiche</button></form><div id="s7recordFeedback" role="status"></div>`;body.querySelector('form').onsubmit=e=>{e.preventDefault();const f=new FormData(e.target),ok=['id','lot','control','decision'].every((k,i)=>String(f.get(k)).trim().toUpperCase()===['P-042','B-17','CT-042','WAIT'][i]);const out=body.querySelector('#s7recordFeedback');out.className=ok?'s7ok':'s7error';out.innerHTML=ok?'<b>Rapprochement correct : transfert bloqué jusqu’à validation.</b><p>Votre observation libre est à comparer avec la situation : la validation manque, pas le contrôle radiologique.</p><button id="s7saveRecord">Télécharger la fiche</button>':'<b>Fiche à reprendre.</b><p>Vérifiez P-042, B-17, CT-042 et le maintien en attente. Un contrôle conforme ne vaut pas validation du transfert.</p>';if(ok)out.querySelector('button').onclick=()=>download('fiche_exercice.txt','EXERCICE FICTIF — SANS VALEUR OPÉRATIONNELLE\n'+Array.from(f).map(([k,v])=>k+' : '+v).join('\n'));};}
+function download(name,text){const url=URL.createObjectURL(new Blob([text],{type:'text/plain;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download=name;a.click();setTimeout(()=>URL.revokeObjectURL(url),1000);}
+window.S7open=open;
+document.querySelectorAll('[data-s7open]').forEach(b=>b.onclick=()=>open(b.dataset.s7open));
+if(standalone)open(standalone);
+})();
+</script></body>
+</html>

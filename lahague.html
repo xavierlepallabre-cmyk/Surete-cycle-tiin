@@ -1,0 +1,1071 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Parcours La Hague</title>
+<style>
+/* V2.1 — consolidation du rendu desktop et du comportement */
+:root{--stage-outline:color-mix(in srgb,var(--accent) 22%,var(--border))}
+.stage{box-shadow:0 7px 24px rgba(0,0,0,.10);border-color:var(--stage-outline)}
+.nav button,.chip,.sbtn{transition:background-color .18s,border-color .18s,transform .18s}
+.nav button:hover,.chip:hover,.sbtn:hover{border-color:var(--accent)}
+.steptext{min-height:110px;line-height:1.62}
+.steptext h3{font-size:17px}
+.aside{line-height:1.57}
+.eq.dim,.part.dim,.fl.dim{pointer-events:none}
+/* Le masquage d’une étape suspend aussi ses mouvements */
+.dim .spin,.dim .spin-fast,.dim .chop,.dim .feed,.dim .fall,.dim .rise,.dim .rise-long,.dim .lift,.dim .press,.dim .crush,.dim .fillup,.dim .glow,.dim .drip,.dim .move-r,
+.dim .shear-feed,.dim .shear-blade,.dim .shear-clamp,.dim .shear-piece{animation-play-state:paused!important}
+/* Un cycle unique coordonne avance, serrage, coupe et chute. Vue pédagogique, non cinématique réelle. */
+.shear-feed{animation:shearFeed 7.2s ease-in-out infinite}
+.shear-clamp{animation:shearClamp 7.2s ease-in-out infinite}
+.shear-blade{animation:shearBlade 7.2s ease-in-out infinite}
+.shear-piece{animation:shearPiece 7.2s linear infinite;opacity:0}
+@keyframes shearFeed{0%,8%{transform:translateX(-35px)}25%,75%{transform:translateX(0)}90%,100%{transform:translateX(-35px)}}
+@keyframes shearClamp{0%,25%,75%,100%{transform:translateX(0)}34%,66%{transform:translateX(8px)}}
+@keyframes shearBlade{0%,38%,72%,100%{transform:translateY(0)}52%,58%{transform:translateY(39px)}}
+@keyframes shearPiece{0%,53%{opacity:0;transform:translateY(0)}59%{opacity:1}80%,100%{opacity:0;transform:translateY(66px)}}
+body.paused .shear-feed,body.paused .shear-clamp,body.paused .shear-blade,body.paused .shear-piece{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.shear-feed,.shear-clamp,.shear-blade,.shear-piece{animation:none!important}}
+
+/* V2.2 — Gros plans techniques R1/T1, sans modification du parcours général */
+.tech-zoom{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel)}
+.tech-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.tech-head strong{font-size:15px}.tech-tabs{display:flex;gap:6px}.tech-tabs button{border:1px solid var(--border);border-radius:8px;background:var(--btn);padding:7px 11px}.tech-tabs button.active{border-color:var(--accent);background:var(--btn-active)}
+.tech-svg{display:block;width:100%;height:auto;max-height:590px;background:radial-gradient(ellipse at 50% 40%,var(--canvas-glow),var(--canvas))}
+.tech-foot{padding:10px 14px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+.tech-label{fill:var(--label);font:15px system-ui,sans-serif}.tech-small{fill:var(--sublabel);font:12px system-ui,sans-serif}.tech-strong{fill:var(--label);font:bold 18px system-ui,sans-serif}
+.tech-cut-blade{animation:techBlade 12s ease-in-out infinite}.tech-cut-clamp{animation:techClamp 12s ease-in-out infinite}.tech-cut-feed{animation:techFeed 12s ease-in-out infinite}.tech-cut-fall{animation:techFall 12s linear infinite;opacity:0}
+@keyframes techBlade{0%,20%,38%,48%,65%,75%,92%,100%{transform:translateY(0)}27%,55%,82%{transform:translateY(105px)}}
+@keyframes techClamp{0%,18%,37%,46%,64%,73%,91%,100%{transform:translateY(0)}23%,52%,79%{transform:translateY(15px)}}
+@keyframes techFeed{0%,10%{transform:translateX(-28px)}18%,38%{transform:translateX(0)}46%,65%{transform:translateX(30px)}73%,92%{transform:translateX(60px)}100%{transform:translateX(-28px)}}
+@keyframes techFall{0%,26%,53%,80%,100%{transform:translateY(0);opacity:0}29%,56%,83%{opacity:1}35%,62%,89%{transform:translateY(115px);opacity:0}}
+.tech-wheel{animation:techWheel 28s linear infinite;transform-origin:560px 280px}
+@keyframes techWheel{to{transform:rotate(360deg)}}
+.tech-bubble{animation:techBubble 3s linear infinite;opacity:0}
+@keyframes techBubble{0%{transform:translateY(0);opacity:0}25%{opacity:.7}100%{transform:translateY(-55px);opacity:0}}
+body.paused .tech-cut-blade,body.paused .tech-cut-clamp,body.paused .tech-cut-feed,body.paused .tech-cut-fall,body.paused .tech-wheel,body.paused .tech-bubble{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.tech-cut-blade,.tech-cut-clamp,.tech-cut-feed,.tech-cut-fall,.tech-wheel,.tech-bubble{animation:none!important}}
+
+/* V2.3 : suspension des gros plans non visibles et contraste des libellés */
+.tech-zoom.hidden *, .tech-zoom[hidden] *{animation-play-state:paused!important}
+.tech-foot{line-height:1.5}
+</style>
+
+<style>
+/* ================= THÈMES ================= */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--eq:#1b2c3f;--eq-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;--focus:#ffffff;
+ --zone:rgba(92,179,230,.045);--zone-stroke:#2c4a63;--zone-text:#8fc4e3;--water:#1d5a86;--water2:#2a78ab;--glow:#ff9b4f;--warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;
+ --m-comb:#b197fc;--m-sol:#f59f00;--m-u:#ffd43b;--m-pu:#f783ac;--m-pf:#ff6b6b;--m-coq:#adb5bd;--m-eff:#4dabf7;--m-gaz:#99e9f2;--m-dt:#d4a373;--m-solv:#69db7c;--m-verre:#63e6be;--m-eau:#74c0fc;--m-air:#ced4da;--m-upu:#ffa94d;--m-emb:#b9a88d;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,.node:focus-visible,.eq:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px;min-height:38px}
+.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px}
+.theme-btn svg{width:18px;height:18px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+.nav button{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 12px;font-size:12.5px}
+.nav button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.nav .sep{width:1px;background:var(--border);margin:0 4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 120px)}
+.main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:18px;overflow:auto}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:5px 11px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--mc)}
+.chip.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.stage{border:1px solid var(--border);border-radius:14px;background:radial-gradient(ellipse at 50% 30%,var(--canvas-glow),var(--canvas) 75%);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:22px;height:5px;border-radius:3px;background:var(--mc);display:inline-block}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+.steps .sbtn{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 11px;font-size:12px}
+.steps .sbtn.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:700}
+.steptext{padding:12px 16px 16px;border-top:1px solid var(--border);background:var(--panel)}
+.steptext h3{margin:0 0 6px;font-size:16px}
+.steptext p{margin:0 0 6px}
+.steptext ul{margin:4px 0 0;padding-left:20px}.steptext li{margin:3px 0}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:14px;border-radius:0 8px 8px 0}
+.aside h2{font-size:20px;margin:2px 0 4px}
+.aside h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:16px 0 6px}
+.aside ul{margin:0;padding-left:18px}.aside li{margin:4px 0}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts{display:grid;grid-template-columns:1fr;gap:6px}
+.fact{border:1px solid var(--border);background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:13px}
+.fact b{display:block;font-size:15px}
+.io{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}.io span{color:var(--muted)}
+.openbtn{width:100%;margin-top:14px}
+.footer{padding:10px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.hidden{display:none!important}
+
+/* ================= SVG ================= */
+.ttl{fill:var(--text);font-size:18px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone{fill:var(--zone);stroke:var(--zone-stroke);stroke-dasharray:6 5}
+.zt{fill:var(--zone-text);font-size:11.5px;font-weight:700;letter-spacing:.08em}
+.free{fill:var(--sublabel);font-size:11.5px}
+.node{cursor:pointer;outline:none;transition:opacity .25s}
+.n-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.n-strip{fill:var(--mc)}
+.n-t{fill:var(--label);font-size:15px;font-weight:700;text-anchor:middle;pointer-events:none}
+.n-s{fill:var(--sublabel);font-size:11px;text-anchor:middle;pointer-events:none}
+.n-go{fill:var(--accent);font-size:10.5px;font-weight:700;text-anchor:end;pointer-events:none}
+.node:hover .n-b,.node.sel .n-b{stroke:var(--focus);stroke-width:3}
+.node.dim,.fl.dim{opacity:.16}
+.fl{transition:opacity .25s}
+.fl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f-case{stroke:var(--canvas)}
+.f-base{stroke:var(--mc);opacity:.38}
+.f-dash{stroke:var(--mc);stroke-dasharray:8 10;animation:flow 1.4s linear infinite}
+.fl .f-arr{fill:var(--mc);stroke:none}
+.f-lab{fill:var(--mc);font-size:11px;font-weight:700}
+.m-gaz .f-dash,.m-air .f-dash{stroke-dasharray:2 8}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.m-comb{--mc:var(--m-comb)}.m-sol{--mc:var(--m-sol)}.m-u{--mc:var(--m-u)}.m-pu{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}.m-coq{--mc:var(--m-coq)}
+.m-eff{--mc:var(--m-eff)}.m-gaz{--mc:var(--m-gaz)}.m-dt{--mc:var(--m-dt)}.m-solv{--mc:var(--m-solv)}.m-verre{--mc:var(--m-verre)}.m-eau{--mc:var(--m-eau)}.m-air{--mc:var(--m-air)}.m-emb{--mc:var(--m-emb)}.m-upu{--mc:var(--m-upu)}
+/* Équipements des vues détaillées */
+.eq{cursor:pointer;transition:opacity .3s}
+.eq-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.eq-t{fill:var(--label);font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.eq-s{fill:var(--sublabel);font-size:10.5px;text-anchor:middle;pointer-events:none}
+.eq:hover .eq-b{stroke:var(--focus)}
+.eq.hl .eq-b{stroke:var(--accent);stroke-width:3}
+.dim{opacity:.17}
+.part{transition:opacity .3s}
+.lbl{fill:var(--label);font-size:12px}.lbl-s{fill:var(--sublabel);font-size:10.5px}
+.mid{text-anchor:middle}.end{text-anchor:end}
+.wall{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.thin{fill:none;stroke:var(--eq-stroke);stroke-width:1.4}
+.water{fill:var(--water);opacity:.55}
+.metal{fill:var(--m-coq)}
+/* Animations */
+.spin{animation:spin 10s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin-fast{animation:spin 2.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chop{animation:chop 1.6s ease-in-out infinite}
+@keyframes chop{0%,40%,100%{transform:translateY(0)}55%{transform:translateY(34px)}}
+.feed{animation:feed 3.2s ease-in-out infinite}
+@keyframes feed{0%{transform:translateX(-40px)}50%,100%{transform:translateX(0)}}
+.fall{animation:fall 1.6s linear infinite}
+@keyframes fall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+.rise{animation:rise 3s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+.rise-long{animation:riseL 4s linear infinite}
+@keyframes riseL{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(-240px);opacity:0}}
+.lift{animation:lift 4s ease-in-out infinite}
+@keyframes lift{0%,15%{transform:translateY(40px)}55%,100%{transform:translateY(0)}}
+.press{animation:press 2.8s ease-in-out infinite}
+@keyframes press{0%,30%,100%{transform:translateY(0)}60%{transform:translateY(58px)}}
+.crush{animation:crush 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes crush{0%,30%,100%{transform:scaleY(1)}60%{transform:scaleY(.2)}}
+.fillup{animation:fillup 6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes fillup{0%{transform:scaleY(.05)}80%,100%{transform:scaleY(1)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.drip{animation:drip 1.1s linear infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(40px);opacity:0}}
+.move-r{animation:mover 5s linear infinite}
+.tr-move{animation:trMove 9s ease-in-out infinite}@keyframes trMove{0%,10%{transform:translateX(0)}45%,60%{transform:translateX(230px)}95%,100%{transform:translateX(0)}}
+body.paused .tr-move{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tr-move{animation:none}}
+@keyframes mover{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(860px);opacity:0}}
+body.paused .fl .f-dash,body.paused .spin,body.paused .spin-fast,body.paused .chop,body.paused .feed,body.paused .fall,body.paused .rise,body.paused .rise-long,body.paused .lift,body.paused .press,body.paused .crush,body.paused .fillup,body.paused .glow,body.paused .drip,body.paused .move-r{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.f-dash,.spin,.spin-fast,.chop,.feed,.fall,.rise,.rise-long,.lift,.press,.crush,.fillup,.glow,.drip,.move-r{animation:none!important}}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:560px){.top h1{font-size:17px}.nav{padding:8px}}
+</style>
+<header class="top">
+ <div><h1>Orano La Hague <span>/</span> Parcours du combustible usé</h1><div class="sub">Aval du cycle · synoptique cliquable et vues détaillées des ateliers · version 2.3</div></div>
+ <div class="bar" style="margin:0">
+  <button class="btn" id="pauseBtn" type="button">⏸ Animations</button>
+  <button id="themeBtn" class="btn theme-btn" type="button" aria-label="Basculer entre le design clair et le design sombre"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span></button>
+ </div>
+</header>
+<nav class="nav" id="nav" aria-label="Navigation entre les vues"></nav>
+
+<div class="layout">
+<main class="main">
+ <div class="crumbs" id="crumbs"></div>
+
+ <!-- SYNOPTIQUE GÉNÉRAL -->
+ <section id="synSec">
+  <div class="bar">
+   <div class="grp" id="filters" role="group" aria-label="Filtrer les flux de matière"></div>
+   <div class="grp"><button class="btn" id="tourBtn" type="button">▶ Visite guidée</button></div>
+  </div>
+  <div class="stage"><svg id="syn" viewBox="0 0 1200 700" role="img" aria-label="Synoptique général du traitement du combustible usé à La Hague"></svg>
+   <div class="legend" id="synLegend"></div></div>
+ </section>
+
+ <!-- VUE DÉTAILLÉE -->
+ <section id="detSec" class="hidden">
+  <div class="bar">
+   <div class="grp"><button class="btn" id="prevView" type="button">← Atelier précédent</button><button class="btn" id="nextView" type="button">Atelier suivant →</button></div>
+   <div class="grp"><button class="btn" id="playBtn" type="button">▶ Lecture guidée</button></div>
+  </div>
+  <div class="stage">
+   <svg id="det" viewBox="0 0 1100 520" role="img"></svg>
+   <div class="legend" id="detLegend"></div>
+   <div class="steps" id="steps"></div>
+   <div class="steptext" id="stepText" aria-live="polite"></div>
+  </div>
+  <div class="tech-zoom hidden" id="techZoom"></div>
+ </section>
+</main>
+
+<aside class="aside" id="aside"></aside>
+</div>
+<footer class="footer">Principes du traitement du combustible usé. Sources : Orano, dossier de presse La Hague 2024 ; ASNR. Schémas fonctionnels non dimensionnés, sans valeur d’exploitation.</footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+/* =====================================================================
+   1. MATIÈRES ET OUTILS DE DESSIN
+   ===================================================================== */
+const MAT={comb:'Combustible usé',sol:'Solution de dissolution (U + Pu + PF)',u:'Uranium',pu:'Plutonium',pf:'Produits de fission',coq:'Coques et embouts',eff:'Effluents liquides',gaz:'Gaz',dt:'Déchets technologiques',solv:'Solvant',verre:'Verre / colis',eau:'Eau de piscine',air:'Air de ventilation',emb:'Emballage vide',upu:'Solvant chargé U + Pu'};
+// points d'un tracé M/L/H/V absolu (pour orienter les flèches)
+function pts(d){const t=d.match(/[MLHV]|-?\d+(?:\.\d+)?/g);const p=[];let c='M',x=0,y=0,i=0;
+ while(i<t.length){const k=t[i];if(/[MLHV]/.test(k)){c=k;i++;continue;}
+  if(c==='M'||c==='L'){x=+t[i];y=+t[i+1];i+=2;}else if(c==='H'){x=+t[i];i++;}else{y=+t[i];i++;}p.push([x,y]);}return p;}
+// Flux de matière animé
+function F(d,m,s,o={}){const p=pts(d),a=p[p.length-2],b=p[p.length-1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),w=o.w||6,sz=w+6;
+ const tri=`M${b[0]} ${b[1]} L${(b[0]-sz*Math.cos(ang-.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang-.45)).toFixed(1)} L${(b[0]-sz*Math.cos(ang+.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang+.45)).toFixed(1)}Z`;
+ return `<g class="fl m-${m}" data-m="${m}"${s!==''?` data-s="${s}"`:''}${o.n?` data-n="${o.n}"`:''}>${o.noCase?'':`<path class="f-case" d="${d}" stroke-width="${w+5}"/>`}<path class="f-base" d="${d}" stroke-width="${w}"/><path class="f-dash" d="${d}" stroke-width="${Math.max(2,w*.45).toFixed(1)}"/>${o.noArrow?'':`<path class="f-arr" d="${tri}"/>`}${o.lab?`<text class="f-lab" x="${o.lab[0]}" y="${o.lab[1]}"${o.lab[3]?` text-anchor="${o.lab[3]}"`:''}>${o.lab[2]}</text>`:''}</g>`;}
+// Équipement (vue détaillée)
+function B(x,y,w,h,t,sub,s,o={}){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2;
+ const ty=o.top?y+20:(y+h/2-(L.length*13)/2+5);
+ return `<g class="eq" data-s="${s}" tabindex="0" role="button" aria-label="${t}"><rect class="eq-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx??11}"/>${o.inner||''}<text class="eq-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="eq-s" x="${cx}" y="${ty+15+i*13}">${l}</text>`).join('')}</g>`;}
+// Partie décorative liée à une étape
+const PT=(s,inner)=>`<g class="part" data-s="${s}">${inner}</g>`;
+const TX=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+
+/* =====================================================================
+   2. FICHES DES BÂTIMENTS (synoptique)
+   ===================================================================== */
+const FICHE={
+arrivee:{t:'Arrivée des emballages',full:'Transport du combustible usé',m:'comb',view:'recep',
+ role:'Après au moins un an en piscine de centrale, les assemblages usés arrivent à La Hague dans des emballages de transport blindés, appelés « châteaux ».',
+ does:['Emballages en acier d’environ 110 t, pour une dizaine de tonnes de matière (ordre de grandeur de la brochure).','Acheminement principalement par rail jusqu’au terminal de Valognes, puis convoi routier ; certains emballages arrivent par bateau via Cherbourg.','Conçus pour résister à un feu de 800 °C et à une chute de 9 m sur une surface indéformable.'],
+ io:[['Entrée','Combustible usé des centrales (France et clients étrangers)'],['Sortie','Emballages vers la réception T0 / NPH']]},
+recep:{t:'T0 · NPH',full:'Réception et déchargement des emballages',m:'comb',view:'recep',
+ role:'Contrôler les emballages puis décharger les assemblages, à sec ou sous eau, avant leur entreposage en piscine.',
+ does:['T0 : déchargement à sec, par accostage étanche de l’emballage sous une cellule blindée (emballages de type MARK II ou équivalent).','NPH : déchargement sous eau, pour tous les types d’emballages.','HAO : petits emballages de combustibles de réacteurs de recherche.','Préparation des emballages vides (vidange, rinçage, séchage, contrôles, lavage haute pression) avant réexpédition.'],
+ io:[['Entrée','Emballages chargés'],['Sorties','Assemblages en paniers → piscines ; emballages vides → centrales']]},
+pisc:{t:'Piscines',full:'Entreposage du combustible sous eau',m:'eau',view:'recep',
+ role:'Laisser décroître la radioactivité et la puissance thermique du combustible avant traitement.',
+ does:['Quatre piscines interconnectées, d’une capacité totale d’environ 14 000 t (brochure).','Assemblages en paniers sous ≈ 9 m d’eau, dont ≈ 4 m au-dessus des assemblages pour la protection biologique.','Séjour de trois à cinq ans.','Eau déminéralisée refroidie et filtrée en permanence ; les résines d’épuration sont cimentées à l’ACR.'],
+ io:[['Entrée','Paniers d’assemblages'],['Sortie','Assemblages refroidis → R1 / T1']],
+ keys:[['≈ 9 m','hauteur d’eau'],['3 à 5 ans','durée d’entreposage']]},
+r1:{t:'R1 · T1',full:'Cisaillage et dissolution',m:'sol',view:'r1',
+ role:'Ouvrir les gaines des crayons et mettre la matière nucléaire en solution.',
+ does:['Cisaillage des assemblages en tronçons ; embouts de tête et de pied traités à part.','Dissolution dans l’acide nitrique bouillant et concentré, dans une roue à 12 godets.','Traitement des gaz de dissolution (lavage, désorption de l’iode, filtration).','Clarification par centrifugation : fines de Zircaloy et produits de fission insolubles, entreposés avant vitrification.','Coques et embouts rincés, contrôlés puis envoyés en fûts vers l’ACC.'],
+ io:[['Entrée','Assemblages refroidis'],['Sorties','Solution clarifiée → R2 / T2 ; coques et embouts → ACC ; gaz → traitement ; fines → vitrification']],
+ keys:[['3 chaînes','R1 : 1 chaîne · T1 : 2 chaînes'],['tronçons','longueur des tronçons']]},
+r2:{t:'R2 · T2',full:'Extraction et concentration',m:'upu',view:'r2',
+ role:'Séparer l’uranium et le plutonium des produits de fission, puis séparer l’uranium du plutonium.',
+ does:['Extraction liquide-liquide par un solvant (tributylphosphate) : U et Pu passent dans le solvant, les PF restent dans la phase aqueuse.','Lavages du solvant pour éliminer les traces de PF et d’actinides.','Partition U / Pu : le Pu, réduit à la valence III par le nitrate uraneux, devient non extractible.','Concentration des PF par évaporation et entreposage en cuves refroidies et brassées avant vitrification.','Régénération du solvant et recyclage des effluents (acide récupéré).'],
+ io:[['Entrée','Solution clarifiée de R1 / T1'],['Sorties','Uranium → T3 / T5 ; plutonium → R4 / T4 ; PF → R7 / T7']]},
+t3:{t:'T3 · T5',full:'Purification du nitrate d’uranyle',m:'u',view:'t3',
+ role:'Purifier et concentrer l’uranium pour qu’il puisse retourner vers l’amont du cycle.',
+ does:['Purification en batteries de mélangeurs-décanteurs, en deux cycles (extraction et réextraction).','Concentration par évaporation, entreposage puis conditionnement et expédition.','Traitement et recyclage du solvant usé ; récupération de l’acide nitrique non tritié.','Préparation du nitrate uraneux utilisé pour la partition U / Pu dans T2 et T4.'],
+ io:[['Entrée','Nitrate d’uranyle de R2 / T2'],['Sorties','Nitrate d’uranyle purifié → expédition ; raffinats → vitrification']]},
+unox:{t:'Nitrate d’uranyle',full:'Entreposage et expédition de l’uranium',m:'u',view:'t3',
+ role:'L’uranium purifié est entreposé, contrôlé, conditionné puis expédié vers les usines de l’amont du cycle.',
+ does:['L’uranium représente environ 95 % de la masse du combustible usé.','Il peut être converti puis réenrichi, ou transformé en oxyde pour un recyclage ultérieur (opérations réalisées sur un autre site).'],
+ io:[['Entrée','Nitrate d’uranyle purifié de T3 / T5'],['Sortie','Vers l’amont du cycle (conversion)']]},
+r4:{t:'R4 · T4',full:'Purification et conversion du plutonium',m:'pu',view:'r4',
+ role:'Purifier le plutonium, le convertir en oxyde PuO₂ et le conditionner.',
+ does:['Voie humide : purification par extraction / réextraction (T4 : colonnes pulsées, 2 cycles ; R4 : extracteurs centrifuges, 1 cycle).','Conversion : précipitation en oxalate, filtration, séchage puis calcination à plus de 500 °C → PuO₂.','Voie sèche : homogénéisation des lots, mise en boîtes inox serties d’environ contenu contrôlé, étuis soudés de boîtes conditionnées, conteneurs contrôlés.','Recyclage des eaux-mères oxaliques et des oxydes récupérés.'],
+ io:[['Entrée','Nitrate de plutonium de R2 / T2'],['Sortie','Conteneurs de PuO₂ → BSI / BST1']],
+ keys:[['80 kg / jour','production nominale de R4 (brochure)'],['avril 2002','mise en production de R4']]},
+bsi:{t:'BSI · BST1',full:'Entreposage et expédition du PuO₂',m:'pu',view:'r4',
+ role:'Entreposer les conteneurs d’oxyde de plutonium avant leur expédition vers la fabrication de combustible MOX.',
+ does:['Le plutonium représente environ 1 % de la masse du combustible usé.','Le MOX est un mélange d’oxydes de plutonium et d’uranium appauvri, fabriqué sur un autre site.'],
+ io:[['Entrée','Conteneurs de R4 / T4'],['Sortie','Expédition vers la fabrication MOX']]},
+r7:{t:'R7 · T7',full:'Vitrification des produits de fission',m:'pf',view:'r7',
+ role:'Incorporer les produits de fission dans du verre et le couler dans des conteneurs en acier inoxydable.',
+ does:['Ajustement des solutions de PF et des fines par réactifs.','Calcination dans un tube tournant chauffé à environ 800 °C.','Fusion avec de la fritte de verre dans un four à induction à plus de 1 100 °C (composition qualifiée).','Coulée en conteneur, refroidissement 24 h, soudage du couvercle, décontamination, contrôle.','Entreposage en puits ventilés.'],
+ io:[['Entrées','Solutions de PF de R2 / T2 ; fines de R1 / T1 ; raffinats'],['Sortie','Colis CSD-V']]},
+csdv:{t:'CSD-V',full:'Colis standard de déchets vitrifiés',m:'verre',view:'r7',
+ role:'Les conteneurs de verre sont entreposés verticalement dans des puits ventilés en attendant leur retour aux clients ou leur stockage définitif.',
+ does:['Les produits de fission contiennent l’essentiel de la radioactivité du combustible usé.','Le verre, comparable à une roche volcanique (obsidienne), piège durablement les radioéléments.','Les clients étrangers restent propriétaires de leurs déchets, qui leur sont retournés.'],
+ io:[['Entrée','Conteneurs de R7 / T7'],['Sortie','Retour aux pays clients / stockage définitif']]},
+acc:{t:'ACC',full:'Atelier de compactage des coques et embouts',m:'coq',view:'acc',
+ role:'Réduire le volume des déchets de structure et de certains déchets technologiques de haute activité.',
+ does:['Séparateur-doseur : remplissage maîtrisé d’étuis de 80 L.','Séchage puis compactage sous presse de 2 500 t : les étuis deviennent des « galettes ».','Galettes empilées dans des CSD-C, soudés et contrôlés.','Caractérisation radiologique de chaque colis.'],
+ io:[['Entrées','Coques et embouts de R1 / T1 ; déchets technologiques HA'],['Sortie','Colis CSD-C']],
+ keys:[['÷ 5','volume moyen des déchets traités'],['2 500 t','capacité des presses']]},
+csdc:{t:'CSD-C',full:'Colis standard de déchets compactés',m:'coq',view:'acc',
+ role:'Les colis de déchets compactés ont la même géométrie que les colis vitrifiés : c’est le concept de « conteneur universel ».',
+ does:['Optimise l’entreposage, la manutention, le transport et le stockage définitif.'],
+ io:[['Entrée','Galettes compactées de l’ACC'],['Sortie','Entreposage puis retour clients / stockage']]},
+ste3:{t:'STE3 · AD2',full:'Effluents liquides actifs et déchets technologiques',m:'eff',view:'ste3',
+ role:'Traiter les effluents de faible et moyenne activité et conditionner les déchets d’exploitation et de maintenance.',
+ does:['STE3 : collecte en cuves, analyses, coprécipitation des radioéléments, décantation.','Liquides très faiblement actifs rejetés en mer après contrôle, conformément aux autorisations ; boues conditionnées en fûts.','AD2 : cimentation des déchets technologiques et mise en conteneurs béton-fibres (CBF).','ACR : cimentation des résines d’épuration de l’eau des piscines.'],
+ io:[['Entrées','Effluents FA / MA de toutes les usines ; déchets technologiques'],['Sorties','Rejets contrôlés ; colis de déchets']]},
+gaz:{t:'Traitement des gaz',full:'Gaz de procédé',m:'gaz',view:'vent',
+ role:'Les gaz libérés au cisaillage et à la dissolution, ainsi que ceux des appareils de procédé, sont lavés et filtrés avant rejet par les cheminées.',
+ does:['Lavage en colonnes, désorption de l’iode, filtration.','Contrôle de tous les gaz avant rejet dans l’atmosphère, conformément aux autorisations.'],
+ io:[['Entrées','Gaz de R1 / T1 et des ateliers de procédé'],['Sortie','Cheminées surveillées']]},
+rejets:{t:'Rejets contrôlés',full:'Surveillance de l’environnement',m:'eff',view:'vent',
+ role:'Les rejets liquides et gazeux sont strictement encadrés par des autorisations et mesurés en continu.',
+ does:['Effluents liquides très faiblement actifs rejetés en mer après contrôle.','Gaz contrôlés sur chaque cheminée.','Surveillance terrestre et marine autour du site.'],
+ io:[['Entrées','STE3, traitement des gaz, ventilation'],['Sortie','Environnement (mer, atmosphère)']]},
+labo:{t:'Laboratoires',full:'Laboratoires d’analyses et de contrôle',m:'air',view:'labo',
+ role:'Prélever et analyser des échantillons dans tous les ateliers, 24 h sur 24, pour piloter le procédé, suivre les matières nucléaires et surveiller l’environnement.',
+ does:['Treize laboratoires principaux sur UP2 et UP3, reliés par un réseau de transfert pneumatique (RTP).','Environ 30 chaînes blindées (haute activité) et 60 chaînes légères (faible et moyenne activité).','Analyses de marche du procédé, de spécification (qualité, bilan, environnement) et études spéciales.'],
+ io:[['Entrées','Échantillons de tous les ateliers'],['Sorties','Résultats d’analyses vers les ateliers']],
+ keys:[['854','points de prélèvement'],['56 km','de réseau RTP'],['150 000','prélèvements automatiques par an']]},
+vent:{t:'Ventilation',full:'Ventilation et confinement',m:'air',view:'vent',
+ role:'Maintenir des dépressions croissantes vers les zones les plus contaminables pour que l’air circule toujours vers elles, puis filtrer avant rejet.',
+ does:['Cascade de dépressions : bâtiment → locaux de procédé → cellules et boîtes à gants.','Filtration de l’air extrait, ventilateurs d’extraction, cheminées surveillées.'],
+ io:[['Entrée','Air neuf filtré'],['Sortie','Air filtré et contrôlé → cheminées']]}
+};
+
+/* =====================================================================
+   3. SYNOPTIQUE GÉNÉRAL
+   ===================================================================== */
+const SYN_NODES=[
+ ['arrivee',30,130,170,70,'Arrivée','des emballages'],
+ ['recep',30,290,170,80,'T0 · NPH','Réception · déchargement'],
+ ['pisc',230,290,170,80,'Piscines','Entreposage sous eau'],
+ ['r1',430,290,170,80,'R1 · T1','Cisaillage · dissolution'],
+ ['r2',635,290,170,80,'R2 · T2','Extraction · séparation'],
+ ['t3',860,85,170,75,'T3 · T5','Purification de l’uranium'],
+ ['unox',1050,85,128,75,'Uranium','→ amont du cycle'],
+ ['r4',860,195,170,75,'R4 · T4','Purification du plutonium'],
+ ['bsi',1050,195,128,75,'BSI · BST1','PuO₂ → MOX'],
+ ['r7',860,330,170,75,'R7 · T7','Vitrification'],
+ ['csdv',1050,330,128,75,'CSD-V','Colis vitrifiés'],
+ ['acc',860,440,170,75,'ACC','Compactage coques'],
+ ['csdc',1050,440,128,75,'CSD-C','Colis compactés'],
+ ['vent',30,585,170,80,'Ventilation','Confinement'],
+ ['labo',230,585,170,80,'Laboratoires','13 labos · réseau RTP'],
+ ['gaz',430,585,170,80,'Traitement des gaz','lavage · filtration'],
+ ['ste3',635,585,170,80,'STE3 · AD2','Deux filières distinctes'],
+ ['rejets',860,585,318,80,'Rejets contrôlés','mer · cheminées · surveillance']
+];
+const SYN_FLOWS=[
+ ['M115 200 V290','comb','arrivee recep'],['M200 330 H230','comb','recep pisc'],['M400 330 H430','comb','pisc r1'],
+ ['M600 330 H635','sol','r1 r2'],
+ ['M805 305 H825 V122 H860','u','r2 t3'],['M805 325 H840 V232 H860','pu','r2 r4'],['M805 345 H840 V367 H860','pf','r2 r7'],
+ ['M1030 122 H1050','u','t3 unox'],['M1030 232 H1050','pu','r4 bsi'],['M1030 367 H1050','verre','r7 csdv'],
+ ['M515 370 V477 H860','coq','r1 acc'],['M1030 477 H1050','coq','acc csdc'],
+ ['M720 370 V585','eff','r2 ste3'],['M470 370 V585','gaz','r1 gaz'],
+ ['M805 625 H860','eff','ste3 rejets'],['M515 665 V686 H1019 V665','gaz','gaz rejets'],
+];
+function N(id,x,y,w,h,t,s){const f=FICHE[id];
+ return `<g class="node" data-node="${id}" tabindex="0" role="button" aria-label="${t} — ${s}"><rect class="n-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><rect class="n-strip m-${f.m}" x="${x}" y="${y+10}" width="5" height="${h-20}" rx="2.5"/><text class="n-t" x="${x+w/2}" y="${y+h/2-2}">${t}</text><text class="n-s" x="${x+w/2}" y="${y+h/2+15}">${s}</text></g>`;}
+function buildSyn(){
+ let s=`<text class="ttl" x="30" y="38">Le parcours du combustible usé à La Hague</text><text class="subt" x="30" y="60">Cliquez sur un bâtiment pour afficher sa fiche, puis ouvrez sa vue détaillée.</text><text class="subt" x="30" y="78">Ateliers R : usine UP2-800 · ateliers T : usine UP3 (chaînes parallèles).</text>`;
+ s+=`<rect class="zone" x="15" y="250" width="605" height="150" rx="14"/><text class="zt" x="135" y="270">TÊTE DE PROCÉDÉ</text>`;
+ s+=`<rect class="zone" x="625" y="250" width="195" height="150" rx="14"/><text class="zt" x="637" y="270">SÉPARATION</text>`;
+ s+=`<rect class="zone" x="845" y="55" width="345" height="235" rx="14"/><text class="zt" x="857" y="74">MATIÈRES VALORISABLES</text>`;
+ s+=`<rect class="zone" x="845" y="300" width="345" height="230" rx="14"/><text class="zt" x="857" y="319">DÉCHETS ULTIMES CONDITIONNÉS</text>`;
+ s+=`<rect class="zone" x="15" y="545" width="1175" height="148" rx="14"/><text class="zt" x="27" y="566">EFFLUENTS · FONCTIONS SUPPORT</text>`;
+ s+=SYN_FLOWS.map(([d,m,n])=>F(d,m,'',{n})).join('');
+ s+=`<text class="free" x="728" y="470">effluents</text><text class="free" x="478" y="470">gaz</text><text class="free" x="560" y="492">coques et embouts</text>`;
+ s+=SYN_NODES.map(a=>N(...a)).join('');
+ $('syn').innerHTML=s;
+ const used=[...new Set(SYN_FLOWS.map(f=>f[1]))];
+ $('synLegend').innerHTML=used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('');
+ $('filters').innerHTML=`<button class="chip active" data-f="all" type="button">Tous les flux</button>`+['comb','sol','u','pu','pf','coq','eff','gaz'].map(m=>`<button class="chip m-${m}" data-f="${m}" type="button"><i></i>${MAT[m].replace(' (U + Pu + PF)','')}</button>`).join('');
+}
+
+/* =====================================================================
+   4. VUES DÉTAILLÉES
+   ===================================================================== */
+const assembly=(x,y,w,h)=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="2" fill="var(--m-comb)" opacity=".85"/>${Array.from({length:Math.floor(w/5)},(_,i)=>`<path d="M${x+3+i*5} ${y+2}V${y+h-2}" stroke="var(--canvas)" stroke-width="1"/>`).join('')}`;
+const column=(x,y,h,s,label)=>PT(s,`<rect x="${x}" y="${y}" width="50" height="${h}" rx="22" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="${x+4}" y="${y+4}" width="42" height="${h*0.55}" rx="18" fill="var(--m-eff)" opacity=".18"/><rect x="${x+4}" y="${y+h*0.5}" width="42" height="${h*0.48}" rx="18" fill="var(--m-solv)" opacity=".16"/>${Array.from({length:Math.floor((h-40)/22)},(_,i)=>`<path d="M${x+8} ${y+24+i*22}H${x+42}" stroke="var(--eq-stroke)" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('')}${[0,.6,1.2,1.8,2.4,3.0].map((d,i)=>`<circle class="rise-long" cx="${x+12+(i%3)*13}" cy="${y+h-14}" r="3.4" fill="var(--m-upu)" style="animation-delay:${d}s"/>`).join('')}<text class="lbl mid" x="${x+25}" y="${y-8}">${label}</text>`);
+
+const VIEWS={
+/* ---------- Réception et piscines ---------- */
+recep:{t:'T0 · NPH — Réception, déchargement et entreposage en piscine',sub:'Deux voies de déchargement alternatives : à sec (T0) ou sous eau (NPH)',fiche:'recep',
+ intro:'Les emballages sont contrôlés, déchargés à sec ou sous eau, puis les assemblages rejoignent les piscines d’entreposage où leur radioactivité et leur chaleur décroissent.',
+ steps:[
+ {t:'Réception et contrôle de l’emballage',d:'<p>L’emballage arrive à l’horizontale sur une remorque. Il est aussitôt soumis à un <b>contrôle radiologique</b> (non-contamination, débit de dose). Après dépose et contrôle des capots de protection, il est basculé à la verticale et transféré vers la voie de déchargement.</p>'},
+ {t:'Préparation avant déchargement',d:'<ul><li><b>T0 (à sec)</b> : vérification de l’absence d’élément « rupté » (non étanche), ajustement de la dépression de la cavité, pose des pièces d’accostage étanche.</li><li><b>NPH (sous eau)</b> : pose d’une jupe de protection ; la cavité est remplie d’eau mise en circulation pour faire chuter la température des éléments et détecter un éventuel élément rupté ; desserrage des vis du bouchon.</li></ul>'},
+ {t:'Déchargement : à sec ou sous eau',d:'<ul><li><b>T0</b> : après accostage sous la cellule blindée et ouverture, les éléments sont déchargés et identifiés automatiquement à l’unité, refroidis à 80 °C par rinçage à l’eau, contrôlés puis placés en panier. Seuls les emballages de type MARK II ou équivalent sont acceptés.</li><li><b>NPH</b> : l’emballage est immergé en piscine de déchargement, le bouchon retiré, les éléments extraits, identifiés et déposés en panier. Cette voie accepte tous les types d’emballages ; l’atelier <b>HAO</b> traite les petits emballages de réacteurs de recherche.</li></ul>'},
+ {t:'Entreposage en piscine',d:'<p>Les paniers sont transférés dans les <b>piscines d’entreposage interconnectées</b> (capacité totale de l’ordre de 14 000 t selon la brochure). Le combustible séjourne <b>trois à cinq ans</b> sous environ <b>9 m d’eau</b>, dont <b>4 m au-dessus</b> des assemblages pour la protection biologique. L’eau, déminéralisée, est refroidie et filtrée en permanence.</p><p class="note">L’eau assure trois fonctions : évacuer la chaleur résiduelle, protéger des rayonnements, permettre la manutention à vue.</p>'},
+ {t:'Retour de l’emballage vide',d:'<p>Refermé et désaccosté, l’emballage vide est vidangé, rincé et séché. On contrôle son étanchéité, sa non-contamination et le débit de dose, on le lave à l’eau haute pression, puis les capots amortisseurs de choc sont remontés : il peut repartir vers une centrale.</p><p class="note">Les résines échangeuses d’ions de l’épuration de l’eau des piscines sont cimentées à l’atelier ACR puis conditionnées à AD2.</p>'}],
+ svg:()=>{
+  let s=`<path d="M20 468 H1080" stroke="var(--eq-stroke)" stroke-width="2"/>`;
+  // camion et emballage
+  s+=PT('1',`<rect x="40" y="420" width="200" height="14" rx="3" fill="var(--eq-stroke)"/>${[70,105,205].map(x=>`<circle cx="${x}" cy="448" r="12" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')}<rect x="55" y="362" width="170" height="56" rx="22" fill="var(--eq)" stroke="var(--m-comb)" stroke-width="2.5"/>${Array.from({length:12},(_,i)=>`<path d="M${75+i*12} 366V414" stroke="var(--eq-stroke)" stroke-width="1.5"/>`).join('')}<text class="lbl mid" x="140" y="352">Emballage de transport</text><text class="lbl-s mid" x="140" y="486">arrivée à l’horizontale sur remorque</text>`);
+  s+=B(40,250,200,60,'Contrôle radiologique',['non-contamination · débit de dose'],'1 2');
+  s+=B(40,90,240,80,'Préparation de l’emballage vide',['vidange · rinçage · séchage','contrôles · lavage haute pression'],'5');
+  // voies
+  s+=F('M225 380 H300 V250 H400','comb','2 3',{lab:[305,240,'voie à sec'],w:5});
+  s+=F('M225 400 H300 V420 H395','comb','2 3',{lab:[305,445,'voie sous eau'],w:5});
+  // T0
+  s+=PT('3',`<rect x="330" y="60" width="230" height="140" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="6"/><text class="lbl mid" x="445" y="50">T0 — cellule blindée de déchargement à sec</text><path d="M445 66 V100" stroke="var(--eq-stroke)" stroke-width="3"/><g class="lift">${assembly(438,100,14,80)}</g><rect x="548" y="88" width="10" height="60" fill="var(--glow)" opacity=".7"/><path d="M600 96 L555 104 L515 132 M600 112 L555 118 L520 150" fill="none" stroke="var(--m-coq)" stroke-width="3.5" stroke-linecap="round"/><text class="lbl-s" x="345" y="80">dépression ≈ 200 Pa</text><text class="lbl-s" x="345" y="190">dalle mobile</text><text class="lbl-s" x="566" y="80">verre au plomb ≈ 1 m</text><text class="lbl-s" x="470" y="186">télémanipulateurs</text>`);
+  s+=PT('2 3',`<rect x="410" y="203" width="70" height="95" rx="16" fill="var(--eq)" stroke="var(--m-comb)" stroke-width="2.5"/><text class="lbl-s" x="488" y="250">emballage accosté</text><text class="lbl-s" x="488" y="263">sous la cellule</text>`);
+  // NPH
+  s+=PT('2 3',`<rect x="330" y="330" width="230" height="135" rx="8" class="water"/><path d="M330 330 V465 H560 V330" class="wall" stroke-width="3"/><text class="lbl mid" x="445" y="320">NPH — déchargement sous eau</text><rect x="405" y="360" width="70" height="95" rx="16" fill="var(--eq)" stroke="var(--m-comb)" stroke-width="2.5"/><path d="M400 372 H480" stroke="var(--eq-stroke)" stroke-width="5"/><text class="lbl-s" x="486" y="376">jupe</text>${[0,.8,1.6].map((d,i)=>`<circle class="rise" cx="${420+i*20}" cy="440" r="3" fill="#fff" opacity=".7" style="animation-delay:${d}s"/>`).join('')}`);
+  s+=F('M410 215 H322 V150 H282','emb','5',{w:3,lab:[316,205,'emballage vide','end']});
+  // transferts vers piscine
+  s+=F('M560 130 H610 V300 H640','comb','3 4',{w:5});s+=F('M560 400 H640','comb','3 4',{w:5});
+  // piscine d'entreposage
+  s+=PT('4',`<rect x="640" y="250" width="420" height="215" class="water"/><rect x="640" y="250" width="420" height="215" fill="var(--water2)" opacity=".25" class="glow"/><path d="M640 250 V465 H1060 V250" class="wall" stroke-width="4"/>
+   ${Array.from({length:6},(_,i)=>`<g><rect x="${665+i*62}" y="350" width="48" height="112" rx="4" fill="none" stroke="var(--eq-stroke)" stroke-width="1.5"/>${[0,1,2].map(j=>assembly(670+i*62+j*14,356,10,100)).join('')}</g>`).join('')}
+   ${[0,.7,1.4,2.1,2.8].map((d,i)=>`<circle class="rise" cx="${690+i*75}" cy="345" r="3" fill="#fff" opacity=".6" style="animation-delay:${d}s"/>`).join('')}
+   <path d="M1040 252 V462" stroke="var(--label)" stroke-width="1.2"/><path d="M1034 258 L1040 252 L1046 258 M1034 456 L1040 462 L1046 456" fill="none" stroke="var(--label)" stroke-width="1.2"/><text class="lbl end" x="1032" y="300">≈ 9 m d’eau</text>
+   <path d="M655 254 V347" stroke="var(--label)" stroke-width="1.2" stroke-dasharray="3 3"/><text class="lbl-s" x="660" y="300">≈ 4 m d’eau</text><text class="lbl-s" x="660" y="313">au-dessus</text>
+   <text class="lbl mid" x="870" y="282">Piscines d’entreposage interconnectées — 3 à 5 ans</text>`);
+  // refroidissement / filtration
+  s+=B(700,60,160,70,'Refroidissement',['échangeurs'],'4');s+=B(890,60,170,70,'Filtration',['eau déminéralisée'],'4');
+  s+=F('M1000 250 V130','eau','4',{w:4});s+=F('M890 95 H860','eau','4',{w:4});s+=F('M760 130 V250','eau','4',{w:4});
+  s+=F('M1060 200 H1092','comb','4',{w:5,lab:[1088,190,'vers R1 / T1','end']});
+  s+=F('M1000 200 H1060','comb','4',{w:5,noArrow:true});
+  return s;}},
+
+/* ---------- R1 / T1 ---------- */
+r1:{t:'R1 · T1 — Cisaillage et dissolution',sub:'Ateliers automatisés conduits à distance · R1 : 1 chaîne, T1 : 2 chaînes',fiche:'r1',
+ intro:'Les assemblages sont découpés, la matière nucléaire est dissoute dans l’acide nitrique, puis la solution est clarifiée et mesurée avant la séparation. Les coques et embouts suivent leur propre voie de déchets.',
+ steps:[
+ {t:'Alimentation et contrôle',d:'<p>Après sa période de refroidissement en piscine, l’assemblage est transféré par un pont basculeur vers R1 ou T1. On contrôle son <b>identification</b> et son <b>taux de combustion</b> avant de l’introduire dans la cisaille.</p>'},
+ {t:'Cisaillage',d:'<p>L’assemblage est coupé en <b>tronçons</b> qui tombent par gravité dans le dissolveur. Les <b>embouts</b> de tête et de pied, traités à part, sont évacués vers des rinceurs à embouts.</p><p class="note">Ouvrir les gaines est indispensable : la suite du traitement est chimique et ne peut pas agir sur des crayons étanches.</p>'},
+ {t:'Dissolution',d:'<p>La matière nucléaire contenue dans les tronçons est dissoute dans de l’<b>acide nitrique bouillant et concentré</b>, dans une <b>roue de dissolution (12 godets dans le schéma)</b>. La solution s’écoule par trop-plein vers la clarification ; les coques de Zircaloy vidées sont évacuées vers le rinceur à coques.</p>'},
+ {t:'Traitement des gaz',d:'<p>Les effluents gazeux produits par la dissolution sont <b>traités, lavés et filtrés</b> (colonnes de lavage, désorbeur à iode, filtration) avant leur rejet contrôlé par la cheminée.</p>'},
+ {t:'Clarification et unité bilan',d:'<p>Une <b>centrifugeuse</b> retire de la solution les « fines » de cisaillage (copeaux de Zircaloy) et les produits de fission insolubles, entreposés avant vitrification. La solution clarifiée passe en <b>cuve bilan</b> (mesure de la matière) puis part vers R2 / T2.</p>'},
+ {t:'Coques et embouts',d:'<p>Après rinçage et contrôle de la <b>matière fissile résiduelle</b> (MFR), coques et embouts sont conditionnés dans des <b>fûts navettes</b> dirigés vers l’atelier de compactage (ACC).</p>'},
+ {t:'URP et combustibles RTR',d:'<ul><li><b>URP</b> (unité de redissolution du plutonium, dans R1) : l’oxyde de plutonium ancien, chargé en américium 241, est redissous dans un électrolyseur en milieu nitrique avec des ions argentiques, puis renvoyé vers R2 et R4.</li><li><b>RTR</b> : depuis 2005, T1 traite les combustibles de réacteurs de recherche (très enrichis, petits, gainés d’aluminium).</li></ul>'}],
+ svg:()=>{
+  let s='';
+  s+=B(20,55,160,70,'Piscines','assemblage refroidi','1');
+  s+=F('M180 90 H245','comb','1',{w:5});
+  s+=PT('1 2',`<g class="shear-feed">${assembly(250,78,165,24)}<rect x="250" y="78" width="17" height="24" fill="var(--m-coq)" opacity=".95"/><rect x="398" y="78" width="17" height="24" fill="var(--m-coq)" opacity=".95"/></g><text class="lbl mid" x="320" y="68">Avance de l’assemblage</text>`);
+  s+=PT('2',`<rect x="415" y="40" width="80" height="125" rx="8" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="417" y="108" width="76" height="10" fill="var(--eq-stroke)"/><g class="shear-clamp"><rect x="417" y="80" width="12" height="38" rx="2" fill="var(--m-coq)"/></g><g class="shear-blade"><rect x="425" y="50" width="60" height="14" rx="3" fill="var(--m-coq)"/><path d="M425 64 H485 L455 74 Z" fill="var(--eq-stroke)"/></g><text class="lbl mid" x="455" y="30">Cisaille</text>${[0,1,2].map((i)=>`<rect class="shear-piece" x="${448+i*9}" y="172" width="8" height="7" rx="1" fill="${i===0?'var(--m-coq)':'var(--m-comb)'}" style="animation-delay:${i*0.08}s"/>`).join('')}<text class="lbl-s" x="462" y="226">tronçons tronçons</text><text class="lbl-s" x="415" y="242">Embouts : traitement séparé</text>`);
+  s+=B(230,190,150,56,'Rinceurs à embouts','tête et pied','2 6');
+  s+=F('M430 165 V218 H380','coq','2',{w:4});
+  // dissolveur
+  s+=PT('3',`<rect x="350" y="235" width="250" height="195" rx="18" fill="var(--m-sol)" opacity=".16"/><rect x="350" y="235" width="250" height="195" rx="18" class="wall" stroke-width="2.5"/><g class="spin" style="animation-duration:24s"><circle cx="475" cy="332" r="78" fill="none" stroke="var(--eq-stroke)" stroke-width="3"/>${Array.from({length:12},(_,i)=>{const a=i*Math.PI/6,x=475+78*Math.cos(a),y=332+78*Math.sin(a);return `<rect x="${(x-9).toFixed(1)}" y="${(y-9).toFixed(1)}" width="18" height="18" rx="4" fill="var(--eq)" stroke="var(--m-sol)" stroke-width="2"/>`;}).join('')}<circle cx="475" cy="332" r="8" fill="var(--eq-stroke)"/></g>${[0,.6,1.2,1.8].map((d,i)=>`<circle class="rise" cx="${375+i*60}" cy="415" r="3" fill="var(--m-sol)" style="animation-delay:${d}s"/>`).join('')}<text class="lbl-s mid" x="475" y="424">acide nitrique bouillant</text><text class="lbl" x="610" y="447">Dissolveur — roue à 12 godets</text>`);
+  // gaz
+  s+=F('M585 240 V95 H640','gaz','4',{w:5});
+  s+=B(640,50,230,90,'Traitement des gaz',['colonnes de lavage','désorbeur à iode · filtration'],'4');
+  s+=PT('4',`<path d="M905 140 V30 H935 V140" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl-s mid" x="920" y="156">cheminée</text>`);
+  s+=F('M870 95 H905','gaz','4',{w:5});
+  // clarification
+  s+=F('M600 330 H650','sol','3 5',{w:6});
+  s+=B(650,290,170,80,'Clarification',['centrifugeuse : fines','+ PF insolubles'],'5',{inner:`<g class="spin-fast"><circle cx="800" cy="306" r="9" fill="none" stroke="var(--m-sol)" stroke-width="2" stroke-dasharray="6 4"/></g>`});
+  s+=F('M820 330 H860','sol','5',{w:6});
+  s+=B(860,290,140,80,'Unité bilan','cuve bilan','5');
+  s+=F('M1000 330 H1092','sol','5',{w:6,lab:[1088,318,'vers R2 / T2','end']});
+  s+=F('M735 370 V405 H860','pf','5',{w:4});
+  s+=B(860,385,220,50,'Entreposage des fines','→ vitrification R7 / T7','5');
+  // coques
+  s+=F('M475 430 V480 H560','coq','3 6',{w:5});s+=F('M305 246 V480 H560','coq','6',{w:4,noArrow:true});
+  s+=B(560,455,170,50,'Rinçage · contrôle MFR','','6');
+  s+=F('M730 480 H760','coq','6',{w:5});
+  s+=B(760,455,150,50,'Fûts navettes','','6');
+  s+=F('M910 480 H1092','coq','6',{w:5,lab:[1088,470,'vers ACC','end']});
+  s+=B(20,300,170,90,'URP · RTR',['redissolution du PuO₂ (URP)','RTR : T1 depuis 2005'],'7');
+  return s;}},
+
+/* ---------- R2 / T2 ---------- */
+r2:{t:'R2 · T2 — Extraction et concentration',sub:'Extraction liquide-liquide : colonnes pulsées et mélangeurs-décanteurs',fiche:'r2',
+ intro:'Un solvant organique « attrape » l’uranium et le plutonium et laisse les produits de fission dans l’acide : c’est le cœur du tri. On sépare ensuite l’uranium du plutonium.',
+ steps:[
+ {t:'Extraction des produits de fission',d:'<p>La solution nitrique est mise au contact d’un <b>solvant</b> (tributylphosphate dilué). Lors du mélange intime, l’<b>uranium et le plutonium migrent dans le solvant</b>, tandis que les <b>produits de fission restent dans la phase aqueuse</b>. Une décantation sépare ensuite les deux liquides non miscibles, comme l’huile et l’eau.</p><p class="note">Opération réalisée en colonnes pulsées : la pulsation disperse une phase en gouttelettes dans l’autre (gouttes orange sur le schéma), ce qui multiplie la surface d’échange.</p>'},
+ {t:'Lavage de la solution U / Pu',d:'<p>Le solvant contenant l’uranium et le plutonium comporte encore quelques produits de fission et actinides résiduels. Ils sont éliminés par <b>deux lavages</b> en colonnes pulsées.</p>'},
+ {t:'Partition uranium / plutonium',d:'<p>On exploite une propriété du plutonium : <b>réduit à la valence III, il devient non extractible</b> par le solvant. Le <b>nitrate uraneux U(IV)</b> réduit le Pu(IV) en Pu(III), qui repasse en phase aqueuse. L’uranium reste dans le solvant.</p><ul><li>Uranium : réextrait, concentré par évaporation, envoyé vers T3 / T5.</li><li>Plutonium : envoyé vers R4 / T4.</li></ul><p class="note">Partition en mélangeurs-décanteurs dans T2 et en colonne pulsée dans R2.</p>'},
+ {t:'Concentration et entreposage des produits de fission',d:'<p>Les PF séparés sont <b>concentrés par évaporation</b>, puis entreposés dans des <b>cuves brassées et refroidies en permanence</b> en attendant d’être vitrifiés dans R7 / T7.</p>'},
+ {t:'Régénération du solvant',d:'<p>Des <b>lavages à la soude et au carbonate</b> régénèrent le solvant, qui est réutilisé. Sur R2 et T3, une <b>distillation sous vide</b> sépare et purifie les composants du solvant et permet de traiter les résidus.</p>'},
+ {t:'Effluents et unités annexes',d:'<p>Les effluents aqueux, acides ou basiques, sont collectés et <b>concentrés par évaporation</b> : les concentrats actifs rejoignent les PF, l’acide récupéré est réutilisé, les distillats sont rejetés en mer après neutralisation.</p><p class="note">R2 abrite aussi l’UCD, qui décontamine des déchets contenant des traces de plutonium ; T2 entrepose les fines de T1 avant vitrification.</p>'}],
+ svg:()=>{
+  let s='';
+  s+=B(20,190,160,75,'Solution clarifiée',['U + Pu + PF','dans HNO₃'],'1');
+  s+=F('M180 225 H230','sol','1',{w:6});
+  s+=column(230,70,330,'1 4','Extraction');
+  s+=F('M280 92 H380','upu','1 2',{w:5,lab:[330,82,'U + Pu','middle']});
+  s+=column(380,70,260,'2','Lavage');
+  s+=F('M430 92 H530','upu','2 3',{w:5});
+  s+=column(530,70,260,'3','Partition');
+  s+=F('M690 160 H580','u','3',{w:4});s+=PT('3',`<text class="lbl-s" x="592" y="178">nitrate uraneux U(IV)</text><text class="lbl-s" x="592" y="192">Pu(IV) → Pu(III)</text>`);
+  s+=F('M580 100 H680','u','3',{w:6});s+=F('M580 260 H680','pu','3',{w:6});
+  s+=B(680,60,180,80,'Voie uranium',['réextraction · concentration'],'3');
+  s+=B(680,220,180,80,'Voie plutonium',['Pu(III) en phase aqueuse'],'3');
+  s+=F('M860 100 H1092','u','3',{w:6,lab:[1088,88,'vers T3 / T5','end']});
+  s+=F('M860 260 H1092','pu','3',{w:6,lab:[1088,248,'vers R4 / T4','end']});
+  // PF
+  s+=F('M255 400 V445 H300','pf','1 4',{w:6,lab:[262,425,'raffinat (PF)']});
+  s+=B(300,410,150,70,'Évaporateur','concentration des PF','4',{inner:[0,.5,1].map((d,i)=>`<circle class="rise" cx="${330+i*45}" cy="470" r="2.5" fill="var(--m-pf)" style="animation-delay:${d}s"/>`).join('')});
+  s+=F('M450 445 H500','pf','4',{w:6});
+  s+=B(500,410,190,70,'Cuves d’entreposage',['brassées et refroidies'],'4',{inner:`<g class="spin-fast"><path d="M670 420 l8 8 -8 8 -8 -8z" fill="var(--m-pf)" opacity=".7"/></g>`});
+  s+=F('M690 445 H1092','pf','4',{w:6,lab:[1088,433,'vers R7 / T7','end']});
+  // solvant
+  s+=F('M555 330 V360 H880','solv','5',{w:4,lab:[700,352,'solvant usé']});
+  s+=B(880,320,200,75,'Régénération du solvant',['lavages soude / carbonate','distillation sous vide (R2)'],'5');
+  s+=F('M980 395 V500 H200 V380 H230','solv','5 1',{w:4,lab:[600,494,'solvant régénéré']});
+  s+=B(20,300,150,75,'Effluents',['évaporation','acide recyclé'],'6');
+  s+=F('M95 375 V490 H330 V480','eff','6',{w:4,lab:[110,505,'concentrats → PF']});
+  s+=PT('1',`<text class="lbl-s" x="290" y="200">phase aqueuse ↓</text><text class="lbl-s" x="290" y="350">solvant ↑</text>`);
+  return s;}},
+
+/* ---------- T3 / T5 ---------- */
+t3:{t:'T3 · T5 — Purification et expédition du nitrate d’uranyle',sub:'Dernière étape du traitement de l’uranium avant son retour vers l’amont du cycle',fiche:'t3',
+ intro:'L’uranium séparé contient encore des traces d’émetteurs alpha et gamma. T3 / T5 le purifient, le concentrent et le préparent à l’expédition ; ces ateliers recyclent aussi le solvant et l’acide.',
+ steps:[
+ {t:'Purification de l’uranium',d:'<p>Séparation liquide-liquide dans des <b>batteries de mélangeurs-décanteurs</b>, en <b>deux cycles successifs</b> (extraction et réextraction). Les reliquats d’émetteurs gamma (zirconium, thorium, ruthénium) et alpha (plutonium, neptunium) sont éliminés et partent vers la vitrification. Deux cycles fonctionnent en parallèle : un pour T2, un pour R2.</p>'},
+ {t:'Concentration et entreposage',d:'<p>La solution d’uranium purifiée est <b>concentrée par évaporation</b> puis entreposée en cuves, où elle est contrôlée.</p>'},
+ {t:'Conditionnement et expédition',d:'<p>Le nitrate d’uranyle est conditionné puis expédié vers les usines de l’amont du cycle pour une nouvelle utilisation (conversion puis réenrichissement, ou transformation en oxyde pour un recyclage ultérieur).</p>'},
+ {t:'Traitement du solvant',d:'<p>Le solvant issu des cycles de purification et des ateliers T2 et T4 est récupéré et <b>décontaminé par traitement chimique et physique</b> (distillation), puis recyclé.</p>'},
+ {t:'Acide nitrique non tritié',d:'<p>L’acide issu de la purification dans T2, T3 et T4 est récupéré, <b>décontaminé par évaporation, puis rectifié</b> avant d’être recyclé dans le procédé.</p>'},
+ {t:'Préparation du nitrate uraneux',d:'<p>Une partie du nitrate d’uranyle est <b>réduite à l’hydrogène</b> en nitrate uraneux U(IV), le réactif qui permet la partition uranium / plutonium dans T2 et T4.</p>'}],
+ svg:()=>{
+  let s='';
+  s+=B(20,70,170,75,'Depuis R2 / T2',['nitrate d’uranyle','+ traces Pu, Np, Ru, Th'],'1');
+  s+=F('M190 108 H235','u','1',{w:6});
+  s+=PT('1',`<rect x="235" y="60" width="345" height="110" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>${Array.from({length:5},(_,i)=>{const x=248+i*66;return `<rect x="${x}" y="78" width="20" height="74" rx="3" fill="var(--m-u)" opacity=".2" stroke="var(--eq-stroke)"/><g class="spin-fast" style="animation-delay:${i*.2}s"><path d="M${x+10} 108 l6 0 M${x+10} 108 l-6 0 M${x+10} 108 l0 6 M${x+10} 108 l0 -6" stroke="var(--m-u)" stroke-width="2.5"/></g><rect x="${x+24}" y="78" width="36" height="34" fill="var(--m-solv)" opacity=".2"/><rect x="${x+24}" y="112" width="36" height="40" fill="var(--m-eff)" opacity=".2"/><rect x="${x+24}" y="78" width="36" height="74" fill="none" stroke="var(--eq-stroke)"/>`;}).join('')}<text class="lbl mid" x="407" y="50">Batteries de mélangeurs-décanteurs — 2 cycles</text>`);
+  s+=F('M300 170 V235 H220','pf','1',{w:4});
+  s+=B(20,205,200,60,'Raffinats α / γ','→ vitrification R7 / T7','1');
+  s+=F('M580 108 H620','u','1 2',{w:6});
+  s+=B(620,68,140,80,'Évaporateur','concentration','2',{inner:[0,.6].map((d,i)=>`<circle class="rise" cx="${660+i*55}" cy="138" r="2.5" fill="var(--m-u)" style="animation-delay:${d}s"/>`).join('')});
+  s+=F('M760 108 H800','u','2',{w:6});
+  s+=B(800,68,140,80,'Entreposage','cuves de nitrate d’uranyle','2');
+  s+=F('M940 108 H975','u','3',{w:6});
+  s+=B(975,58,110,100,'Expédition','','3',{top:true,inner:`<rect x="985" y="96" width="90" height="34" rx="16" fill="var(--eq)" stroke="var(--m-u)" stroke-width="2.5"/><path d="M990 92 L1000 96 M1070 92 L1060 96 M983 132 H1080" stroke="var(--eq-stroke)" stroke-width="2.5"/>${[1000,1055,1068].map(x=>`<circle cx="${x}" cy="140" r="6" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')}<text class="eq-s" x="1030" y="117">LR65</text>`});
+  s+=F('M520 170 V330','solv','4',{w:4});
+  s+=B(330,330,240,80,'Traitement du solvant',['chimique + distillation','solvant de T2, T4 et du cycle'],'4');
+  s+=F('M330 370 H260 V170','solv','4',{w:4,lab:[268,300,'solvant recyclé']});
+  s+=F('M690 148 V330','eff','5',{w:4,lab:[698,250,'vapeurs acides']});
+  s+=B(600,330,230,80,'Acide nitrique non tritié',['évaporation · rectification'],'5');
+  s+=F('M715 410 V470 H560','eff','5',{w:4,lab:[565,462,'acide recyclé → T2 · T3 · T4']});
+  s+=F('M870 148 V330','u','6',{w:4});
+  s+=B(850,330,230,80,'Nitrate uraneux',['réduction à l’hydrogène','U(VI) → U(IV)'],'6');
+  s+=F('M965 410 V470 H1092','u','6',{w:4,lab:[1088,494,'vers la partition T2 · T4','end']});
+  return s;}},
+
+/* ---------- R4 / T4 ---------- */
+r4:{t:'R4 · T4 — Purification, conversion et conditionnement du plutonium',sub:'Voie humide (chimique) puis voie sèche (mécanique) · entreposage BSI / BST1',fiche:'r4',
+ intro:'Le nitrate de plutonium est purifié, transformé en poudre d’oxyde PuO₂ puis conditionné en conteneurs étanches avant entreposage et expédition vers la fabrication du combustible MOX.',
+ steps:[
+ {t:'Purification du plutonium',d:'<p>Les traces d’uranium et de produits de fission résiduels sont éliminées par <b>extraction et réextraction liquide-liquide</b>.</p><ul><li><b>T4</b> : deux cycles successifs en colonnes pulsées.</li><li><b>R4</b> : un seul cycle, en <b>extracteurs centrifuges</b>, environ 60 fois moins volumineux que les colonnes de T4 (temps de séjour et volume de solvant réduits).</li></ul>'},
+ {t:'Conversion en oxyde',d:'<p>Le nitrate de plutonium est <b>précipité en oxalate</b>. Le précipité est filtré, essoré, séché puis <b>calciné à plus de 500 °C</b> pour donner l’oxyde de plutonium PuO₂.</p>'},
+ {t:'Eaux-mères et oxydes récupérés',d:'<p>Après concentration et destruction des ions oxaliques dans un évaporateur, les <b>eaux-mères</b> de filtration sont recyclées en tête du procédé. Les poudres récupérées lors du nettoyage sont redissoutes dans un dissolveur électrolytique et recyclées.</p>'},
+ {t:'Homogénéisation et conditionnement',d:'<p>Les lots sont <b>homogénéisés</b> (120 kg sur T4, 200 kg sur R4). L’oxyde est mis en <b>boîtes inox serties</b> d’environ contenu contrôlé, regroupées par 5 dans un <b>étui soudé à l’arc plasma</b>. Chaque étui est placé dans un <b>conteneur</b> dont on contrôle l’étanchéité et la non-contamination.</p>'},
+ {t:'Entreposage et expédition',d:'<p>Les conteneurs sont entreposés dans les ateliers <b>BSI et BST1</b>, d’où ils sont expédiés vers l’usine de fabrication du combustible <b>MOX</b> (mélange d’oxydes de plutonium et d’uranium appauvri).</p><p class="note">R4, mis en production en avril 2002 : production nominale de 80 kg de plutonium par jour (96 kg maximum) ; cuves à réseaux de tubes dont la sûreté-criticité est garantie par la géométrie.</p>'}],
+ svg:()=>{
+  let s=`${TX(20,30,'VOIE HUMIDE — traitement chimique','zt')}${TX(20,290,'VOIE SÈCHE — traitement mécanique','zt')}`;
+  s+=B(20,65,150,80,'Nitrate de Pu',['depuis R2 / T2'],'1');
+  s+=F('M170 105 H200','pu','1',{w:6});
+  s+=B(200,45,210,120,'Purification',['T4 : colonnes pulsées, 2 cycles','R4 : extracteurs centrifuges,','1 cycle'],'1',{inner:`<g class="spin-fast"><circle cx="390" cy="66" r="10" fill="none" stroke="var(--m-pu)" stroke-width="2.5" stroke-dasharray="7 4"/></g>`});
+  s+=F('M410 105 H440','pu','1 2',{w:6});
+  s+=B(440,55,150,100,'Précipitation','oxalate de Pu','2',{top:true,inner:`<rect x="480" y="100" width="70" height="45" rx="6" fill="var(--m-pu)" opacity=".18" stroke="var(--eq-stroke)"/>${[0,.5,1].map((d,i)=>`<circle class="fall" cx="${495+i*20}" cy="96" r="2.5" fill="var(--m-pu)" style="animation-delay:${d}s;animation-duration:2.4s"/>`).join('')}`});
+  s+=F('M590 105 H620','pu','2',{w:6});
+  s+=B(620,55,140,100,'Filtre rotatif','essorage · séchage','2',{top:true,inner:`<g class="spin"><circle cx="690" cy="120" r="22" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M690 98V142M668 120H712" stroke="var(--eq-stroke)" stroke-width="2"/></g>`});
+  s+=F('M760 105 H790','pu','2',{w:6});
+  s+=B(790,55,170,100,'Four de calcination','> 500 °C → PuO₂','2',{top:true,inner:`<rect class="glow" x="830" y="100" width="90" height="38" rx="6" fill="var(--glow)" opacity=".5"/>`});
+  s+=F('M690 155 V225 H560','eff','3',{w:4});
+  s+=B(380,200,180,55,'Eaux-mères oxaliques','évaporation → recyclage','3');
+  s+=F('M380 228 H305 V165','eff','3',{w:4});
+  s+=B(20,195,250,55,'Oxydes récupérés','dissolveur électrolytique','3');
+  s+=F('M145 195 V180 H225 V165','pu','3',{w:4});
+  // voie sèche (de droite à gauche)
+  s+=F('M880 155 V300','pu','2 4',{w:6,lab:[888,240,'poudre PuO₂']});
+  s+=B(860,300,200,90,'Homogénéisation',['lots contrôlés','homogénéisation'],'4',{inner:`<g class="spin"><rect x="1030" y="310" width="18" height="18" rx="3" fill="none" stroke="var(--m-pu)" stroke-width="2"/></g>`});
+  s+=F('M860 345 H800','pu','4',{w:6});
+  s+=B(640,300,160,90,'Boîtes inox serties','≈ contenu contrôlé de PuO₂','4');
+  s+=F('M640 345 H580','pu','4',{w:6});
+  s+=B(420,300,160,90,'Étui soudé',['boîtes conditionnées','soudage arc plasma'],'4');
+  s+=F('M420 345 H360','pu','4',{w:6});
+  s+=B(200,300,160,90,'Conteneur',['étanchéité','non-contamination'],'4');
+  s+=F('M200 345 H170','pu','4 5',{w:6});
+  s+=B(20,300,150,90,'BSI · BST1','entreposage','5');
+  s+=F('M95 390 V470 H1092','pu','5',{w:6,lab:[1088,458,'expédition vers la fabrication du combustible MOX','end']});
+  return s;}},
+
+/* ---------- R7 / T7 ---------- */
+r7:{t:'R7 · T7 — Vitrification des produits de fission',sub:'Des solutions de haute activité au colis standard de déchets vitrifiés (CSD-V)',fiche:'r7',
+ intro:'Les produits de fission, non recyclables et très radioactifs, sont incorporés dans du verre : ils deviennent partie intégrante de sa structure et sont confinés durablement.',
+ steps:[
+ {t:'Préparation des solutions',d:'<p>Les solutions contiennent des oxydes de PF en solution acide et des suspensions de <b>fines</b> issues du cisaillage et de la dissolution. Elles sont « ajustées » par ajout de réactifs pour obtenir un verre conforme à une spécification internationalement approuvée.</p>'},
+ {t:'Calcination',d:'<p>Les solutions s’écoulent par gravité dans un <b>calcinateur</b> : un tube tournant chauffé à environ <b>800 °C</b>, où elles s’assèchent pour former un <b>calcinat</b>.</p>'},
+ {t:'Fusion et coulée',d:'<p>À la sortie du calcinateur, on ajoute de la <b>fritte de verre</b>. Calcinat et fritte (<b>composition qualifiée</b>) tombent dans un <b>four de fusion chauffé par induction à plus de 1 100 °C</b> pour former un verre homogène, coulé dans un conteneur en acier inoxydable réfractaire.</p>'},
+ {t:'Refroidissement et conditionnement',d:'<p>Après <b>24 heures</b> de refroidissement, un couvercle est <b>soudé</b>. Le conteneur est décontaminé par jet d’eau haute pression et microbillage, puis la non-contamination est vérifiée par <b>frottis</b>.</p>'},
+ {t:'Entreposage',d:'<p>Un <b>pont transbordeur blindé</b> transfère les conteneurs dans des <b>puits ventilés</b> : l’air froid entre en bas, s’échauffe au contact des colis et ressort en haut. Ils y restent entreposés verticalement avant retour aux clients ou stockage définitif.</p><p class="note">Le verre obtenu est comparable à une roche volcanique, l’obsidienne : homogène, résistant à l’irradiation et aux chocs thermiques.</p>'}],
+ svg:()=>{
+  let s='';
+  s+=B(20,30,180,62,'Évaporateurs','concentration des PF','1',{inner:[0,.6,1.2].map((d,i)=>`<circle class="rise" cx="${60+i*50}" cy="86" r="2.5" fill="var(--m-pf)" style="animation-delay:${d}s"/>`).join('')});
+  s+=F('M110 92 V115','pf','1',{w:5});
+  s+=B(20,115,180,62,'Dosage','solutions + fines ajustées','1',{inner:`<path class="drip" d="M185 128 v6" stroke="var(--m-pf)" stroke-width="4" stroke-linecap="round"/>`});
+  s+=F('M200 146 H228 V105 H250','pf','1 2',{w:6});
+  s+=PT('2',`<g transform="rotate(8 250 80)"><rect x="250" y="80" width="270" height="48" rx="20" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M262 104 H508" stroke="var(--m-pf)" stroke-width="12" stroke-dasharray="14 10" class="f-dash" style="--mc:var(--m-pf);animation-duration:2.4s" opacity=".7"/>${[290,340,390,440,490].map(x=>`<path class="glow" d="M${x} 76 v-8 M${x} 132 v8" stroke="var(--glow)" stroke-width="3"/>`).join('')}</g><text class="lbl mid" x="385" y="58">Calcinateur — tube tournant ≈ 800 °C</text>`);
+  s+=B(560,10,150,45,'Fritte de verre','','3');
+  s+=F('M635 55 V120','verre','3',{w:4});
+  s+=F('M515 150 H590 V122','pf','2 3',{w:5});
+  s+=PT('3',`<rect x="560" y="120" width="150" height="130" rx="12" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect class="glow" x="575" y="175" width="120" height="62" rx="8" fill="var(--glow)" opacity=".6"/>${[0,1,2,3,4].map(i=>`<path d="M563 ${135+i*24} H572 M698 ${135+i*24} H707" stroke="var(--m-sol)" stroke-width="4"/>`).join('')}<text class="lbl" x="722" y="190">Four de fusion</text><text class="lbl-s" x="722" y="205">induction > 1 100 °C</text>`);
+  s+=PT('3',`<path d="M624 250 H646 L639 266 H631Z" fill="var(--eq-stroke)"/><path d="M635 266 V300" stroke="var(--glow)" stroke-width="4"/>${[0,.35,.7].map(d=>`<circle class="drip" cx="635" cy="282" r="3.5" fill="var(--glow)" style="animation-delay:${d}s"/>`).join('')}<rect x="605" y="315" width="60" height="140" rx="6" fill="none" stroke="var(--eq-stroke)" stroke-width="2.5"/><rect class="fillup" x="609" y="320" width="52" height="131" rx="4" fill="var(--m-verre)" opacity=".6"/><text class="lbl" x="676" y="330">conteneur inox (CSD-V)</text>`);
+  s+=F('M665 385 H700','verre','4',{w:4});
+  s+=B(700,355,120,60,'Refroidissement','durée prescrite','4');s+=F('M820 385 H840','verre','4',{w:4});
+  s+=B(840,355,120,60,'Soudage','du couvercle','4');s+=F('M960 385 H975','verre','4',{w:4});
+  s+=B(975,355,110,60,'Décontamination',['eau HP · microbillage'],'4');
+  s+=F('M1030 415 V440','verre','4',{w:4});
+  s+=B(975,440,110,55,'Contrôle','par frottis','4');
+  s+=F('M975 468 H930','verre','4 5',{w:4});
+  s+=B(760,440,170,55,'Pont transbordeur','blindé','5');
+  s+=F('M760 468 H560','verre','5',{w:4});
+  s+=PT('5',`<rect x="230" y="320" width="330" height="175" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="234" y="324" width="322" height="16" rx="3" fill="var(--eq-stroke)" opacity=".6"/><text class="lbl-s mid" x="395" y="336" style="fill:var(--canvas)">dalle de béton ≈ 2 m</text>${[0,1,2,3].map(i=>`<rect x="${255+i*75}" y="345" width="50" height="146" rx="4" fill="none" stroke="var(--eq-stroke)" stroke-width="1.5"/>${Array.from({length:9},(_,j)=>`<rect x="${263+i*75}" y="${348+j*15.7}" width="34" height="13.5" rx="2" fill="var(--m-verre)" opacity=".6"/>`).join('')}`).join('')}${[0,1,2].map(i=>`<path class="rise" d="M${292+i*75} 480 v-20" stroke="var(--m-eau)" stroke-width="3" style="animation-delay:${i*.6}s"/>`).join('')}<text class="lbl mid" x="395" y="294">Hall d’entreposage : puits ventilés de 9 CSD-V</text><path d="M236 312 H554" stroke="var(--m-u)" stroke-width="4"/><g class="tr-move"><rect x="250" y="303" width="44" height="12" rx="2" fill="var(--m-u)"/><rect x="262" y="315" width="20" height="9" rx="2" fill="var(--eq-stroke)"/></g>`);
+  return s;}},
+
+/* ---------- ACC ---------- */
+acc:{t:'ACC — Compactage des coques et embouts',sub:'Déchets de structure du combustible et déchets technologiques de haute activité · volume divisé par 5',fiche:'acc',
+ intro:'Les coques (tronçons de gaines vidés) et les embouts sont séchés, compactés en « galettes » puis empilés dans des colis standard de déchets compactés (CSD-C).',
+ steps:[
+ {t:'Réception des fûts',d:'<p>Les coques et embouts arrivent directement de R1 et T1 (cisaillage et dissolution) en fûts navettes, ainsi que des fûts ECE d’entreposage plus anciens.</p>'},
+ {t:'Préparation',d:'<p>Coques et embouts sont séparés dans le <b>séparateur-doseur</b>, qui assure un remplissage maîtrisé d’<b>étuis de 80 litres</b>.</p>'},
+ {t:'Séchage et compactage',d:'<p>Préalablement <b>séchés</b> pour exclure toute présence d’eau, les étuis sont compactés jusqu’au <b>1/5 de leur volume</b> sous des presses d’une capacité de <b>2 500 tonnes</b>. Ils deviennent des « galettes ».</p>'},
+ {t:'Remplissage des CSD-C',d:'<p>Les galettes remplissent des <b>colis standard de déchets compactés</b>, fermés par soudage et soumis, à l’unité, à une vérification de non-contamination.</p><p class="note">Les CSD-C ont la même géométrie que les CSD-V : c’est le concept de « conteneur universel », qui simplifie manutention, entreposage, transport et stockage.</p>'},
+ {t:'Caractérisation et entreposage',d:'<p>Chaque CSD-C fait l’objet d’une <b>caractérisation radiologique</b> par un système de mesures dédié, puis il est transféré vers un site d’entreposage.</p>'},
+ {t:'Déchets technologiques',d:'<p>L’ACC réduit aussi le volume de <b>déchets technologiques de haute activité</b> non stockables en surface. Un procédé de <b>découpe laser</b> permet de découper les paniers ECE, qui remplissent ensuite des étuis de 80 L.</p>'}],
+ svg:()=>{
+  let s='';
+  s+=B(20,60,200,80,'Réception des fûts',['coques et embouts (R1 / T1)','fûts ECE anciens'],'1');
+  s+=F('M220 100 H250','coq','1 2',{w:6});
+  s+=B(250,50,170,100,'Séparateur-doseur','étuis de 80 L','2',{top:true,inner:`<path d="M305 100 H365 L345 126 H325Z" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>${[0,.5,1].map((d,i)=>`<rect class="fall" x="${330+i*6}" y="124" width="5" height="4" fill="var(--m-coq)" style="animation-delay:${d}s;animation-duration:2s"/>`).join('')}`});
+  s+=F('M420 100 H450','coq','2 3',{w:6});
+  s+=B(450,60,130,80,'Séchage','élimination de l’eau','3',{inner:[0,1,2].map(i=>`<path class="rise" d="M${490+i*25} 132 q4 -5 0 -10" stroke="var(--glow)" stroke-width="2" fill="none" style="animation-delay:${i*.5}s"/>`).join('')});
+  s+=F('M580 100 H615','coq','3',{w:6});
+  s+=PT('3',`<rect x="615" y="20" width="160" height="210" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><g class="press"><rect x="650" y="35" width="90" height="26" rx="4" fill="var(--eq-stroke)"/><path d="M695 20 V35" stroke="var(--eq-stroke)" stroke-width="10"/></g><rect class="crush" x="665" y="125" width="60" height="85" rx="5" fill="var(--m-coq)" opacity=".75"/><path d="M640 212 H750" stroke="var(--eq-stroke)" stroke-width="4"/><text class="lbl mid" x="695" y="248">Presse 2 500 t — volume ÷ 5</text>`);
+  s+=F('M695 255 V285','coq','3 4',{w:6,lab:[702,276,'galettes']});
+  s+=PT('4',`<rect x="650" y="285" width="90" height="190" rx="8" fill="none" stroke="var(--eq-stroke)" stroke-width="2.5"/>${Array.from({length:7},(_,i)=>`<rect x="658" y="${448-i*24}" width="74" height="20" rx="4" fill="var(--m-coq)" opacity="${.9-i*.08}"/>`).join('')}<text class="lbl mid" x="695" y="495">CSD-C</text>`);
+  s+=F('M740 330 H780','coq','4',{w:5});
+  s+=B(780,300,150,60,'Soudage · contrôle','non-contamination','4');
+  s+=F('M855 360 V390','coq','5',{w:5});
+  s+=B(780,390,150,60,'Caractérisation','mesure radiologique','5');
+  s+=F('M930 420 H950','coq','5',{w:5});
+  s+=B(950,390,130,60,'Entreposage','des CSD-C','5');
+  s+=B(20,330,280,100,'Déchets technologiques HA',['non stockables en surface','découpe laser des paniers ECE'],'6');
+  s+=F('M300 380 H335 V150','dt','6',{w:5});
+  s+=PT('4',`<rect x="420" y="330" width="44" height="120" rx="6" fill="var(--m-coq)" opacity=".5" stroke="var(--eq-stroke)"/><rect x="480" y="330" width="44" height="120" rx="6" fill="var(--m-verre)" opacity=".5" stroke="var(--eq-stroke)"/><text class="lbl-s mid" x="442" y="468">CSD-C</text><text class="lbl-s mid" x="502" y="468">CSD-V</text><text class="lbl mid" x="472" y="318">même géométrie</text><text class="lbl-s mid" x="472" y="490">« conteneur universel »</text>`);
+  return s;}},
+
+/* ---------- STE3 / AD2 ---------- */
+ste3:{t:'STE3 · AD2 · ACR — Effluents liquides actifs et déchets technologiques',sub:'Recyclage maximal dans les ateliers, puis traitement final et conditionnement',fiche:'ste3',
+ intro:'Les effluents faiblement et moyennement actifs de toutes les usines convergent vers STE3. Les déchets d’exploitation et de maintenance sont cimentés et mis en conteneurs à AD2.',
+ steps:[
+ {t:'Collecte et analyse',d:'<p>Les effluents de faible activité (FA) et de moyenne activité (MA) à faible émission alpha arrivent de l’ensemble des usines. Ils sont d’abord <b>stockés en cuve</b> puis <b>analysés</b>.</p><p class="note">En amont, chaque atelier recycle un maximum d’effluents (évaporateurs) pour séparer les radionucléides et réduire le volume à conditionner ; l’évaporation ne détruit pas la radioactivité.</p>'},
+ {t:'Traitement chimique',d:'<p>Un traitement chimique élimine les radioéléments en les <b>insolubilisant par coprécipitation</b>. Une <b>décantation</b> sépare ensuite un liquide clarifié et des boues chargées en radioactivité.</p>'},
+ {t:'Devenir des liquides et des boues',d:'<ul><li>Les liquides très faiblement actifs sont <b>contrôlés</b> puis rejetés en mer, conformément aux autorisations de rejet de l’établissement.</li><li>Les <b>boues</b>, décantées et déshydratées, sont enrobées et conditionnées en fûts entreposés dans des halls d’attente (bitume selon la brochure historique).</li></ul>'},
+ {t:'AD2 — cimentation des déchets technologiques',d:'<p>AD2 conditionne les déchets d’exploitation, de maintenance, d’assainissement et de démantèlement par <b>cimentation</b> en conteneurs béton-fibres :</p><ul><li>CBF-C0, C1, C2 : faible activité, compatibles avec un stockage en surface (agrément de l’ANDRA) ;</li><li>CBF-C2i : déchets irradiants stockables en surface ; CBF-K : grandes dimensions ;</li><li>CBF-C2’ : plus forte activité, non stockables en surface.</li></ul><p class="note">AD2 contrôle aussi des fûts de 120 L de déchets incinérables expédiés à CENTRACO.</p>'},
+ {t:'ACR — résines des piscines',d:'<p>Les résines échangeuses d’ions de l’épuration de l’eau des piscines sont caractérisées, concentrées, prétraitées, <b>mélangées à du ciment et coulées en fûts</b>. Après prise du ciment, les fûts rejoignent AD2 et sont placés en conteneur CBF-C.</p>'}],
+ svg:()=>{
+  let s=`${TX(20,28,'STE3 — station de traitement des effluents liquides actifs','zt')}${TX(20,250,'AD2 · ACR — conditionnement des déchets technologiques','zt')}`;
+  s+=B(20,55,160,85,'Effluents FA / MA',['de toutes les usines'],'1');
+  s+=F('M180 97 H210','eff','1',{w:6});
+  s+=B(210,55,140,85,'Cuves d’arrivée','analyses','1');
+  s+=F('M350 97 H380','eff','1 2',{w:6});
+  s+=B(380,45,190,105,'Coprécipitation','insolubilisation','2',{top:true,inner:[0,.5,1,1.5].map((d,i)=>`<circle class="fall" cx="${420+i*35}" cy="88" r="3" fill="var(--m-dt)" style="animation-delay:${d}s;animation-duration:2.6s"/>`).join('')});
+  s+=F('M570 97 H600','eff','2',{w:6});
+  s+=B(600,45,140,105,'Décantation','','2',{top:true,inner:`<rect x="615" y="75" width="110" height="40" fill="var(--m-eff)" opacity=".2"/><rect x="615" y="115" width="110" height="25" fill="var(--m-dt)" opacity=".55"/>`});
+  s+=F('M740 75 H790','eff','3',{w:5});
+  s+=B(790,40,150,70,'Contrôle','avant rejet','3');
+  s+=F('M940 75 H1092','eff','3',{w:5,lab:[1088,64,'rejet en mer autorisé','end']});
+  s+=F('M670 150 V185 H790','dt','3',{w:5,lab:[680,175,'boues']});
+  s+=B(790,150,150,75,'Boues',['déshydratation','enrobage'],'3');
+  s+=F('M940 187 H985','dt','3',{w:5});
+  s+=B(985,150,100,75,'Fûts','halls d’attente','3');
+  // AD2
+  s+=B(20,290,200,90,'Déchets technologiques',['exploitation · maintenance','assainissement · démantèlement'],'4');
+  s+=F('M220 335 H260','dt','4',{w:6});
+  s+=B(260,290,170,90,'AD2','cimentation','4',{inner:`<g class="spin"><path d="M405 300 l9 9 -9 9 -9 -9z" fill="none" stroke="var(--m-dt)" stroke-width="2"/></g>`});
+  s+=F('M430 320 H450 V310 H470','dt','4',{w:4});s+=F('M430 335 H450 V380 H470','dt','4',{w:4});s+=F('M430 350 H445 V450 H470','dt','4',{w:4});
+  s+=B(470,280,200,60,'CBF-C0 / C1 / C2','faible activité · surface','4');
+  s+=B(470,350,200,60,'CBF-C2i · CBF-K','irradiants · grandes dimensions','4');
+  s+=B(470,420,200,60,'CBF-C2’','plus forte activité · non surface','4');
+  s+=F('M345 290 V270 H805 V280','dt','4',{w:4});
+  s+=B(700,280,190,60,'Fûts de 120 L','incinérables → CENTRACO','4');
+  s+=B(700,400,190,80,'ACR — résines',['épuration des piscines','cimentées en fûts'],'5');
+  s+=F('M700 440 H685 V500 H345 V380','dt','5',{w:4});
+  return s;}},
+
+/* ---------- Laboratoires ---------- */
+labo:{t:'Laboratoires d’analyses et de contrôle',sub:'Une seule entité pour l’ensemble des analyses du site · 24 h sur 24, 365 jours par an',fiche:'labo',
+ intro:'Chaque atelier est relié aux laboratoires par un réseau de transfert pneumatique : les échantillons circulent en « cruchons » sans rupture du confinement.',
+ steps:[
+ {t:'Prélèvement',d:'<p>Des échantillons sont prélevés dans tous les ateliers du site : <b>854 points de prélèvement</b> et <b>60 bancs de prise d’échantillons</b> selon la brochure.</p>'},
+ {t:'Transfert par le RTP',d:'<p>Le <b>réseau de transfert pneumatique</b> (56 km, 59 automates, 8 machines d’approvisionnement en cruchons) prélève automatiquement les échantillons demandés en maintenant le confinement total de la matière, repère chaque échantillon et l’achemine vers la chaîne d’analyses prévue. Environ <b>150 000 cruchons</b> sont prélevés automatiquement chaque année.</p>'},
+ {t:'Analyse en chaînes blindées ou légères',d:'<p>Treize laboratoires principaux sont répartis sur les usines UP2 et UP3, équipés d’environ <b>30 chaînes blindées</b> pour les échantillons de haute activité et d’environ <b>60 chaînes légères</b> (boîtes à gants ou pinces) pour la faible et moyenne activité.</p><ul><li>Laboratoire UP3 : contrôle de marche du procédé des deux usines.</li><li>R7 : solutions de produits de fission et fines.</li><li>LRO et produits finis : poudre de PuO₂, nitrate d’uranyle.</li><li>Piscines, STE2 / STE3, ACR, spectrométrie de masse, études spéciales…</li><li>LSS : laboratoire sur site utilisé par les inspecteurs d’EURATOM.</li></ul>'},
+ {t:'Techniques d’analyse',d:'<ul><li>Spectrométries α, β et γ : activités des émetteurs radioactifs.</li><li>Spectrophotométrie : plutonium, neptunium, nitrites…</li><li>Torche à plasma (ICP) : cations en solution.</li><li>Spectrométrie de masse : isotopies et masses d’uranium et de plutonium.</li><li>Fluorescence X, Kedge : concentrations U et Pu sans ouvrir l’échantillon.</li><li>Chromatographies ionique, liquide et gazeuse ; dosages potentiométriques ; granulométrie des poudres de PuO₂.</li></ul>'},
+ {t:'Résultats et missions',d:'<p>Les résultats sont transmis aux ateliers par le réseau informatique. Trois finalités : <b>piloter le procédé</b>, <b>suivre les matières nucléaires</b> (bilans, contrôles indépendants) et <b>surveiller la radioprotection et l’environnement</b>.</p>'}],
+ svg:()=>{
+  let s='';
+  const at=['R1 · T1','R2 · T2','T3 · T5','R4 · T4','R7 · T7','STE3'];
+  s+=PT('1',at.map((a,i)=>`<rect x="${40+i*175}" y="40" width="145" height="55" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="1.6"/><text class="eq-t" x="${112+i*175}" y="72">${a}</text><circle cx="${112+i*175}" cy="112" r="6" fill="var(--accent)"/><path d="M${112+i*175} 95V106" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')+`<text class="lbl-s" x="40" y="30">points de prélèvement</text>`);
+  s+=PT('2',at.map((a,i)=>`<path d="M${112+i*175} 118 V160" stroke="var(--m-air)" stroke-width="5" stroke-linecap="round"/>`).join('')+`<path d="M60 160 H1000 V210 H390" fill="none" stroke="var(--m-air)" stroke-width="7" stroke-linejoin="round" stroke-linecap="round"/>${[0,1.2,2.4,3.6].map(d=>`<rect class="move-r" x="40" y="153" width="22" height="13" rx="6" fill="var(--m-u)" stroke="var(--canvas)" style="animation-delay:${d}s"/>`).join('')}<text class="lbl" x="60" y="190">Réseau de transfert pneumatique (RTP) — cruchons</text>`);
+  s+=PT('3',`<rect x="40" y="235" width="700" height="250" rx="14" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="eq-t" x="390" y="262">13 laboratoires (UP2 · UP3)</text>
+   <rect x="60" y="280" width="320" height="185" rx="10" fill="none" stroke="var(--eq-stroke)" stroke-dasharray="5 4"/><text class="lbl mid" x="220" y="302">≈ 30 chaînes blindées — haute activité</text>${[0,1,2].map(i=>`<rect x="${85+i*95}" y="320" width="80" height="80" rx="6" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="6"/><path d="M${105+i*95} 330 l10 30 M${140+i*95} 330 l-10 30" stroke="var(--eq-stroke)" stroke-width="3"/>`).join('')}<text class="lbl-s mid" x="220" y="430">cellules à télémanipulateurs</text>
+   <rect x="400" y="280" width="320" height="185" rx="10" fill="none" stroke="var(--eq-stroke)" stroke-dasharray="5 4"/><text class="lbl mid" x="560" y="302">≈ 60 chaînes légères — FA / MA</text>${[0,1,2].map(i=>`<rect x="${425+i*95}" y="330" width="80" height="60" rx="8" fill="var(--m-eau)" opacity=".18" stroke="var(--eq-stroke)" stroke-width="2"/><circle cx="${447+i*95}" cy="375" r="8" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/><circle cx="${483+i*95}" cy="375" r="8" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')}<text class="lbl-s mid" x="560" y="420">boîtes à gants ou pinces</text>`);
+  s+=B(760,235,320,250,'Techniques',['spectrométries α, β, γ','spectrophotométrie','torche à plasma (ICP)','spectrométrie de masse','fluorescence X · Kedge','chromatographies','potentiométrie · granulométrie'],'4');
+  s+=PT('5',`<path d="M1065 225 V110" fill="none" stroke="var(--m-solv)" stroke-width="3" stroke-dasharray="6 6" class="f-dash" style="--mc:var(--m-solv)"/><text class="lbl end" x="1056" y="122">résultats</text><text class="lbl end" x="1056" y="136">→ ateliers</text>`);
+  return s;}},
+
+/* ---------- Ventilation et gaz ---------- */
+vent:{t:'Ventilation, confinement et traitement des gaz',sub:'Le confinement dynamique vise à orienter l’air vers les zones les plus contaminables',fiche:'vent',
+ intro:'Le confinement dynamique repose sur une cascade de dépressions. L’air extrait et les gaz de procédé sont traités, filtrés et mesurés avant leur rejet par les cheminées.',
+ steps:[
+ {t:'Cascade de dépressions',d:'<p>Chaque enveloppe est maintenue en <b>dépression</b> par rapport à celle qui l’entoure : bâtiment, puis locaux de procédé, puis cellules et boîtes à gants. En cas de fuite, l’air entre vers la zone la plus contaminable au lieu d’en sortir.</p><p class="note">Les signes « − » indiquent des pressions relatives, non des valeurs.</p>'},
+ {t:'Gaz de procédé',d:'<p>Les gaz libérés au cisaillage et à la dissolution, ainsi que ceux des appareils de procédé (calcination, évaporateurs…), sont <b>lavés et filtrés</b> : colonnes de lavage, désorbeur à iode pour R1 / T1, filtration.</p>'},
+ {t:'Filtration et extraction',d:'<p>L’air extrait des locaux et des enceintes traverse des <b>filtres à très haute efficacité</b> avant les <b>ventilateurs d’extraction</b>.</p><p class="note">Ventilation, filtration et traitement des gaz de procédé sont trois fonctions distinctes.</p>'},
+ {t:'Rejet surveillé',d:'<p>Tous les gaz sont <b>contrôlés sur chaque cheminée</b> avant rejet dans l’atmosphère, conformément aux autorisations. Des stations de surveillance autour du site complètent ces mesures.</p>'}],
+ svg:()=>{
+  let s='';
+  s+=PT('1',`<rect x="40" y="60" width="600" height="420" rx="16" fill="var(--zone)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl" x="56" y="84">Bâtiment — zone périphérique</text><text class="lbl-s" x="56" y="100">pression relative : −</text>
+   <rect x="120" y="130" width="440" height="300" rx="14" fill="var(--zone)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl" x="136" y="154">Local de procédé</text><text class="lbl-s" x="136" y="170">− −</text>
+   <rect x="210" y="210" width="260" height="170" rx="12" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="3"/><text class="lbl" x="226" y="234">Cellule / boîte à gants</text><text class="lbl-s" x="226" y="250">− − −</text>`);
+  s+=F('M10 300 H120','air','1',{w:4,lab:[14,290,'air neuf filtré']});
+  s+=F('M120 300 H210','air','1',{w:4});
+  s+=F('M470 330 H700','air','1 3',{w:5,lab:[480,320,'air extrait']});
+  s+=B(700,295,150,75,'Filtration','filtres THE','3');
+  s+=F('M850 332 H880','air','3',{w:5});
+  s+=B(880,295,120,75,'Extraction','ventilateurs','3',{inner:`<g class="spin-fast"><path d="M985 307 l-7 6 M985 307 l7 6 M985 307 l0 -9" stroke="var(--m-air)" stroke-width="3"/></g>`});
+  s+=F('M940 295 V140','air','3 4',{w:5});
+  s+=PT('2',`<rect x="260" y="270" width="160" height="80" rx="10" fill="var(--m-sol)" opacity=".2" stroke="var(--eq-stroke)"/><text class="lbl mid" x="340" y="306">appareils de procédé</text><text class="lbl-s mid" x="340" y="322">(dissolveur, évaporateurs…)</text>`);
+  s+=F('M340 270 V120 H700','gaz','2',{w:5,lab:[350,140,'gaz de procédé']});
+  s+=B(700,75,190,90,'Traitement des gaz',['lavage · désorbeur à iode','filtration'],'2');
+  s+=F('M890 110 H915','gaz','2 4',{w:5});
+  s+=PT('4',`<path d="M915 140 V20 H965 V140" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><circle cx="1010" cy="40" r="14" fill="none" stroke="var(--accent)" stroke-width="2"/><path d="M1003 40 h14 M1010 33 v14" stroke="var(--accent)" stroke-width="2"/><text class="lbl" x="975" y="75">mesures</text><text class="lbl" x="975" y="89">en continu</text><text class="lbl mid" x="940" y="160">cheminée</text>`);
+  return s;}}
+};
+const VIEW_ORDER=['recep','r1','r2','t3','r4','r7','acc','ste3','labo','vent'];
+const NAV_LABEL={recep:'Réception · piscines',r1:'R1 · T1',r2:'R2 · T2',t3:'T3 · T5',r4:'R4 · T4',r7:'R7 · T7',acc:'ACC',ste3:'STE3 · AD2',labo:'Laboratoires',vent:'Ventilation · gaz'};
+
+/* =====================================================================
+   5. FICHE DANS LE PANNEAU LATÉRAL
+   ===================================================================== */
+function renderFiche(id,inDetail){const f=FICHE[id];if(!f)return;
+ $('aside').innerHTML=`<div class="kicker">Fiche bâtiment</div><h2>${f.t}</h2><p style="margin:0 0 8px;color:var(--muted)">${f.full}</p><p>${f.role}</p>
+ <h3>Ce qui s’y passe</h3><ul>${f.does.map(d=>`<li>${d}</li>`).join('')}</ul>
+ ${f.keys?`<h3>Repères chiffrés</h3><div class="facts">${f.keys.map(([a,b])=>`<div class="fact"><b>${a}</b>${b}</div>`).join('')}</div>`:''}
+ ${f.io?`<h3>Entrées et sorties</h3><div class="io">${f.io.map(([a,b])=>`<span>${a}</span><div>${b}</div>`).join('')}</div>`:''}
+ ${!inDetail&&f.view?`<button class="btn primary openbtn" type="button" id="openView">Ouvrir la vue détaillée →</button>`:''}
+ <div class="warning">Principes de traitement du combustible usé. Schémas de principe, sans données d’exploitation.</div>`;
+ const b=$('openView');if(b)b.onclick=()=>openView(f.view);}
+function asideHome(){$('aside').innerHTML=`<div class="kicker">Mode d’emploi</div><h2>Synoptique général</h2><p>Le schéma suit le combustible usé de son arrivée sur le site jusqu’aux matières recyclables et aux déchets conditionnés.</p><ul><li><b>Cliquez sur un bâtiment</b> pour afficher sa fiche et ses flux.</li><li><b>Filtrez un flux</b> (uranium, plutonium…) pour suivre son trajet.</li><li><b>Ouvrez la vue détaillée</b> d’un atelier pour une lecture guidée étape par étape.</li><li>La <b>visite guidée</b> enchaîne automatiquement tous les bâtiments.</li></ul><h3>Ordres de grandeur</h3><div class="facts"><div class="fact"><b>≈ 95 %</b>uranium recyclable</div><div class="fact"><b>≈ 1 %</b>plutonium recyclable</div><div class="fact"><b>≈ 4 %</b>produits de fission : déchets ultimes, l’essentiel de la radioactivité</div></div><div class="warning">Principes de traitement du combustible usé. Schémas fonctionnels non dimensionnés et non géographiques.</div>`;}
+
+/* =====================================================================
+   6. NAVIGATION
+   ===================================================================== */
+let cur='syn',step=0,playTimer=null,tourTimer=null,selNode=null,filter='all';
+function buildNav(){$('nav').innerHTML=`<button type="button" data-go="syn">Synoptique général</button><span class="sep"></span>`+VIEW_ORDER.map(v=>`<button type="button" data-go="${v}">${NAV_LABEL[v]}</button>`).join('');
+ $('nav').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='syn'?showSyn():openView(b.dataset.go));}
+function markNav(){$('nav').querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===cur));}
+function crumbs(){$('crumbs').innerHTML=cur==='syn'?'<span>Synoptique général</span>':`<a id="toSyn">Synoptique général</a><span>›</span><span>${NAV_LABEL[cur]}</span>`;const a=$('toSyn');if(a)a.onclick=showSyn;}
+function showSyn(){wheelState.playing=false;wheelState.last=0;stopTour();stopPlay();cur='syn';$('synSec').classList.remove('hidden');$('detSec').classList.add('hidden');markNav();crumbs();if(selNode)renderFiche(selNode);else asideHome();window.scrollTo({top:0,behavior:'smooth'});}
+function openView(v){wheelState.playing=false;wheelState.last=0;stopTour();stopPlay();cur=v;const V=VIEWS[v];step=0;
+ $('synSec').classList.add('hidden');$('detSec').classList.remove('hidden');
+ $('det').setAttribute('aria-label',V.t);
+ $('det').innerHTML=V.svg();
+ $('det').setAttribute('viewBox','0 0 1100 520');
+ const used=[...new Set([...$('det').querySelectorAll('.fl')].map(g=>g.dataset.m))];
+ $('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>&nbsp;·&nbsp;`+used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('');
+ $('steps').innerHTML=`<button class="sbtn" type="button" data-step="0">Vue d’ensemble</button>`+V.steps.map((st,i)=>`<button class="sbtn" type="button" data-step="${i+1}">${i+1} · ${st.t}</button>`).join('');
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>{stopPlay();setStep(+b.dataset.step);});
+ $('det').querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+ const i=VIEW_ORDER.indexOf(v);$('prevView').disabled=i<=0;$('nextView').disabled=i>=VIEW_ORDER.length-1;
+ markNav();crumbs();renderFiche(V.fiche,true);setStep(0);renderTechZoom();window.scrollTo({top:0,behavior:'smooth'});}
+function setStep(n){const V=VIEWS[cur];step=n;
+ $('det').querySelectorAll('[data-s]').forEach(e=>{const on=n===0||e.dataset.s.split(' ').includes(String(n));e.classList.toggle('dim',!on);if(e.classList.contains('eq'))e.classList.toggle('hl',n>0&&on);});
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===n));
+ if(cur==='r1'){const z=$('techZoom');if(z)z.dataset.currentStep=String(n);}
+ $('stepText').innerHTML=n===0?`<h3>${V.t}</h3><p>${V.intro}</p><p class="note">${V.sub}. Choisissez une étape ou lancez la lecture guidée ; cliquez sur un équipement pour afficher l’étape correspondante.</p>`:`<h3>Étape ${n} / ${V.steps.length} — ${V.steps[n-1].t}</h3>${V.steps[n-1].d}`;}
+$('prevView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i>0)openView(VIEW_ORDER[i-1]);};
+$('nextView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i<VIEW_ORDER.length-1)openView(VIEW_ORDER[i+1]);};
+function stopPlay(){if(playTimer){clearInterval(playTimer);playTimer=null;}$('playBtn').textContent='▶ Lecture guidée';}
+$('playBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(playTimer){stopPlay();return;}const V=VIEWS[cur];$('playBtn').textContent='⏸ Arrêter la lecture';setStep(step>=V.steps.length?1:step+1);
+ playTimer=setInterval(()=>{if(step>=VIEWS[cur].steps.length){stopPlay();return;}setStep(step+1);},9000);};
+
+/* Synoptique : sélection, filtre, visite guidée */
+function applySyn(){const syn=$('syn');
+ syn.querySelectorAll('.node').forEach(n=>{const id=n.dataset.node;let on=true;
+  if(selNode)on=id===selNode||[...syn.querySelectorAll('.fl')].some(f=>(f.dataset.n||'').split(' ').includes(selNode)&&(f.dataset.n||'').split(' ').includes(id));
+  if(filter!=='all')on=on&&[...syn.querySelectorAll(`.fl[data-m="${filter}"]`)].some(f=>(f.dataset.n||'').split(' ').includes(id));
+  n.classList.toggle('dim',!on);n.classList.toggle('sel',id===selNode);});
+ syn.querySelectorAll('.fl').forEach(f=>{const ns=(f.dataset.n||'').split(' ');let on=true;if(selNode)on=ns.includes(selNode);if(filter!=='all')on=on&&f.dataset.m===filter;f.classList.toggle('dim',!on);});}
+function selectNode(id){selNode=selNode===id&&!tourTimer?null:id;applySyn();if(selNode)renderFiche(selNode);else asideHome();}
+function stopTour(){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}$('tourBtn').textContent='▶ Visite guidée';}
+const TOUR=['arrivee','recep','pisc','r1','r2','t3','unox','r4','bsi','r7','csdv','acc','csdc','ste3','gaz','rejets','labo','vent'];
+$('tourBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(tourTimer){stopTour();return;}filter='all';markFilters();let i=0;$('tourBtn').textContent='⏸ Arrêter la visite';selNode=null;selectNode(TOUR[0]);
+ tourTimer=setInterval(()=>{i++;if(i>=TOUR.length){stopTour();selNode=null;applySyn();asideHome();return;}selNode=null;selectNode(TOUR[i]);},7000);};
+function markFilters(){$('filters').querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===filter));}
+
+/* =====================================================================
+   7. THÈME ET ANIMATIONS
+   ===================================================================== */
+const wheelState={q:0,playing:false,last:0,selected:0};
+const root=document.documentElement;
+const SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t,set=true){if(set){root.dataset.theme=t;try{localStorage.setItem('hague-theme',t)}catch(e){}}const d=t==='dark';$('themeIcon').innerHTML=d?SUN:MOON;$('themeTxt').textContent=d?'Thème clair':'Thème sombre';$('themeBtn').setAttribute('aria-pressed',String(!d));}
+const curTheme=()=>root.dataset.theme||((()=>{try{return matchMedia('(prefers-color-scheme: light)').matches}catch(e){return false}})()?'light':'dark');
+try{const saved=localStorage.getItem('hague-theme');if(saved==='light'||saved==='dark')root.dataset.theme=saved;}catch(e){}
+setTheme(curTheme(),false);
+$('themeBtn').onclick=()=>setTheme(curTheme()==='dark'?'light':'dark');
+function setPaused(p){if(p){stopPlay();stopTour();if(typeof wheelState!=='undefined'){wheelState.playing=false;wheelState.last=0;paintWheel();}}document.body.classList.toggle('paused',p);$('pauseBtn').textContent=p?'▶ Animations':'⏸ Animations';$('pauseBtn').classList.toggle('active',p);}
+$('pauseBtn').onclick=()=>setPaused(!document.body.classList.contains('paused'));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+
+
+/* V2.2 — gros plans autonomes, sans réécriture du synoptique historique */
+/* Gros plan : cellule blindée (zone 4) */
+function cellTechSVG(){
+ const rays=[0,1,2].map(i=>`<path class="tc-ray" d="M760 ${250+i*14} H612" stroke="var(--m-pf)" stroke-width="3" stroke-dasharray="10 8" style="animation-delay:${i*.5}s"/>`).join('');
+ return `<svg class="tech-svg" viewBox="0 0 1100 550" role="img" aria-label="Coupe de principe d’une cellule blindée : protection biologique, télémanipulateurs et confinement dynamique">
+ <style>.tc-ray{animation:tcRay 2.4s linear infinite}@keyframes tcRay{0%{stroke-dashoffset:0;opacity:1}80%{opacity:1}100%{stroke-dashoffset:-60;opacity:.2}}
+ .tc-air{animation:tcAir 1.6s linear infinite}@keyframes tcAir{to{stroke-dashoffset:-28}}
+ .tc-master,.tc-slave{animation:tcGesture 5s ease-in-out infinite;transform-box:view-box}
+ .tc-master{transform-origin:420px 160px}.tc-slave{transform-origin:640px 160px}
+ @keyframes tcGesture{0%,100%{transform:rotate(0deg)}25%{transform:rotate(-7deg)}60%{transform:rotate(9deg)}80%{transform:rotate(3deg)}}
+ body.paused .tc-ray,body.paused .tc-air,body.paused .tc-master,body.paused .tc-slave{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tc-ray,.tc-air,.tc-master,.tc-slave{animation:none}}</style>
+ <text x="34" y="40" class="tech-strong">Cellule blindée — se protéger par intervention à distance</text>
+ <text x="34" y="64" class="tech-small">Coupe de principe d’une cellule de procédé (cisaillage, dissolution, vitrification…)</text>
+ <rect x="40" y="90" width="380" height="390" rx="12" fill="var(--m-solv)" opacity=".1"/><text x="56" y="116" class="tech-label">Zone opérateur</text><text x="56" y="136" class="tech-small">zone opérateur · exposition à évaluer</text>
+ <rect x="640" y="90" width="420" height="390" rx="12" fill="var(--m-pf)" opacity=".1"/><text x="1044" y="116" class="tech-label" text-anchor="end">Cellule à accès réglementé</text><text x="1044" y="136" class="tech-small" text-anchor="end">accès soumis à procédures spécifiques en exploitation</text>
+ <rect x="420" y="90" width="220" height="390" fill="var(--eq-stroke)" opacity=".55"/>
+ <text x="530" y="474" class="tech-small" text-anchor="middle" style="fill:var(--canvas)">paroi de béton</text>
+ <rect x="420" y="225" width="220" height="70" fill="var(--glow)" opacity=".45"/><path d="M420 225 H640 M420 295 H640" stroke="var(--eq)" stroke-width="3"/>
+ <text x="530" y="214" class="tech-small" text-anchor="middle" style="fill:var(--canvas)">hublot en verre au plomb</text>
+ <path d="M420 380 H470 V420 H590 V380 H640" fill="none" stroke="var(--canvas)" stroke-width="14" stroke-linejoin="round"/>
+ <text x="530" y="446" class="tech-small" text-anchor="middle" style="fill:var(--canvas)">traversée en S</text>
+ <rect x="420" y="320" width="220" height="30" fill="var(--canvas)" opacity=".85"/><text x="530" y="340" class="tech-small" text-anchor="middle">passage d’équipement protégé</text>
+ <!-- Liaison mécanique traversante schématique : pivots fixes, deux bras rigides articulés en blocs. -->
+ <path d="M420 160 H640" fill="none" stroke="var(--m-coq)" stroke-width="9" stroke-linecap="round"/>
+ <circle cx="420" cy="160" r="11" fill="var(--eq)" stroke="var(--m-coq)" stroke-width="4"/>
+ <circle cx="640" cy="160" r="11" fill="var(--eq)" stroke="var(--m-coq)" stroke-width="4"/>
+ <g class="tc-master"><path d="M420 160 L350 220 L300 300" fill="none" stroke="var(--m-coq)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="350" cy="220" r="7" fill="var(--eq-stroke)"/><circle cx="300" cy="300" r="10" fill="var(--m-coq)"/></g>
+ <g class="tc-slave"><path d="M640 160 L700 190 L740 250" fill="none" stroke="var(--m-coq)" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/><circle cx="700" cy="190" r="7" fill="var(--eq-stroke)"/><path d="M732 262 l8 -12 l8 12" fill="none" stroke="var(--m-coq)" stroke-width="4" stroke-linejoin="round"/></g>
+ <text x="160" y="190" class="tech-label">Télémanipulateur maître</text><text x="160" y="210" class="tech-small">l’opérateur guide le bras…</text>
+ <text x="720" y="150" class="tech-label">… le bras « esclave »</text><text x="720" y="170" class="tech-small">reproduit le geste dans la cellule</text>
+ <rect x="780" y="230" width="110" height="80" rx="8" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><text x="835" y="275" class="tech-small" text-anchor="middle">équipement</text><text x="835" y="291" class="tech-small" text-anchor="middle">très irradiant</text>
+ ${rays}
+ <text x="660" y="340" class="tech-small" style="fill:var(--m-pf)">rayonnement γ : atténuation par</text><text x="660" y="356" class="tech-small" style="fill:var(--m-pf)">les protections (pas d’arrêt absolu)</text>
+ <path class="tc-air" d="M60 420 H420 M640 420 H760" stroke="var(--m-air)" stroke-width="3" stroke-dasharray="4 10"/><text x="60" y="410" class="tech-small">air : de la zone propre vers la cellule (dépression)</text>
+ 
+ <text x="34" y="520" class="tech-small">Le blindage atténue le rayonnement ; la dépression oriente les fuites d’air vers la cellule. Les conditions d’accès dépendent de l’installation.</text>
+ </svg>`;
+}
+
+let techMode='shear';
+function shearTechSVG(){
+ // Séquence pédagogique : embout de tête → rinceur (gauche), tronçons → dissolveur (coques), embout de pied → rinceur (gauche)
+ const W=[24,26,26,26,26,26,26,26,24],N=W.length,T=22,P=0.5;
+ const s=[];let t=0.5;for(let k=0;k<N;k++){s.push(t);t+=2+(k===0?1.6:0);}const tEnd=s[N-1]+2+1.8,TT=Math.max(T,tEnd);
+ const pc=x=>(100*x/TT).toFixed(3)+'%';
+ const kf=(name,fr)=>`@keyframes ${name}{${fr.map(([x,v])=>`${pc(Math.min(TT,Math.max(0,x)))}{${v}}`).join('')}}`;
+ const D=[];let acc=10;for(let k=0;k<N;k++){acc+=W[k];D.push(acc);}
+ // positions d'origine (segment 0 à droite)
+ const R=[],L=[];let r=470;for(let k=0;k<N;k++){R.push(r);L.push(r-W[k]);r-=W[k];}
+ let css='';
+ // avance
+ const feed=[[0,'transform:translateX(0)']];for(let k=0;k<N;k++){feed.push([s[k],`transform:translateX(${k?D[k-1]:0}px)`]);feed.push([s[k]+.6,`transform:translateX(${D[k]}px)`]);}feed.push([TT,`transform:translateX(${D[N-1]}px)`]);
+ css+=kf('tcsFeed',feed);
+ // serre-flanc et lame
+ const cl=[[0,'transform:translateY(0)']],bl=[[0,'transform:translateY(0)']];
+ for(let k=0;k<N;k++){cl.push([s[k]+.6,'transform:translateY(0)'],[s[k]+.75,'transform:translateY(12px)'],[s[k]+1.4,'transform:translateY(12px)'],[s[k]+1.5,'transform:translateY(0)']);
+  bl.push([s[k]+.75,'transform:translateY(0)'],[s[k]+1.05,'transform:translateY(46px)'],[s[k]+1.35,'transform:translateY(0)']);}
+ cl.push([TT,'transform:translateY(0)']);bl.push([TT,'transform:translateY(0)']);
+ css+=kf('tcsClamp',cl)+kf('tcsBlade',bl);
+ // chute de chaque morceau
+ let pieces='';
+ for(let k=0;k<N;k++){const c=s[k]+1.1,emb=(k===0||k===N-1),cx=480+W[k]/2;
+  const fr=[[0,'transform:translate(0,0);opacity:0'],[.4,'transform:translate(0,0);opacity:1'],[c,'transform:translate(0,0);opacity:1']];
+  if(emb){fr.push([c+.35,'transform:translate(0,108px);opacity:1'],[c+1.1,`transform:translate(${220-cx}px,200px);opacity:1`],[c+1.3,`transform:translate(${220-cx}px,200px);opacity:0`]);fr.push([TT,`transform:translate(${220-cx}px,200px);opacity:0`]);}
+  else{fr.push([c+.8,`transform:translate(${530-cx}px,205px) rotate(${k%2?25:-20}deg);opacity:1`],[c+.95,`transform:translate(${530-cx}px,205px);opacity:0`],[TT,`transform:translate(${530-cx}px,205px);opacity:0`]);}
+  css+=kf('tcsP'+k,fr);
+  const body=emb?`<rect x="${L[k]}" y="219" width="${W[k]}" height="37" rx="3" fill="var(--m-coq)" stroke="var(--eq-stroke)" stroke-width="1.5"/>`:`<rect x="${L[k]}" y="219" width="${W[k]}" height="37" fill="var(--m-comb)"/>${[6,13,20].map(o=>`<line x1="${L[k]+o}" y1="223" x2="${L[k]+o}" y2="252" stroke="var(--canvas)" stroke-width="1.6"/>`).join('')}<line x1="${L[k]+W[k]}" y1="219" x2="${L[k]+W[k]}" y2="256" stroke="var(--canvas)" stroke-width="1"/>`;
+  pieces+=`<g class="tcs" style="animation-name:tcsP${k};transform-box:fill-box;transform-origin:center">${body}</g>`;}
+ // étiquettes et étapes
+ const on='opacity:1',off='opacity:0';
+ const lab=(name,a,b)=>kf(name,[[0,off],[a-.05,off],[a,on],[b,on],[b+.15,off],[TT,off]]);
+ css+=lab('tcsE1',s[0]+1.1,s[1]-.1)+lab('tcsC',s[1]+1.1,s[N-1]+.9)+lab('tcsE2',s[N-1]+1.1,TT-.3);
+ const step=(name,a,b)=>kf(name,[[0,'opacity:.35'],[a-.05,'opacity:.35'],[a,'opacity:1'],[b,'opacity:1'],[b+.15,'opacity:.35'],[TT,'opacity:.35']]);
+ css+=step('tcsS1',s[0],s[1]-.1)+step('tcsS2',s[1],s[N-1]-.1)+step('tcsS3',s[N-1],TT-.3);
+ css+=`.tcs{animation-duration:${TT}s;animation-iteration-count:infinite;animation-timing-function:linear}
+ .tcs-ease{animation-timing-function:ease-in-out}
+ body.paused .tcs{animation-play-state:paused!important}
+ @media(prefers-reduced-motion:reduce){.tcs{animation:none!important}.tcs-lab{opacity:1!important}}`;
+ const big=(x,y,txt,sub,name,col)=>`<g class="tcs tcs-lab" style="animation-name:${name};opacity:0"><rect x="${x-95}" y="${y-30}" width="190" height="46" rx="23" fill="var(--panel)" stroke="${col}" stroke-width="3"/><text x="${x}" y="${y-4}" class="tech-strong" text-anchor="middle" style="fill:${col}">${txt}</text><text x="${x}" y="${y+11}" class="tech-small" text-anchor="middle">${sub}</text></g>`;
+ const st=(y,n,txt,sub,name)=>`<g class="tcs" style="animation-name:${name};opacity:.35"><circle cx="690" cy="${y}" r="15" fill="var(--accent)"/><text x="690" y="${y+5}" text-anchor="middle" style="fill:var(--panel);font:bold 14px system-ui,sans-serif">${n}</text><text x="716" y="${y-2}" class="tech-label">${txt}</text><text x="716" y="${y+16}" class="tech-small">${sub}</text></g>`;
+ return `<svg class="tech-svg" viewBox="0 0 1100 550" role="img" aria-label="Cisaillage d'un assemblage : l'embout de tête part vers le rinceur, les tronçons tombent dans le dissolveur, l'embout de pied part vers le rinceur">
+ <style>${css}</style>
+ <text x="34" y="40" class="tech-strong">Cisaillage d'un assemblage — séquence des coupes</text>
+ <text x="34" y="64" class="tech-small">Embout de tête → tronçons de crayons → embout de pied · cycle pédagogique répété</text>
+ <rect x="92" y="169" width="520" height="178" rx="13" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="3"/>
+ <text x="110" y="192" class="tech-small">Bâti et guidage de l'assemblage</text>
+ <rect x="117" y="260" width="460" height="26" rx="3" fill="var(--eq-stroke)" opacity=".85"/>
+ <path d="M493 290 V346 L232 428" fill="none" stroke="var(--m-coq)" stroke-width="4" stroke-dasharray="7 7" opacity=".7"/>
+ <path d="M493 290 V346 L528 428" fill="none" stroke="var(--m-comb)" stroke-width="4" stroke-dasharray="7 7" opacity=".7"/>
+ <rect x="110" y="430" width="240" height="66" rx="10" fill="var(--eq)" stroke="var(--m-coq)" stroke-width="2.5"/>
+ <text x="230" y="458" class="tech-label" text-anchor="middle">Rinceur à embouts</text><text x="230" y="480" class="tech-small" text-anchor="middle">embouts de tête et de pied</text>
+ <rect x="410" y="430" width="240" height="66" rx="10" fill="var(--eq)" stroke="var(--m-sol)" stroke-width="2.5"/>
+ <text x="530" y="458" class="tech-label" text-anchor="middle">Dissolveur</text><text x="530" y="480" class="tech-small" text-anchor="middle">la matière se dissout, restent les coques</text>
+ <g class="tcs tcs-ease" style="animation-name:tcsFeed">${pieces}</g>
+ <rect x="471" y="200" width="9" height="90" fill="var(--eq-stroke)"/>
+ <rect x="480" y="267" width="38" height="12" rx="2" fill="var(--eq-stroke)"/>
+ <g class="tcs tcs-ease" style="animation-name:tcsClamp"><rect x="400" y="183" width="68" height="24" rx="3" fill="var(--m-coq)" stroke="var(--eq-stroke)" stroke-width="2"/></g>
+ <g class="tcs tcs-ease" style="animation-name:tcsBlade"><rect x="480" y="91" width="37" height="98" rx="4" fill="var(--m-coq)" stroke="var(--eq-stroke)" stroke-width="3"/><path d="M480 189 H517 L499 211 Z" fill="var(--eq-stroke)"/></g>
+ <path d="M499 91 V76 H635" stroke="var(--accent)" fill="none" stroke-width="2"/><text x="645" y="80" class="tech-label">Lame mobile</text>
+ <path d="M473 273 L419 318 H291" stroke="var(--accent)" fill="none" stroke-width="2"/><text x="283" y="322" class="tech-label" text-anchor="end">Contre-lame fixe</text>
+ <path d="M431 182 V133 H300" stroke="var(--accent)" fill="none" stroke-width="2"/><text x="290" y="137" class="tech-label" text-anchor="end">Serre-flanc</text>
+ ${st(200,1,'Embout de tête','coupé seul → rinceur à embouts','tcsS1')}
+ ${st(262,2,'Tronçons de crayons','tombent dans le dissolveur → coques','tcsS2')}
+ ${st(324,3,'Embout de pied','dernière coupe → rinceur à embouts','tcsS3')}
+ ${big(230,392,'EMBOUTS','vers le rinceur','tcsE1','var(--m-coq)')}
+ ${big(560,392,'COQUES','tronçons vers le dissolveur','tcsC','var(--m-sol)')}
+ ${big(230,392,'EMBOUTS','vers le rinceur','tcsE2','var(--m-coq)')}
+ <text x="34" y="530" class="tech-small">Animation de principe : nombre de tronçons réduit et rythme ralenti ; la cinématique réelle de la machine n'est pas représentée.</text>
+ </svg>`;
+}
+/* V2.4 : une seule horloge pour géométrie, matières et commandes. */
+
+const wheelPhase=a=>a===0?'Chargement':a===1?'Immersion':a<=5?'Dissolution':a<=7?'Remontée / égouttage':a===8?'Évacuation des coques':'Godet vide · retour';
+function wheelTechSVG(){return `<div class="wheel-v24">
+<style>.wheel-controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:12px 16px}.wheel-controls button,.wheel-controls select{background:var(--btn);color:var(--text);border:1px solid var(--border);border-radius:8px;padding:8px}.wheel-controls input{flex:1;min-width:150px;accent-color:var(--accent)}.wheel-info{padding:8px 16px;line-height:1.6}.wheel-evidence{margin:12px 16px;padding:12px;border:1px solid var(--border);border-radius:10px;line-height:1.6}.wheel-cup{cursor:pointer}.wheel-cup:focus{outline:none}.wheel-cup:focus .cup-shell{stroke:var(--accent);stroke-width:5}.wheel-live{font-variant-numeric:tabular-nums} .wheel-v24 .tech-svg{max-height:none}</style>
+<div class="wheel-controls" role="group" aria-label="Commande du dissolveur">
+<button id="wheelPlay" type="button">▶ Lecture</button><button id="wheelPrev" type="button">← Pas précédent</button><button id="wheelNext" type="button">Pas suivant →</button><button id="wheelReset" type="button">↺ Réinitialiser</button>
+<label for="wheelProgress">Position</label><input id="wheelProgress" type="range" min="0" max="12" step="0.01" value="0" aria-label="Progression du cycle de la roue">
+<span id="wheelPosition" class="wheel-live"></span></div>
+<svg class="tech-svg" viewBox="0 0 1100 600" role="img" aria-label="Reconstitution pédagogique du dissolveur à douze godets. Le godet sélectionné est détaillé sous le schéma.">
+<text x="32" y="32" class="tech-strong">Dissolveur à roue · 12 godets suivis individuellement</text>
+<text x="32" y="55" class="tech-small">Coupe pédagogique · positions, sens et durée illustratifs · aucun temps d’exploitation</text>
+<defs><clipPath id="wheelBathClip"><rect x="320" y="370" width="460" height="164"/></clipPath></defs>
+<rect x="320" y="82" width="460" height="455" rx="26" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="3"/>
+<path d="M323 370 H777 V512 Q777 534 753 534 H347 Q323 534 323 512Z" fill="var(--m-sol)" opacity=".24"/>
+<text x="332" y="523" class="tech-small">Bain d’acide nitrique · niveau schématique</text>
+<circle cx="550" cy="305" r="202" fill="none" stroke="var(--eq-stroke)" stroke-width="7"/>
+${[200,220,240,260,280,300,320,340].map(a=>{const r=a*Math.PI/180;return `<circle cx="${550+218*Math.cos(r)}" cy="${305+218*Math.sin(r)}" r="9" fill="var(--panel)" stroke="var(--accent)" stroke-width="3"/>`;}).join('')}
+<g id="wheelRotor">${Array.from({length:12},(_,i)=>{const a=(180-i*30)*Math.PI/180,x=550+170*Math.cos(a),y=305+170*Math.sin(a);return `<path d="M550 305 L${x} ${y}" stroke="var(--eq-stroke)" stroke-width="2"/>`;}).join('')}</g>
+<g id="wheelCups">${Array.from({length:12},(_,i)=>`<g class="wheel-cup" data-cup="${i}" role="button" tabindex="0" aria-label="Godet ${i+1}"><title></title><path class="cup-shell" d="M-22 -20 V15 Q0 29 22 15 V-20" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="3"/><g class="cup-core" fill="var(--m-comb)"><rect x="-15" y="-9" width="8" height="18"/><rect x="-4" y="-12" width="8" height="21"/><rect x="7" y="-7" width="8" height="16"/></g><g fill="none" stroke="var(--m-coq)" stroke-width="2"><rect x="-15" y="-9" width="8" height="18"/><rect x="-4" y="-12" width="8" height="21"/><rect x="7" y="-7" width="8" height="16"/></g><text y="-27" text-anchor="middle" class="tech-small">${String(i+1).padStart(2,'0')}</text><g fill="var(--m-sol)"><circle cx="-12" cy="18" r="2"/><circle cy="21" r="2"/><circle cx="12" cy="18" r="2"/></g></g>`).join('')}</g>
+<path d="M323 370 H777" stroke="var(--m-sol)" stroke-width="2" stroke-dasharray="6 5"/>
+<circle cx="550" cy="305" r="40" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="3"/><text x="550" y="310" class="tech-small" text-anchor="middle">12 godets</text>
+<path d="M80 190 H280 L380 280 V294" fill="none" stroke="var(--m-comb)" stroke-width="12" opacity=".6"/>
+<g id="wheelLoad" fill="var(--m-comb)"><rect x="369" y="268" width="8" height="12"/><rect x="382" y="272" width="8" height="12"/></g>
+<path d="M635 158 H840 V495" fill="none" stroke="var(--m-coq)" stroke-width="12" opacity=".5"/>
+<g id="wheelDump" fill="none" stroke="var(--m-coq)" stroke-width="3"><rect x="630" y="151" width="9" height="13"/><rect x="644" y="154" width="9" height="13"/></g>
+<text x="32" y="151" class="tech-label">1 · Chargement</text><text x="32" y="173" class="tech-small">tronçons cisaillés · trajet simplifié</text>
+<text x="32" y="350" class="tech-label">2 · Immersion</text><text x="32" y="375" class="tech-small">partie basse de la roue</text>
+<text x="32" y="431" class="tech-label">3 · Dissolution</text><text x="32" y="455" class="tech-small">matière colorée → solution</text><text x="32" y="475" class="tech-small">contours seuls → coques</text>
+<text x="815" y="119" class="tech-label">5 · Évacuation</text><text x="815" y="142" class="tech-small">coques → traitement en aval</text>
+<text x="815" y="325" class="tech-label">4 · Remontée</text><text x="815" y="348" class="tech-small">égouttage schématique</text>
+<path d="M550 537 V562 H360" stroke="var(--m-sol)" stroke-width="5" fill="none"/><text x="350" y="568" text-anchor="end" class="tech-small">Solution → clarification</text>
+<text x="550" y="592" text-anchor="middle" class="tech-small">Régime cyclique illustratif : plusieurs godets occupent simultanément des phases différentes.</text>
+</svg>
+<div class="wheel-info"><label for="wheelSelect">Suivre le godet </label><select id="wheelSelect">${Array.from({length:12},(_,i)=>`<option value="${i}">${String(i+1).padStart(2,'0')}</option>`).join('')}</select> · <strong id="wheelStatus" role="status" aria-live="polite"></strong><div id="wheelDetail"></div><div>Un pas = une position de 30°. La roue se déplace puis s’arrête ; les transferts se font à l’arrêt. La coloration illustre un état, pas une mesure chimique.</div></div>
+</div>`;}
+function paintWheel(){
+ const box=$('techZoom');if(!box||cur!=='r1'||techMode!=='wheel')return;
+ const q=wheelState.q,n=Math.floor(q),f=q-n,m=Math.max(0,Math.min(1,(f-.65)/.35)),smooth=m*m*(3-2*m),angle=(n+smooth)*30;
+ box.querySelector('#wheelRotor').setAttribute('transform',`rotate(${-angle} 550 305)`);
+ box.querySelectorAll('[data-cup]').forEach((g,i)=>{
+  const age=(n+i)%12,a=(180-i*30-angle)*Math.PI/180;
+  g.setAttribute('transform',`translate(${550+170*Math.cos(a)} ${305+170*Math.sin(a)})`);
+  const content=age<=8,core=age===0?Math.min(f/.65,1):age===1?1:age<=5?Math.max(0,1-(age-1+Math.min(f/.65,1))/5):0;
+  g.querySelector('.cup-core').setAttribute('opacity',core);
+  g.children[3].setAttribute('opacity',content?(age===0?Math.min(f/.65,1):age===8?Math.max(0,1-f/.65):1):0);
+  if(!content)g.querySelector('.cup-core').setAttribute('opacity',0);
+  g.querySelector('.cup-shell').setAttribute('stroke',i===wheelState.selected?'var(--accent)':'var(--eq-stroke)');
+  g.querySelector('.cup-shell').setAttribute('stroke-width',i===wheelState.selected?5:3);
+  g.setAttribute('aria-label',`Godet ${i+1} : ${wheelPhase(age)}`);g.setAttribute('aria-pressed',String(i===wheelState.selected));g.querySelector('title').textContent=g.getAttribute('aria-label');
+ });
+ const dwell=f<.65,transfer=Math.min(f/.65,1);
+ box.querySelector('#wheelLoad').setAttribute('opacity',dwell?1:0);box.querySelector('#wheelLoad').setAttribute('transform',`translate(0 ${transfer*32})`);
+ box.querySelector('#wheelDump').setAttribute('opacity',dwell?1:0);box.querySelector('#wheelDump').setAttribute('transform',`translate(${transfer*195} ${transfer*40})`);
+ const age=(n+wheelState.selected)%12,txt=`Godet ${String(wheelState.selected+1).padStart(2,'0')} · ${wheelPhase(age)}`;
+ if($('wheelStatus').textContent!==txt)$('wheelStatus').textContent=txt;
+ $('wheelDetail').textContent=dwell?'Roue arrêtée au poste · chargement et évacuation représentés simultanément.':'Indexation en cours · contenus solidaires de leurs godets.';
+ $('wheelProgress').value=String(q);$('wheelPosition').textContent=`${n%12+1} / 12${dwell?' · arrêt':' · rotation'}`;
+ $('wheelPlay').textContent=wheelState.playing?'⏸ Pause':'▶ Lecture';$('wheelPlay').setAttribute('aria-pressed',String(wheelState.playing));$('wheelSelect').value=wheelState.selected;
+}
+function bindWheel(){
+ const seek=q=>{wheelState.playing=false;wheelState.q=((q%12)+12)%12;wheelState.last=0;paintWheel();};
+ $('wheelPlay').onclick=()=>{wheelState.playing=!wheelState.playing;if(wheelState.playing&&document.body.classList.contains('paused'))setPaused(false);wheelState.last=0;paintWheel();};
+ $('wheelPrev').onclick=()=>seek(Math.ceil(wheelState.q)-1);$('wheelNext').onclick=()=>seek(Math.floor(wheelState.q)+1);$('wheelReset').onclick=()=>{wheelState.selected=0;seek(0);};
+ $('wheelProgress').oninput=e=>seek(+e.target.value);
+ const select=i=>{wheelState.selected=+i;paintWheel();};$('wheelSelect').onchange=e=>select(e.target.value);
+ $('techZoom').querySelectorAll('[data-cup]').forEach(g=>{g.onclick=()=>select(g.dataset.cup);g.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();select(g.dataset.cup);}};});paintWheel();
+}
+function tickWheel(now){
+ const visible=cur==='r1'&&techMode==='wheel'&&!document.hidden&&!document.body.classList.contains('paused');
+ if(wheelState.playing&&visible&&wheelState.last){wheelState.q=(wheelState.q+Math.min((now-wheelState.last)/1000,.1)/3)%12;paintWheel();}
+ wheelState.last=visible?now:0;requestAnimationFrame(tickWheel);
+}
+requestAnimationFrame(tickWheel);
+
+function renderTechZoom(){const box=$('techZoom');if(!box)return;box.classList.toggle('hidden',cur!=='r1');if(cur!=='r1')return;
+ box.innerHTML=`<div class="tech-head"><strong>Gros plans techniques · R1 / T1 — animations schématiques</strong><div class="tech-tabs"><button type="button" data-tech="shear" class="${techMode==='shear'?'active':''}">Cisaille</button><button type="button" data-tech="wheel" class="${techMode==='wheel'?'active':''}">Roue de dissolution</button><button type="button" data-tech="cell" class="${techMode==='cell'?'active':''}">Cellule blindée</button></div></div>${techMode==='shear'?shearTechSVG():techMode==='wheel'?wheelTechSVG():cellTechSVG()}<div class="tech-foot">Observer les mouvements et les transferts de matière. Schémas de principe ; le temps affiché est celui de l’animation.</div>`;
+ box.querySelectorAll('[data-tech]').forEach(b=>b.onclick=()=>{wheelState.playing=false;wheelState.last=0;techMode=b.dataset.tech;renderTechZoom();});
+ if(techMode==='wheel')bindWheel();
+}
+
+/* =====================================================================
+   8. INITIALISATION
+   ===================================================================== */
+
+FICHE.pisc.keys=[];
+FICHE.r1.keys=[];
+FICHE.r4.keys=[];
+FICHE.acc.keys=[];
+FICHE.labo.keys=[];
+VIEWS.recep.steps[2].d="<p>Deux principes de déchargement sont représentés : à sec sous cellule blindée et sous eau. Les conditions d’acceptation dépendent du contenu et de l’emballage. HAO est une installation historique en démantèlement : elle ne constitue pas une voie actuelle de réception.</p>";
+VIEWS.recep.steps[3].d="<p>Le combustible est entreposé en piscine le temps nécessaire pour satisfaire les conditions de traitement. L’eau assure refroidissement et protection radiologique ; sa qualité et son refroidissement sont surveillés. La géométrie et les conditions de stockage contribuent aussi à la prévention de la criticité.</p>";
+VIEWS.r1.steps[6].d="<p>Certains combustibles exigent des opérations et équipements adaptés à leurs caractéristiques. Leur traitement est soumis à des conditions spécifiques d’acceptation, de sûreté-criticité et de confinement ; le schéma principal illustre le traitement des assemblages représentés.</p>";
+VIEWS.r4.steps[0].d="<p>La purification du plutonium s’effectue par extraction et réextraction. Des colonnes ou des extracteurs centrifuges peuvent assurer le contact entre phases. Les flux résiduels rejoignent les circuits adaptés.</p>";
+VIEWS.r4.steps[3].d="<p>La poudre est homogénéisée et conditionnée dans des contenants étanches, identifiés et contrôlés. Les quantités et la géométrie sont limitées par les règles de sûreté-criticité.</p>";
+VIEWS.r4.steps[4].d="<p>Les conteneurs sont entreposés sous surveillance avant leur destination autorisée, notamment la fabrication de MOX. La maîtrise de la criticité repose sur des dispositions validées : géométrie, quantités et conditions de modération, entre autres.</p>";
+VIEWS.r7.steps[0].d="<p>Les solutions et suspensions sont préparées pour obtenir, après incorporation au verre, un colis conforme aux spécifications de conditionnement.</p>";
+VIEWS.r7.steps[2].d="<p>Le calcinat est mélangé à une fritte de verre dans un four. Le verre homogène est coulé dans un conteneur métallique ; la composition et les conditions sont définies par le procédé qualifié.</p>";
+VIEWS.r7.steps[3].d="<p>Après refroidissement selon les conditions du procédé, le conteneur est fermé, décontaminé si nécessaire et contrôlé avant manutention et entreposage.</p>";
+VIEWS.labo.steps[0].d="<p>Des échantillons identifiés sont prélevés aux points prévus pour suivre les procédés, les matières et les rejets.</p>";
+VIEWS.labo.steps[1].d="<p>Le transfert pneumatique achemine les échantillons vers les chaînes d’analyse en maintenant le confinement et l’identification. La traçabilité relie le prélèvement, son origine et les résultats.</p>";
+VIEWS.labo.steps[2].d="<p>Les échantillons nécessitant un blindage sont analysés dans des chaînes protégées ; d’autres sont manipulés sous confinement adapté. Les moyens sont choisis selon l’activité, la nature et les analyses requises.</p>";
+VIEWS.ste3.steps[3].d="<p>Les déchets technologiques sont triés et caractérisés avant un conditionnement compatible, notamment par cimentation. La destination dépend de la conformité du colis aux spécifications de la filière. Un nom de contenant ne suffit pas à démontrer son acceptabilité.</p>";
+VIEWS.r2.steps[5].d="<p>Les effluents sont collectés et traités selon leurs caractéristiques. Des matières peuvent être recyclées et des concentrats conditionnés. Un rejet n’est possible qu’après les contrôles requis et dans le cadre des autorisations applicables ; une neutralisation chimique ne supprime pas la radioactivité.</p>";
+FICHE.arrivee.role="Après refroidissement en piscine de centrale et vérification des conditions admissibles, les assemblages usés sont transportés dans des emballages blindés adaptés.";
+FICHE.arrivee.does=["L’emballage doit être compatible avec le contenu et ses caractéristiques radiologiques, thermiques et fissiles.", "Les contrôles et documents prescrits précèdent l’expédition.", "La résistance aux épreuves réglementaires dépend du type de colis et de son agrément."];
+FICHE.recep.t="T0 · NPH";
+FICHE.recep.does=["Déchargement à sec sous cellule blindée ou sous eau selon les conditions d’acceptation.", "Identification, contrôles et transfert des assemblages en paniers.", "HAO : installation historique en démantèlement, distincte des voies actuelles représentées.", "Préparation et contrôles des emballages vides avant réexpédition."];
+FICHE.pisc.does=["Assemblages entreposés sous eau dans des paniers adaptés.", "Refroidissement, qualité de l’eau et protection radiologique surveillés.", "La durée dépend des caractéristiques des combustibles et des conditions de traitement."];
+FICHE.r4.does=["Purification par extraction et réextraction.", "Précipitation, filtration, séchage et calcination pour obtenir PuO2.", "Homogénéisation et conditionnement dans des contenants étanches contrôlés.", "Respect des conditions autorisées de criticité et de confinement."];
+FICHE.r7.does=["Préparation des solutions et suspensions.", "Calcination puis incorporation dans du verre fondu.", "Coulée, refroidissement, fermeture et contrôles du conteneur.", "Entreposage en puits ventilés."];
+FICHE.labo.does=["Prélèvement et identification des échantillons.", "Transfert confiné vers les chaînes d’analyse adaptées.", "Mesures radiologiques, chimiques et isotopiques suivant le besoin.", "Transmission des résultats pour le procédé, le bilan des matières et la surveillance."];
+buildSyn();buildNav();
+$('syn').addEventListener('click',e=>{const n=e.target.closest('.node');if(n){stopTour();selectNode(n.dataset.node);}});
+$('syn').addEventListener('dblclick',e=>{const n=e.target.closest('.node');if(n&&FICHE[n.dataset.node].view)openView(FICHE[n.dataset.node].view);});
+$('syn').addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();stopTour();selectNode(n.dataset.node);}});
+$('filters').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;filter=c.dataset.f;selNode=null;markFilters();applySyn();asideHome();});
+showSyn();
+</script>
+
+
+</body></html>

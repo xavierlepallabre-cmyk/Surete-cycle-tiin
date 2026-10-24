@@ -1,0 +1,1127 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker si la page est ouverte seule */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')&&window.top===window)addEventListener('load',()=>navigator.serviceWorker.register('./service-worker.js').catch(console.warn));</script>
+<style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Parcours cycle amont</title>
+<style>
+/* V2.1 — consolidation du rendu desktop et du comportement */
+:root{--stage-outline:color-mix(in srgb,var(--accent) 22%,var(--border))}
+.stage{box-shadow:0 7px 24px rgba(0,0,0,.10);border-color:var(--stage-outline)}
+.nav button,.chip,.sbtn{transition:background-color .18s,border-color .18s,transform .18s}
+.nav button:hover,.chip:hover,.sbtn:hover{border-color:var(--accent)}
+.steptext{min-height:110px;line-height:1.62}
+.steptext h3{font-size:17px}
+.aside{line-height:1.57}
+.eq.dim,.part.dim,.fl.dim{pointer-events:none}
+/* Le masquage d’une étape suspend aussi ses mouvements */
+.dim .spin,.dim .spin-fast,.dim .chop,.dim .feed,.dim .fall,.dim .rise,.dim .rise-long,.dim .lift,.dim .press,.dim .crush,.dim .fillup,.dim .glow,.dim .drip,.dim .move-r,
+.dim .shear-feed,.dim .shear-blade,.dim .shear-clamp,.dim .shear-piece{animation-play-state:paused!important}
+/* Un cycle unique coordonne avance, serrage, coupe et chute. Vue pédagogique, non cinématique réelle. */
+.shear-feed{animation:shearFeed 7.2s ease-in-out infinite}
+.shear-clamp{animation:shearClamp 7.2s ease-in-out infinite}
+.shear-blade{animation:shearBlade 7.2s ease-in-out infinite}
+.shear-piece{animation:shearPiece 7.2s linear infinite;opacity:0}
+@keyframes shearFeed{0%,8%{transform:translateX(-35px)}25%,75%{transform:translateX(0)}90%,100%{transform:translateX(-35px)}}
+@keyframes shearClamp{0%,25%,75%,100%{transform:translateX(0)}34%,66%{transform:translateX(8px)}}
+@keyframes shearBlade{0%,38%,72%,100%{transform:translateY(0)}52%,58%{transform:translateY(39px)}}
+@keyframes shearPiece{0%,53%{opacity:0;transform:translateY(0)}59%{opacity:1}80%,100%{opacity:0;transform:translateY(66px)}}
+body.paused .shear-feed,body.paused .shear-clamp,body.paused .shear-blade,body.paused .shear-piece{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.shear-feed,.shear-clamp,.shear-blade,.shear-piece{animation:none!important}}
+
+/* V2.2 — Gros plans techniques R1/T1, sans modification du parcours général */
+.tech-zoom{margin-top:14px;border:1px solid var(--border);border-radius:12px;overflow:hidden;background:var(--panel)}
+.tech-head{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 14px;border-bottom:1px solid var(--border)}
+.tech-head strong{font-size:15px}.tech-tabs{display:flex;gap:6px}.tech-tabs button{border:1px solid var(--border);border-radius:8px;background:var(--btn);padding:7px 11px}.tech-tabs button.active{border-color:var(--accent);background:var(--btn-active)}
+.tech-svg{display:block;width:100%;height:auto;max-height:590px;background:radial-gradient(ellipse at 50% 40%,var(--canvas-glow),var(--canvas))}
+.tech-foot{padding:10px 14px;color:var(--muted);font-size:12px;border-top:1px solid var(--border)}
+.tech-label{fill:var(--label);font:15px system-ui,sans-serif}.tech-small{fill:var(--sublabel);font:12px system-ui,sans-serif}.tech-strong{fill:var(--label);font:bold 18px system-ui,sans-serif}
+.tech-cut-blade{animation:techBlade 12s ease-in-out infinite}.tech-cut-clamp{animation:techClamp 12s ease-in-out infinite}.tech-cut-feed{animation:techFeed 12s ease-in-out infinite}.tech-cut-fall{animation:techFall 12s linear infinite;opacity:0}
+@keyframes techBlade{0%,20%,38%,48%,65%,75%,92%,100%{transform:translateY(0)}27%,55%,82%{transform:translateY(105px)}}
+@keyframes techClamp{0%,18%,37%,46%,64%,73%,91%,100%{transform:translateY(0)}23%,52%,79%{transform:translateY(15px)}}
+@keyframes techFeed{0%,10%{transform:translateX(-28px)}18%,38%{transform:translateX(0)}46%,65%{transform:translateX(30px)}73%,92%{transform:translateX(60px)}100%{transform:translateX(-28px)}}
+@keyframes techFall{0%,26%,53%,80%,100%{transform:translateY(0);opacity:0}29%,56%,83%{opacity:1}35%,62%,89%{transform:translateY(115px);opacity:0}}
+.tech-wheel{animation:techWheel 28s linear infinite;transform-origin:560px 280px}
+@keyframes techWheel{to{transform:rotate(360deg)}}
+.tech-bubble{animation:techBubble 3s linear infinite;opacity:0}
+@keyframes techBubble{0%{transform:translateY(0);opacity:0}25%{opacity:.7}100%{transform:translateY(-55px);opacity:0}}
+body.paused .tech-cut-blade,body.paused .tech-cut-clamp,body.paused .tech-cut-feed,body.paused .tech-cut-fall,body.paused .tech-wheel,body.paused .tech-bubble{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){.tech-cut-blade,.tech-cut-clamp,.tech-cut-feed,.tech-cut-fall,.tech-wheel,.tech-bubble{animation:none!important}}
+
+/* V2.3 : suspension des gros plans non visibles et contraste des libellés */
+.tech-zoom.hidden *, .tech-zoom[hidden] *{animation-play-state:paused!important}
+.tech-foot{line-height:1.5}
+</style>
+
+<style>
+/* ================= THÈMES ================= */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#111c2a;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;
+ --canvas:#0e1926;--canvas-glow:#13243a;--eq:#1b2c3f;--eq-stroke:#7f9db6;--label:#e3ecf4;--sublabel:#a3b6c7;
+ --btn:#152538;--btn-active:#1f4f6e;--btn-active-border:#5cb3e6;--header:#0d1724;--focus:#ffffff;
+ --zone:rgba(92,179,230,.045);--zone-stroke:#2c4a63;--zone-text:#8fc4e3;--water:#1d5a86;--water2:#2a78ab;--glow:#ff9b4f;--warn-bg:#2d2a24;--warn-text:#f0d9a6;--warn-border:#e0aa55;
+ --m-comb:#b197fc;--m-sol:#f59f00;--m-u:#ffd43b;--m-pu:#f783ac;--m-pf:#ff6b6b;--m-coq:#adb5bd;--m-eff:#4dabf7;--m-gaz:#99e9f2;--m-dt:#d4a373;--m-solv:#69db7c;--m-verre:#63e6be;--m-eau:#74c0fc;--m-air:#ced4da;--m-upu:#ffa94d;--m-emb:#b9a88d;--m-min:#c49a6c;--m-yc:#ffd43b;--m-uf4:#8ce99a;--m-uf6:#66d9e8;--m-ue:#e599f7;--m-uapp:#adb5bd;--m-uo2:#ff8787;--m-zr:#e9ecef;--m-rea:#63e6be;--m-dech:#d4a373;--m-urt:#94d82d;}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-min:#8a5a2b;--m-yc:#b08900;--m-uf4:#2b8a3e;--m-uf6:#0c8599;--m-ue:#ae3ec9;--m-uapp:#6c757d;--m-uo2:#e03131;--m-zr:#495057;--m-rea:#099268;--m-dech:#8d6e4c;--m-urt:#5c940d;}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;
+ --canvas:#fbfcfe;--canvas-glow:#f1f6fb;--eq:#e6edf4;--eq-stroke:#58718a;--label:#15263a;--sublabel:#4a5f74;
+ --btn:#f3f6f9;--btn-active:#d6e8f5;--btn-active-border:#1f6fa8;--header:#ffffff;--focus:#0b3b5c;
+ --zone:rgba(31,111,168,.04);--zone-stroke:#b4c9da;--zone-text:#1f5f8f;--water:#a5d0ee;--water2:#7db8e2;--glow:#e5741f;--warn-bg:#fdf4e3;--warn-text:#6b4a12;--warn-border:#d99a2b;
+ --m-comb:#7048e8;--m-sol:#e67700;--m-u:#b08900;--m-pu:#d6336c;--m-pf:#e03131;--m-coq:#6c757d;--m-eff:#1c7ed6;--m-gaz:#0c8599;--m-dt:#8d6e4c;--m-solv:#2b8a3e;--m-verre:#099268;--m-eau:#1971c2;--m-air:#868e96;--m-upu:#d9480f;--m-emb:#80654b;--m-min:#8a5a2b;--m-yc:#b08900;--m-uf4:#2b8a3e;--m-uf6:#0c8599;--m-ue:#ae3ec9;--m-uapp:#6c757d;--m-uo2:#e03131;--m-zr:#495057;--m-rea:#099268;--m-dech:#8d6e4c;--m-urt:#5c940d;}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--text);font:14px/1.5 system-ui,"Segoe UI",Arial,sans-serif}
+button,select{font:inherit;color:inherit}button{cursor:pointer}
+button:focus-visible,.node:focus-visible,.eq:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.top{padding:14px 20px;display:flex;justify-content:space-between;align-items:center;gap:12px;background:var(--header);border-bottom:1px solid var(--border);flex-wrap:wrap}
+.top h1{font-size:21px;margin:0}.top h1 span{color:var(--accent)}
+.sub{color:var(--muted);font-size:12px}
+.btn{border:1px solid var(--border);border-radius:9px;background:var(--btn);padding:8px 12px;min-height:38px}
+.btn.active{background:var(--btn-active);border-color:var(--btn-active-border)}
+.btn.primary{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.theme-btn{display:inline-flex;align-items:center;gap:8px;border-radius:999px}
+.theme-btn svg{width:18px;height:18px}
+.nav{display:flex;gap:6px;flex-wrap:wrap;padding:10px 20px;border-bottom:1px solid var(--border);background:var(--panel)}
+.nav button{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 12px;font-size:12.5px}
+.nav button.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.nav .sep{width:1px;background:var(--border);margin:0 4px}
+.layout{display:grid;grid-template-columns:minmax(0,1fr) 340px;min-height:calc(100vh - 120px)}
+.main{padding-block:14px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));min-width:0}
+.aside{border-left:1px solid var(--border);background:var(--panel);padding:18px;overflow:auto}
+.crumbs{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-bottom:10px;font-size:13px;color:var(--muted)}
+.crumbs a{color:var(--accent);cursor:pointer;text-decoration:underline}
+.bar{display:flex;flex-wrap:wrap;gap:8px;align-items:center;justify-content:space-between;margin-bottom:10px}
+.bar .grp{display:flex;flex-wrap:wrap;gap:6px;align-items:center}
+.chip{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:5px 11px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+.chip i{width:11px;height:11px;border-radius:50%;display:inline-block;background:var(--mc)}
+.chip.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.stage{border:1px solid var(--border);border-radius:14px;background:radial-gradient(ellipse at 50% 30%,var(--canvas-glow),var(--canvas) 75%);overflow:hidden}
+.stage svg{display:block;width:100%;height:auto}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;padding:10px 14px;border-top:1px solid var(--border);font-size:12px;color:var(--muted)}
+.legend span{display:inline-flex;align-items:center;gap:6px}.legend i{width:22px;height:5px;border-radius:3px;background:var(--mc);display:inline-block}
+.steps{display:flex;flex-wrap:wrap;gap:6px;align-items:center;padding:10px 14px;border-top:1px solid var(--border)}
+.steps .sbtn{border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 11px;font-size:12px}
+.steps .sbtn.active{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:700}
+.steptext{padding:12px 16px 16px;border-top:1px solid var(--border);background:var(--panel)}
+.steptext h3{margin:0 0 6px;font-size:16px}
+.steptext p{margin:0 0 6px}
+.steptext ul{margin:4px 0 0;padding-left:20px}.steptext li{margin:3px 0}
+.note{color:var(--muted);font-size:12px}
+.warning{border-left:3px solid var(--warn-border);padding:9px 11px;background:var(--warn-bg);color:var(--warn-text);font-size:12px;margin-top:14px;border-radius:0 8px 8px 0}
+.aside h2{font-size:20px;margin:2px 0 4px}
+.aside h3{font-size:12px;text-transform:uppercase;letter-spacing:.08em;color:var(--accent);margin:16px 0 6px}
+.aside ul{margin:0;padding-left:18px}.aside li{margin:4px 0}
+.kicker{font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.facts{display:grid;grid-template-columns:1fr;gap:6px}
+.fact{border:1px solid var(--border);background:var(--panel2);border-radius:9px;padding:7px 10px;font-size:13px}
+.fact b{display:block;font-size:15px}
+.io{display:grid;grid-template-columns:auto 1fr;gap:4px 10px;font-size:13px}.io span{color:var(--muted)}
+.openbtn{width:100%;margin-top:14px}
+.footer{padding:10px 20px;border-top:1px solid var(--border);color:var(--muted);font-size:11px}
+.hidden{display:none!important}
+
+/* ================= SVG ================= */
+.ttl{fill:var(--text);font-size:18px;font-weight:700}
+.subt{fill:var(--muted);font-size:12px}
+.zone{fill:var(--zone);stroke:var(--zone-stroke);stroke-dasharray:6 5}
+.zt{fill:var(--zone-text);font-size:11.5px;font-weight:700;letter-spacing:.08em}
+.free{fill:var(--sublabel);font-size:11.5px}
+.node{cursor:pointer;outline:none;transition:opacity .25s}
+.n-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.n-strip{fill:var(--mc)}
+.n-t{fill:var(--label);font-size:15px;font-weight:700;text-anchor:middle;pointer-events:none}
+.n-s{fill:var(--sublabel);font-size:11px;text-anchor:middle;pointer-events:none}
+.n-go{fill:var(--accent);font-size:10.5px;font-weight:700;text-anchor:end;pointer-events:none}
+.node:hover .n-b,.node.sel .n-b{stroke:var(--focus);stroke-width:3}
+.node.dim,.fl.dim{opacity:.16}
+.fl{transition:opacity .25s}
+.fl path{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.f-case{stroke:var(--canvas)}
+.f-base{stroke:var(--mc);opacity:.38}
+.f-dash{stroke:var(--mc);stroke-dasharray:8 10;animation:flow 1.4s linear infinite}
+.fl .f-arr{fill:var(--mc);stroke:none}
+.f-lab{fill:var(--mc);font-size:11px;font-weight:700}
+.m-gaz .f-dash,.m-air .f-dash{stroke-dasharray:2 8}
+@keyframes flow{to{stroke-dashoffset:-36}}
+.m-comb{--mc:var(--m-comb)}.m-sol{--mc:var(--m-sol)}.m-u{--mc:var(--m-u)}.m-pu{--mc:var(--m-pu)}.m-pf{--mc:var(--m-pf)}.m-coq{--mc:var(--m-coq)}
+.m-eff{--mc:var(--m-eff)}.m-gaz{--mc:var(--m-gaz)}.m-dt{--mc:var(--m-dt)}.m-solv{--mc:var(--m-solv)}.m-verre{--mc:var(--m-verre)}.m-eau{--mc:var(--m-eau)}.m-air{--mc:var(--m-air)}.m-emb{--mc:var(--m-emb)}.m-upu{--mc:var(--m-upu)}
+/* Équipements des vues détaillées */
+.eq{cursor:pointer;transition:opacity .3s}
+.eq-b{fill:var(--eq);stroke:var(--eq-stroke);stroke-width:1.6}
+.eq-t{fill:var(--label);font-size:13px;font-weight:700;text-anchor:middle;pointer-events:none}
+.eq-s{fill:var(--sublabel);font-size:10.5px;text-anchor:middle;pointer-events:none}
+.eq:hover .eq-b{stroke:var(--focus)}
+.eq.hl .eq-b{stroke:var(--accent);stroke-width:3}
+.dim{opacity:.17}
+.part{transition:opacity .3s}
+.lbl{fill:var(--label);font-size:12px}.lbl-s{fill:var(--sublabel);font-size:10.5px}
+.mid{text-anchor:middle}.end{text-anchor:end}
+.wall{fill:none;stroke:var(--eq-stroke);stroke-width:2}
+.thin{fill:none;stroke:var(--eq-stroke);stroke-width:1.4}
+.water{fill:var(--water);opacity:.55}
+.metal{fill:var(--m-coq)}
+/* Animations */
+.spin{animation:spin 10s linear infinite;transform-box:fill-box;transform-origin:center}
+.spin-fast{animation:spin 2.2s linear infinite;transform-box:fill-box;transform-origin:center}
+@keyframes spin{to{transform:rotate(360deg)}}
+.chop{animation:chop 1.6s ease-in-out infinite}
+@keyframes chop{0%,40%,100%{transform:translateY(0)}55%{transform:translateY(34px)}}
+.feed{animation:feed 3.2s ease-in-out infinite}
+@keyframes feed{0%{transform:translateX(-40px)}50%,100%{transform:translateX(0)}}
+.fall{animation:fall 1.6s linear infinite}
+@keyframes fall{0%{transform:translateY(0);opacity:0}15%{opacity:1}100%{transform:translateY(80px);opacity:0}}
+.rise{animation:rise 3s linear infinite}
+@keyframes rise{0%{transform:translateY(0);opacity:0}20%{opacity:.9}100%{transform:translateY(-70px);opacity:0}}
+.rise-long{animation:riseL 4s linear infinite}
+@keyframes riseL{0%{transform:translateY(0);opacity:0}15%{opacity:1}85%{opacity:1}100%{transform:translateY(-240px);opacity:0}}
+.lift{animation:lift 4s ease-in-out infinite}
+@keyframes lift{0%,15%{transform:translateY(40px)}55%,100%{transform:translateY(0)}}
+.press{animation:press 2.8s ease-in-out infinite}
+@keyframes press{0%,30%,100%{transform:translateY(0)}60%{transform:translateY(58px)}}
+.crush{animation:crush 2.8s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes crush{0%,30%,100%{transform:scaleY(1)}60%{transform:scaleY(.2)}}
+.fillup{animation:fillup 6s ease-in-out infinite;transform-box:fill-box;transform-origin:bottom}
+@keyframes fillup{0%{transform:scaleY(.05)}80%,100%{transform:scaleY(1)}}
+.glow{animation:glow 1.8s ease-in-out infinite}
+@keyframes glow{50%{opacity:.45}}
+.drip{animation:drip 1.1s linear infinite}
+@keyframes drip{0%{transform:translateY(0);opacity:0}20%{opacity:1}100%{transform:translateY(40px);opacity:0}}
+.move-r{animation:mover 5s linear infinite}
+.tr-move{animation:trMove 9s ease-in-out infinite}@keyframes trMove{0%,10%{transform:translateX(0)}45%,60%{transform:translateX(230px)}95%,100%{transform:translateX(0)}}
+body.paused .tr-move{animation-play-state:paused}@media(prefers-reduced-motion:reduce){.tr-move{animation:none}}
+@keyframes mover{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(860px);opacity:0}}
+body.paused .fl .f-dash,body.paused .spin,body.paused .spin-fast,body.paused .chop,body.paused .feed,body.paused .fall,body.paused .rise,body.paused .rise-long,body.paused .lift,body.paused .press,body.paused .crush,body.paused .fillup,body.paused .glow,body.paused .drip,body.paused .move-r{animation-play-state:paused}
+@media(prefers-reduced-motion:reduce){.f-dash,.spin,.spin-fast,.chop,.feed,.fall,.rise,.rise-long,.lift,.press,.crush,.fillup,.glow,.drip,.move-r{animation:none!important}}
+@media(max-width:1020px){.layout{grid-template-columns:1fr}.aside{border-left:0;border-top:1px solid var(--border)}}
+@media(max-width:560px){.top h1{font-size:17px}.nav{padding:8px}}
+/* ===== Cycle amont : matières et animations ===== */
+.m-min{--mc:var(--m-min)}.m-yc{--mc:var(--m-yc)}.m-uf4{--mc:var(--m-uf4)}.m-uf6{--mc:var(--m-uf6)}.m-ue{--mc:var(--m-ue)}.m-uapp{--mc:var(--m-uapp)}.m-uo2{--mc:var(--m-uo2)}.m-zr{--mc:var(--m-zr)}.m-rea{--mc:var(--m-rea)}.m-dech{--mc:var(--m-dech)}.m-urt{--mc:var(--m-urt)}
+.pit-truck{animation:pitTruck 8s ease-in-out infinite}@keyframes pitTruck{0%,10%{transform:translate(0,0)}45%,55%{transform:translate(105px,-82px)}90%,100%{transform:translate(0,0)}}
+.skip{animation:skip 6s ease-in-out infinite}@keyframes skip{0%,10%{transform:translateY(205px)}50%,60%{transform:translateY(0)}100%{transform:translateY(205px)}}
+.punch{animation:punch 2.4s ease-in-out infinite}@keyframes punch{0%,30%,100%{transform:translateY(0)}55%{transform:translateY(22px)}}
+.pel{animation:pel 4s linear infinite;opacity:0}@keyframes pel{0%{transform:translateX(0);opacity:0}10%{opacity:1}90%{opacity:1}100%{transform:translateX(180px);opacity:0}}
+.rodin{animation:rodin 6s ease-in-out infinite}@keyframes rodin{0%,15%{transform:translateX(-30px);opacity:0}60%,100%{transform:translateX(0);opacity:1}}
+.tr-move-s{animation:trs 6s ease-in-out infinite}@keyframes trs{0%,15%{transform:translateX(0)}50%,65%{transform:translateX(60px)}100%{transform:translateX(0)}}
+.tz-rot{animation:tzRot .5s linear infinite}@keyframes tzRot{to{transform:translateX(24px)}}
+.tz-heavy-l{animation:tzHL 3.6s linear infinite;opacity:0}@keyframes tzHL{0%{transform:translate(0,0);opacity:0}10%{opacity:1}40%{transform:translate(-68px,10px)}90%{opacity:1}100%{transform:translate(-68px,190px);opacity:0}}
+.tz-heavy-r{animation:tzHR 3.6s linear infinite;opacity:0}@keyframes tzHR{0%{transform:translate(0,0);opacity:0}10%{opacity:1}40%{transform:translate(68px,10px)}90%{opacity:1}100%{transform:translate(68px,190px);opacity:0}}
+.tz-light-l{animation:tzLL 3.6s linear infinite;opacity:0}@keyframes tzLL{0%{transform:translate(0,0);opacity:0}10%{opacity:1}35%{transform:translate(-14px,-6px)}90%{opacity:1}100%{transform:translate(-14px,-170px);opacity:0}}
+.tz-light-r{animation:tzLR 3.6s linear infinite;opacity:0}@keyframes tzLR{0%{transform:translate(0,0);opacity:0}10%{opacity:1}35%{transform:translate(14px,-6px)}90%{opacity:1}100%{transform:translate(14px,-170px);opacity:0}}
+.tz-heavy-s{animation:tzHS 3s linear infinite;opacity:0}@keyframes tzHS{0%{transform:translate(0,0);opacity:0}15%{opacity:1}40%{transform:translate(-11px,0)}100%{transform:translate(-11px,40px);opacity:0}}
+.tz-light-s{animation:tzLS 3s linear infinite;opacity:0}@keyframes tzLS{0%{transform:translate(0,0);opacity:0}15%{opacity:1}100%{transform:translate(0,-40px);opacity:0}}
+.tz-punch{animation:tzPunch 3s ease-in-out infinite}@keyframes tzPunch{0%,25%,100%{transform:translateY(0)}55%,65%{transform:translateY(99px)}}
+.tz-fill{transform-box:fill-box;transform-origin:bottom;animation:tzFill 3s ease-in-out infinite}@keyframes tzFill{0%,25%,100%{transform:scaleY(1)}55%,65%{transform:scaleY(.5)}}
+.tz-bar{transform-box:fill-box;transform-origin:bottom;animation:tzBar 4s ease-out infinite}@keyframes tzBar{0%{transform:scaleY(0)}40%,100%{transform:scaleY(1)}}
+.aside a{color:var(--accent)}
+.c3d-ctrl{display:flex;flex-wrap:wrap;gap:10px 18px;align-items:center;padding:10px 14px;border-bottom:1px solid var(--border);font-size:13px}.c3d-ctrl label{display:inline-flex;align-items:center;gap:8px}.c3d-sl input{width:150px;accent-color:var(--accent)}.c3d-views{display:inline-flex;gap:6px;flex-wrap:wrap}.c3d-ctrl .btn{min-height:32px;padding:5px 10px;font-size:12.5px}
+.c3d-cv{display:block;width:100%;height:auto;cursor:grab;touch-action:none;background:radial-gradient(ellipse at 30% 50%,var(--canvas-glow),var(--canvas) 75%)}.c3d-cv:active{cursor:grabbing}
+body.paused svg *,.dim *,.tech-zoom.hidden *{animation-play-state:paused!important}
+@media(prefers-reduced-motion:reduce){svg *{animation:none!important}}
+</style>
+<header class="top">
+ <div><h1>Cycle amont <span>/</span> De la mine à l’assemblage</h1><div class="sub">Amont du cycle du combustible · synoptique cliquable et vues détaillées des installations · version 1.0</div></div>
+ <div class="bar" style="margin:0">
+  <button class="btn" id="pauseBtn" type="button">⏸ Animations</button>
+  <button id="themeBtn" class="btn theme-btn" type="button" aria-label="Basculer entre le design clair et le design sombre"><svg id="themeIcon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"></svg><span id="themeTxt">Thème clair</span></button>
+ </div>
+</header>
+<nav class="nav" id="nav" aria-label="Navigation entre les vues"></nav>
+
+<div class="layout">
+<main class="main">
+ <div class="crumbs" id="crumbs"></div>
+
+ <!-- SYNOPTIQUE GÉNÉRAL -->
+ <section id="synSec">
+  <div class="bar">
+   <div class="grp" id="filters" role="group" aria-label="Filtrer les flux de matière"></div>
+   <div class="grp"><button class="btn" id="tourBtn" type="button">▶ Visite guidée</button></div>
+  </div>
+  <div class="stage"><svg id="syn" viewBox="0 0 1200 700" role="img" aria-label="Synoptique général du cycle amont du combustible"></svg>
+   <div class="legend" id="synLegend"></div></div>
+ </section>
+
+ <!-- VUE DÉTAILLÉE -->
+ <section id="detSec" class="hidden">
+  <div class="bar">
+   <div class="grp"><button class="btn" id="prevView" type="button">← Installation précédente</button><button class="btn" id="nextView" type="button">Installation suivante →</button></div>
+   <div class="grp"><button class="btn" id="playBtn" type="button">▶ Lecture guidée</button></div>
+  </div>
+  <div class="stage">
+   <svg id="det" viewBox="0 0 1100 520" role="img"></svg>
+   <div class="legend" id="detLegend"></div>
+   <div class="steps" id="steps"></div>
+   <div class="steptext" id="stepText" aria-live="polite"></div>
+  </div>
+  <div class="tech-zoom hidden" id="techZoom"></div>
+ </section>
+</main>
+
+<aside class="aside" id="aside"></aside>
+</div>
+<footer class="footer">Sources : Orano (rapport d’activité 2025 ; communiqué sur l’extension de Georges Besse II, 2023), Framatome (dossier de presse, site de Romans-sur-Isère, 2025), Andra (Inventaire national, Les Essentiels 2026), AIEA (Uranium 2025, via Connaissance des énergies), ASNR. Schémas fonctionnels non dimensionnés, sans valeur d’exploitation ; chiffres arrondis.</footer>
+
+<script>
+"use strict";
+const $=id=>document.getElementById(id);
+/* =====================================================================
+   1. MATIÈRES ET OUTILS DE DESSIN
+   ===================================================================== */
+const MAT={min:'Minerai',sol:'Solution uranifère',yc:'Concentré (yellow cake)',uf4:'UF₄ (tétrafluorure)',uf6:'UF₆ naturel',ue:'UF₆ enrichi',uapp:'Uranium appauvri',uo2:'Oxyde d’uranium (poudre, pastilles)',comb:'Combustible',zr:'Zirconium',rea:'Réactifs (acides, HF, F₂, H₂)',eff:'Effluents',gaz:'Gaz',dech:'Résidus, stériles',urt:'Uranium de retraitement',pu:'Plutonium',air:'Air de ventilation'};
+function pts(d){const t=d.match(/[MLHV]|-?\d+(?:\.\d+)?/g);const p=[];let c='M',x=0,y=0,i=0;
+ while(i<t.length){const k=t[i];if(/[MLHV]/.test(k)){c=k;i++;continue;}
+  if(c==='M'||c==='L'){x=+t[i];y=+t[i+1];i+=2;}else if(c==='H'){x=+t[i];i++;}else{y=+t[i];i++;}p.push([x,y]);}return p;}
+function F(d,m,s,o={}){const p=pts(d),a=p[p.length-2],b=p[p.length-1],ang=Math.atan2(b[1]-a[1],b[0]-a[0]),w=o.w||6,sz=w+6;
+ const tri=`M${b[0]} ${b[1]} L${(b[0]-sz*Math.cos(ang-.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang-.45)).toFixed(1)} L${(b[0]-sz*Math.cos(ang+.45)).toFixed(1)} ${(b[1]-sz*Math.sin(ang+.45)).toFixed(1)}Z`;
+ return `<g class="fl m-${m}" data-m="${m}"${s!==''?` data-s="${s}"`:''}${o.n?` data-n="${o.n}"`:''}>${o.noCase?'':`<path class="f-case" d="${d}" stroke-width="${w+5}"/>`}<path class="f-base" d="${d}" stroke-width="${w}"/><path class="f-dash" d="${d}" stroke-width="${Math.max(2,w*.45).toFixed(1)}"/>${o.noArrow?'':`<path class="f-arr" d="${tri}"/>`}${o.lab?`<text class="f-lab" x="${o.lab[0]}" y="${o.lab[1]}"${o.lab[3]?` text-anchor="${o.lab[3]}"`:''}>${o.lab[2]}</text>`:''}</g>`;}
+function B(x,y,w,h,t,sub,s,o={}){const L=Array.isArray(sub)?sub:(sub?[sub]:[]),cx=x+w/2;
+ const ty=o.top?y+20:(y+h/2-(L.length*13)/2+5);
+ return `<g class="eq" data-s="${s}" tabindex="0" role="button" aria-label="${t}"><rect class="eq-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="${o.rx??11}"/>${o.inner||''}<text class="eq-t" x="${cx}" y="${ty}">${t}</text>${L.map((l,i)=>`<text class="eq-s" x="${cx}" y="${ty+15+i*13}">${l}</text>`).join('')}</g>`;}
+const PT=(s,inner)=>`<g class="part" data-s="${s}">${inner}</g>`;
+const TX=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+const bubbles=(xs,y,c,cls='rise')=>xs.map((x,i)=>`<circle class="${cls}" cx="${x}" cy="${y}" r="3" fill="${c}" opacity=".8" style="animation-delay:${(i*.55).toFixed(2)}s"/>`).join('');
+const cyl=(x,y,w,h,c,extra='')=>`<rect x="${x}" y="${y}" width="${w}" height="${h}" rx="${h/2}" fill="var(--eq)" stroke="${c}" stroke-width="2.5"${extra}/><path d="M${x+h*.6} ${y+3} V${y+h-3} M${x+w-h*.6} ${y+3} V${y+h-3}" stroke="var(--eq-stroke)" stroke-width="1.5"/>`;
+const column=(x,y,h,s,label)=>PT(s,`<rect x="${x}" y="${y}" width="50" height="${h}" rx="22" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="${x+4}" y="${y+4}" width="42" height="${h*0.55}" rx="18" fill="var(--m-sol)" opacity=".18"/><rect x="${x+4}" y="${y+h*0.5}" width="42" height="${h*0.48}" rx="18" fill="var(--m-rea)" opacity=".16"/>${Array.from({length:Math.floor((h-40)/22)},(_,i)=>`<path d="M${x+8} ${y+24+i*22}H${x+42}" stroke="var(--eq-stroke)" stroke-width="1.2" stroke-dasharray="3 3"/>`).join('')}${[0,.6,1.2,1.8,2.4,3.0].map((d,i)=>`<circle class="rise-long" cx="${x+12+(i%3)*13}" cy="${y+h-14}" r="3.4" fill="var(--m-sol)" style="animation-delay:${d}s"/>`).join('')}<text class="lbl mid" x="${x+25}" y="${y-8}">${label}</text>`);
+
+/* =====================================================================
+   2. FICHES DES INSTALLATIONS (synoptique)
+   ===================================================================== */
+const FICHE={
+mine:{t:'Mines d’uranium',full:'Extraction du minerai',m:'min',view:'mine',
+ role:'Extraire de la roche un minerai qui contient le plus souvent de 0,1 % à quelques pour cent d’uranium.',
+ does:['Trois techniques : mine à ciel ouvert, mine souterraine, lixiviation in situ (ISR) sans excavation.','Le Kazakhstan, premier producteur mondial, exploite surtout par ISR ; le Canada possède des gisements à très haute teneur.','Orano exploite notamment KATCO au Kazakhstan (51 %, ISR) et participe aux mines canadiennes de Cigar Lake et McArthur River.','La France n’a plus de mine en activité depuis 2001.'],
+ io:[['Entrée','Gisement d’uranium'],['Sorties','Minerai → usine de concentration ; stériles']],
+ keys:[['production variableU','production de KATCO en 2025 (Orano)'],['6 000 à 8 000 t','besoin annuel du parc français en uranium naturel (AIEA, 2025)']]},
+conc:{t:'Concentration',full:'Usine de traitement du minerai',m:'yc',view:'conc',
+ role:'Extraire chimiquement l’uranium du minerai, près de la mine, pour obtenir un concentré solide : le « yellow cake ».',
+ does:['Concassage et broyage du minerai.','Lixiviation (le plus souvent à l’acide sulfurique) : l’uranium passe en solution.','Séparation solide-liquide, purification (solvant ou résines), précipitation, séchage.','Le concentré est expédié en fûts métalliques vers la conversion.'],
+ io:[['Entrée','Minerai ou solution de lixiviation in situ'],['Sorties','Yellow cake → Malvési ; résidus de traitement']]},
+residus:{t:'Résidus miniers',full:'Stériles et résidus de traitement',m:'dech',view:'conc',
+ role:'La roche stérile et les résidus du traitement contiennent encore les descendants radioactifs de l’uranium (radium, radon).',
+ does:['Résidus stockés dans des parcs ou d’anciennes fosses, recouverts et surveillés.','En France, environ 250 anciens sites miniers ont été exploités de 1948 à 2001 ; ils restent surveillés.','Principal enjeu : le radon et la qualité des eaux.'],
+ io:[['Entrée','Résidus de la concentration'],['Sortie','Stockage surveillé']]},
+malv:{t:'Orano Malvési',full:'Conversion, 1ʳᵉ étape : du concentré à l’UF₄',m:'uf4',view:'malv',
+ role:'Purifier le concentré puis le transformer en tétrafluorure d’uranium (UF₄), près de Narbonne (Aude).',
+ does:['Dissolution des concentrés dans l’acide nitrique.','Purification par extraction au solvant (TBP), comme à La Hague.','Précipitation et calcination (UO₃), réduction à l’hydrogène (UO₂), puis hydrofluoration (UF₄).','Gestion des effluents nitratés dans des bassins et une unité de traitement.'],
+ io:[['Entrée','Concentrés du monde entier'],['Sortie','UF₄ → Philippe Coste (Tricastin)']],
+ keys:[['14 000 t','capacité nominale annuelle de la conversion Orano'],['≈ 60 000 t','marché mondial de la conversion']]},
+effl:{t:'Effluents nitratés',full:'Bassins et traitement des effluents de Malvési',m:'eff',view:'malv',
+ role:'Les effluents de la conversion, riches en nitrates, sont décantés et évaporés dans des bassins puis traités.',
+ does:['Décantation des boues, évaporation naturelle des eaux.','Les anciens bassins de décantation constituent une installation nucléaire de base (ECRIN).','Enjeu environnemental important du site.'],
+ io:[['Entrée','Effluents de la purification et de la précipitation'],['Sortie','Boues entreposées ; eaux traitées']]},
+pcoste:{t:'Orano Philippe Coste',full:'Conversion, 2ᵉ étape : de l’UF₄ à l’UF₆',m:'uf6',view:'pcoste',
+ role:'Fixer deux atomes de fluor supplémentaires pour obtenir l’hexafluorure d’uranium (UF₆), forme utilisée pour l’enrichissement par centrifugation gazeuse.',
+ does:['Production du fluor par électrolyse de l’acide fluorhydrique.','Fluoration de l’UF₄ dans un réacteur à flamme : UF₄ + F₂ → UF₆.','Piégeage de l’UF₆ à froid, puis remplissage des conteneurs 48Y.','Usine mise en service en 2018 sur le site du Tricastin (Drôme).'],
+ io:[['Entrée','UF₄ de Malvési'],['Sortie','UF₆ naturel en conteneurs 48Y → Georges Besse II']]},
+gb2:{t:'Georges Besse II',full:'Enrichissement par centrifugation',m:'ue',view:'gb2',
+ role:'Augmenter la proportion d’uranium 235 de 0,7 % à 3 à 5 %, la teneur utilisée dans les réacteurs à eau sous pression.',
+ does:['Des milliers de centrifugeuses montées en cascade.','Chaque machine sépare un peu les molécules d’UF₆ selon leur masse.','Deux sorties : UF₆ enrichi (conteneurs 30B) et UF₆ appauvri (conteneurs 48Y).','Extension en cours : des modules supplémentaires.'],
+ io:[['Entrée','UF₆ naturel'],['Sorties','UF₆ enrichi → fabrication ; UF₆ appauvri → défluoration']],
+ keys:[['7,5 M UTS','capacité atteinte en 2016'],['+ 2,5 M UTS','extension, calendrier industriel prévisionnel'],['investissement industriel','investissement de l’extension']]},
+defl:{t:'Défluoration (usine W)',full:'Transformation de l’UF₆ appauvri en oxyde',m:'uapp',view:'defl',
+ role:'Transformer l’UF₆ appauvri en U₃O₈, une poudre stable, beaucoup plus sûre à entreposer.',
+ does:['Hydrolyse de l’UF₆ par la vapeur d’eau puis calcination en four.','L’acide fluorhydrique récupéré est valorisé.','L’oxyde est conditionné en conteneurs métalliques.'],
+ io:[['Entrée','UF₆ appauvri de Georges Besse II'],['Sortie','U₃O₈ → entreposage']]},
+stock:{t:'Uranium appauvri',full:'Entreposage d’une matière valorisable',m:'uapp',view:'defl',
+ role:'L’uranium appauvri est une matière radioactive : une réutilisation est prévue.',
+ does:['Entreposé principalement à Bessines-sur-Gartempe (Haute-Vienne) et au Tricastin.','Il sert déjà de support au combustible MOX.','Il pourra être réenrichi ou utilisé dans de futurs réacteurs à neutrons rapides.'],
+ io:[['Entrée','U₃O₈ de la défluoration'],['Sortie','Melox (MOX) ; réserve stratégique']],
+ keys:[['stock de matière','stock d’uranium appauvri fin 2024 (Andra)']]},
+romans:{t:'Framatome Romans',full:'Fabrication de la poudre et des pastilles',m:'uo2',view:'romans',
+ role:'Transformer l’UF₆ enrichi en poudre d’oxyde UO₂, puis en pastilles frittées, à Romans-sur-Isère (Drôme).',
+ does:['Conversion de l’UF₆ en poudre d’UO₂ dans des fours.','Pressage de pastilles d’environ 8 mm de diamètre et 7 g.','Frittage à environ 1 700 °C, rectification, contrôle.'],
+ io:[['Entrée','UF₆ enrichi en conteneurs 30B'],['Sortie','Pastilles d’UO₂ → crayons']],
+ keys:[['≈ 1 700 °C','température de frittage'],['production variable','uranium mis en œuvre en 2024']]},
+zr:{t:'Gaines en zirconium',full:'Filière zirconium de Framatome',m:'zr',view:'assemb',
+ role:'Fabriquer les tubes de gaine et les pièces de structure en alliage de zirconium, qui absorbe très peu les neutrons.',
+ does:['Du minerai de zircon à l’éponge de zirconium, puis aux lingots d’alliage.','Laminage en tubes d’environ 4 m de long.','Sites Framatome en France : Jarrie, Ugine, Rugles, Paimboeuf.'],
+ io:[['Entrée','Zircon'],['Sortie','Tubes de gaine → Romans']]},
+assemb:{t:'Crayons et assemblages',full:'Montage du combustible',m:'comb',view:'assemb',
+ role:'Empiler les pastilles dans les gaines pour former des crayons, puis réunir les crayons en assemblages.',
+ does:['Environ 300 pastilles par crayon, un ressort, deux bouchons soudés, de l’hélium sous pression.','Assemblage 17 × 17 : 264 crayons, 24 tubes-guides, 1 tube d’instrumentation.','Grilles de maintien, embouts supérieur et inférieur.'],
+ io:[['Entrées','Pastilles, gaines, pièces de structure'],['Sortie','Assemblages neufs → centrales']]},
+reacteur:{t:'Centrale REP',full:'Utilisation du combustible',m:'comb',view:'',
+ role:'Fin de l’amont : les assemblages neufs sont livrés à la centrale, entreposés puis chargés dans le cœur.',
+ does:['Un cœur de REP 1300 MWe compte 193 assemblages ; un REP 900 MWe en compte 157.','Une partie des assemblages est renouvelée à chaque arrêt pour rechargement.','Après 3 à 5 ans, l’assemblage usé entre dans l’aval du cycle.'],
+ io:[['Entrée','Assemblages neufs UOX, MOX ou URE'],['Sortie','Combustible usé → aval du cycle']]},
+lahague:{t:'La Hague (aval)',full:'Lien avec l’aval du cycle',m:'urt',view:'',
+ role:'Le traitement du combustible usé produit des matières qui reviennent vers l’amont.',
+ does:['L’uranium de retraitement (URT) est converti puis réenrichi pour fabriquer du combustible URE.','Le plutonium part à Melox pour fabriquer du MOX.','Pour le détail de l’usine : <a href="lahague.html">parcours La Hague</a>.'],
+ io:[['Entrée','Combustible usé'],['Sorties','URT → conversion ; Pu → Melox']]},
+melox:{t:'Melox',full:'Fabrication du combustible MOX',m:'pu',view:'',
+ role:'Mélanger l’oxyde de plutonium et l’oxyde d’uranium appauvri pour fabriquer le MOX, à Marcoule (Gard).',
+ does:['Le plutonium remplace l’uranium 235 comme matière fissile.','Même procédé de pastilles, crayons et assemblages qu’à Romans, mais en boîtes à gants.','Le MOX est chargé dans 22 réacteurs de 900 MWe et fournit environ 10 % de l’électricité nucléaire.'],
+ io:[['Entrées','PuO₂ de La Hague, uranium appauvri'],['Sortie','Assemblages MOX → centrales']]},
+transport:{t:'Transports',full:'Transports de l’amont',m:'uf6',view:'risques',
+ role:'Chaque étape se trouve sur un site différent : concentrés, UF₄, UF₆ et assemblages voyagent par route, rail et mer.',
+ does:['UF₆ naturel : conteneurs 48Y ; UF₆ enrichi : conteneurs 30B dans une coque de protection.','Assemblages neufs : emballages dédiés, faible radioactivité.','Réglementation internationale du transport des matières radioactives.'],
+ io:[['Entrées','Toutes les usines'],['Sorties','Toutes les usines']]},
+risques:{t:'Risques et contrôles',full:'Sûreté du cycle amont',m:'rea',view:'risques',
+ role:'Dans l’amont, le risque chimique est souvent plus important que le risque radiologique ; le risque de criticité apparaît avec l’enrichissement.',
+ does:['Risque chimique : UF₆, acide fluorhydrique, fluor, acide nitrique.','Criticité : géométrie sûre, limitation des masses, contrôle de la modération.','Radioprotection : radon dans les mines, poussières d’uranium.','Contrôle de l’ASNR ; garanties Euratom et AIEA contre la prolifération.'],
+ io:[['Concerne','Toutes les installations de l’amont']]}
+};
+
+/* =====================================================================
+   3. SYNOPTIQUE GÉNÉRAL
+   ===================================================================== */
+const SYN_NODES=[
+ ['mine',30,130,170,80,'Mines','extraction du minerai'],
+ ['conc',225,130,170,80,'Concentration','→ yellow cake'],
+ ['residus',225,250,170,60,'Résidus miniers','stockés · surveillés'],
+ ['malv',450,130,170,80,'Malvési','UF₄ · Aude'],
+ ['effl',450,250,170,60,'Effluents nitratés','bassins · traitement'],
+ ['pcoste',645,130,170,80,'Philippe Coste','UF₆ · Tricastin'],
+ ['lahague',1010,130,170,80,'La Hague','aval du cycle'],
+ ['gb2',30,400,170,80,'Georges Besse II','enrichissement'],
+ ['romans',225,400,170,80,'Romans','poudre · pastilles'],
+ ['assemb',420,400,170,80,'Crayons','assemblages'],
+ ['reacteur',615,400,170,80,'Centrale REP','3 à 5 ans en cœur'],
+ ['melox',1010,400,170,80,'Melox','combustible MOX'],
+ ['defl',30,570,170,80,'Défluoration','UF₆ → U₃O₈'],
+ ['stock',225,570,170,80,'Uranium appauvri','Bessines · Tricastin'],
+ ['zr',420,570,170,80,'Zirconium','tubes de gaine'],
+ ['transport',620,570,170,80,'Transports','route · rail · mer'],
+ ['risques',815,570,170,80,'Risques','chimique · criticité']
+];
+const SYN_FLOWS=[
+ ['M200 170 H225','min','mine conc'],['M395 170 H450','yc','conc malv'],['M620 170 H645','uf4','malv pcoste'],
+ ['M310 210 V250','dech','conc residus'],['M535 210 V250','eff','malv effl'],
+ ['M730 210 V332 H115 V400','uf6','pcoste gb2'],
+ ['M200 440 H225','ue','gb2 romans'],['M395 440 H420','uo2','romans assemb'],['M590 440 H615','comb','assemb reacteur'],
+ ['M115 480 V570','uapp','gb2 defl'],['M200 610 H225','uapp','defl stock'],['M505 570 V480','zr','zr assemb'],
+ ['M785 415 H900 V185 H1010','comb','reacteur lahague'],['M1010 150 H900 V240','urt','lahague'],
+ ['M1095 210 V400','pu','lahague melox'],['M1010 455 H785','comb','melox reacteur'],
+ ['M310 650 V680 H1095 V480','uapp','stock melox']
+];
+function N(id,x,y,w,h,t,s){const f=FICHE[id];
+ return `<g class="node" data-node="${id}" tabindex="0" role="button" aria-label="${t} — ${s}"><rect class="n-b" x="${x}" y="${y}" width="${w}" height="${h}" rx="12"/><rect class="n-strip m-${f.m}" x="${x}" y="${y+10}" width="5" height="${h-20}" rx="2.5"/><text class="n-t" x="${x+w/2}" y="${y+h/2-2}">${t}</text><text class="n-s" x="${x+w/2}" y="${y+h/2+15}">${s}</text></g>`;}
+function buildSyn(){
+ let s=`<text class="ttl" x="30" y="38">Le cycle amont : de la mine à l’assemblage</text><text class="subt" x="30" y="60">Cliquez sur une installation pour afficher sa fiche, puis ouvrez sa vue détaillée.</text><text class="subt" x="30" y="78">Schéma fonctionnel, non géographique : chaque étape se trouve sur un site différent.</text>`;
+ s+=`<rect class="zone" x="15" y="95" width="400" height="230" rx="14"/><text class="zt" x="27" y="114">MINES ET CONCENTRATION · À L’ÉTRANGER</text>`;
+ s+=`<rect class="zone" x="435" y="95" width="395" height="230" rx="14"/><text class="zt" x="447" y="114">CONVERSION · ORANO</text>`;
+ s+=`<rect class="zone" x="15" y="345" width="815" height="160" rx="14"/><text class="zt" x="135" y="364">ENRICHISSEMENT · FABRICATION · UTILISATION</text>`;
+ s+=`<rect class="zone" x="995" y="95" width="195" height="410" rx="14" style="stroke-dasharray:2 6"/><text class="zt" x="1007" y="114">RETOURS DE L’AVAL</text>`;
+ s+=`<rect class="zone" x="15" y="525" width="1175" height="168" rx="14"/><text class="zt" x="135" y="544">FILIÈRES ANNEXES · TRANSPORTS ET RISQUES</text>`;
+ s+=SYN_FLOWS.map(([d,m,n])=>F(d,m,'',{n})).join('');
+ s+=`<text class="free" x="400" y="198">yellow</text><text class="free" x="400" y="211">cake</text><text class="free" x="520" y="326">UF₆ naturel (0,7 % d’²³⁵U)</text><text class="free" x="908" y="300">combustible usé</text><text class="free" x="838" y="258">URT : filière dédiée</text><text class="free" x="1102" y="300">Pu</text><text class="free" x="880" y="472">assemblages MOX</text><text class="free" x="123" y="500">UF₆ appauvri</text><text class="free" x="560" y="674">uranium appauvri → MOX</text><text class="free" x="513" y="534">gaines</text>`;
+ s+=SYN_NODES.map(a=>N(...a)).join('');
+ $('syn').innerHTML=s;
+ const used=[...new Set(SYN_FLOWS.map(f=>f[1]))];
+ $('synLegend').innerHTML=used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('');
+ $('filters').innerHTML=`<button class="chip active" data-f="all" type="button">Tous les flux</button>`+['min','yc','uf4','uf6','ue','uapp','uo2','comb'].map(m=>`<button class="chip m-${m}" data-f="${m}" type="button"><i></i>${MAT[m].replace(/ \(.*\)/,'')}</button>`).join('');
+}
+
+/* =====================================================================
+   4. VUES DÉTAILLÉES
+   ===================================================================== */
+const GT=[[2,5],[2,8],[2,11],[3,3],[3,13],[5,2],[5,5],[5,8],[5,11],[5,14],[8,2],[8,5],[8,11],[8,14],[11,2],[11,5],[11,8],[11,11],[11,14],[13,3],[13,13],[14,5],[14,8],[14,11]];
+const VIEWS={
+/* ---------- Mines ---------- */
+mine:{t:'Mines d’uranium — extraire le minerai',sub:'Trois techniques selon la profondeur et la nature du gisement',fiche:'mine',
+ intro:'L’uranium est présent partout dans l’écorce terrestre, mais il n’est exploitable que dans des gisements assez riches. Selon la profondeur et la géologie, on creuse une fosse, on descend sous terre, ou l’on dissout l’uranium directement dans la roche.',
+ steps:[
+ {t:'Exploration',d:'<p>Les géologues repèrent les zones favorables (cartes, mesures de radioactivité depuis le sol ou par avion), puis réalisent des <b>forages carottés</b> pour connaître la forme du gisement et sa <b>teneur</b>. Il s’écoule souvent plus de dix ans entre la découverte et la production.</p>'},
+ {t:'Mine à ciel ouvert',d:'<p>Pour un gisement proche de la surface, on creuse une <b>fosse en gradins</b>. Les <b>stériles</b> (roche sans valeur) sont retirés, puis le minerai est abattu à l’explosif, chargé par des pelles et transporté par camions.</p><p class="note">Il faut souvent déplacer beaucoup plus de stériles que de minerai.</p>'},
+ {t:'Mine souterraine',d:'<p>Pour un gisement profond, on accède au minerai par des <b>puits</b> et des <b>galeries</b>. Une <b>ventilation forcée</b> renouvelle l’air en permanence. Au Canada, les gisements à très haute teneur de Cigar Lake et McArthur River imposent des méthodes spéciales : congélation du terrain, abattage à distance.</p>'},
+ {t:'Lixiviation in situ (ISR)',d:'<p>Quand le minerai se trouve dans une couche de <b>grès perméable</b> entre deux couches d’<b>argile imperméable</b>, on n’excave rien : une solution (eau, acide, oxydant) est <b>injectée</b> par des puits, dissout l’uranium, puis est <b>pompée</b> par d’autres puits. L’uranium est récupéré en surface sur des résines.</p><p class="note">Pas de stériles ni de résidus de broyage. Technique dominante au Kazakhstan, premier producteur mondial ; KATCO (Orano 51 %) y a produit production variable d’uranium en 2025.</p>'},
+ {t:'Radioprotection',d:'<p>Le minerai est peu radioactif, mais l’uranium produit en se désintégrant du <b>radon</b>, un gaz radioactif qui s’accumule dans les galeries. On le maîtrise par la <b>ventilation</b>, des mesures en continu et la <b>dosimétrie</b> individuelle des mineurs. Les poussières sont aussi surveillées.</p>'},
+ {t:'Après la mine',d:'<p>Une mine fermée doit être <b>réaménagée</b> (comblement, couverture, revégétalisation) puis <b>surveillée</b>. En France, environ 250 sites ont été exploités de 1948 à 2001 ; la dernière mine a fermé en 2001 et les anciens sites restent suivis.</p>'}],
+ svg:()=>{let s='';
+  s+=`<rect x="20" y="150" width="1060" height="270" fill="var(--m-min)" opacity=".09"/><path d="M20 150 H1080" stroke="var(--eq-stroke)" stroke-width="2"/>`;
+  s+=B(40,24,300,56,'Mine à ciel ouvert',['fosse en gradins · camions'],'2');
+  s+=B(400,24,290,56,'Mine souterraine',['puits · galeries · ventilation'],'3');
+  s+=B(740,24,340,56,'Lixiviation in situ (ISR)',['puits d’injection et de production'],'4');
+  // ciel ouvert
+  s+=PT('2',`<ellipse cx="205" cy="278" rx="88" ry="24" fill="var(--m-min)" opacity=".75"/><path d="M40 150 L75 150 L88 185 L118 185 L131 220 L161 220 L174 255 L236 255 L249 220 L279 220 L292 185 L322 185 L335 150 Z" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl mid" x="205" y="300">minerai</text>
+   <g class="pit-truck"><rect x="182" y="234" width="30" height="12" rx="2" fill="var(--m-min)"/><rect x="212" y="236" width="10" height="10" rx="2" fill="var(--eq-stroke)"/><circle cx="190" cy="249" r="4" fill="var(--eq-stroke)"/><circle cx="216" cy="249" r="4" fill="var(--eq-stroke)"/></g>
+   <path d="M338 150 L358 126 L378 150 Z" fill="var(--m-dech)" opacity=".85"/><text class="lbl-s mid" x="358" y="118">stériles</text>`);
+  // souterraine
+  s+=PT('3 5',`<ellipse cx="600" cy="345" rx="78" ry="40" fill="var(--m-min)" opacity=".75"/><rect x="464" y="150" width="12" height="240" fill="var(--canvas)" stroke="var(--eq-stroke)"/><rect x="476" y="300" width="200" height="16" fill="var(--canvas)" stroke="var(--eq-stroke)"/><rect x="476" y="374" width="200" height="16" fill="var(--canvas)" stroke="var(--eq-stroke)"/><rect x="650" y="150" width="10" height="166" fill="var(--canvas)" stroke="var(--eq-stroke)"/>
+   <path d="M445 150 L470 96 L495 150 M454 130 H486" fill="none" stroke="var(--eq-stroke)" stroke-width="3"/><circle class="spin" cx="470" cy="96" r="8" fill="none" stroke="var(--eq-stroke)" stroke-width="3" stroke-dasharray="5 3"/>
+   <rect class="skip" x="466" y="160" width="8" height="16" rx="1" fill="var(--m-min)"/>
+   <text class="lbl-s" x="440" y="200" text-anchor="end">puits</text><text class="lbl-s" x="560" y="405">galeries</text>`);
+  s+=F('M655 118 V300','air','3 5',{w:3,lab:[645,132,'air frais','end']});
+  s+=PT('5',`${[500,540,580,620].map((x,i)=>`<circle class="rise" cx="${x}" cy="372" r="3" fill="var(--m-gaz)" style="animation-delay:${i*.7}s"/>`).join('')}<text class="lbl-s" x="560" y="340" style="fill:var(--m-gaz);font-weight:700">radon</text>`);
+  // exploration (forage)
+  s+=PT('1',`<path d="M700 150 L710 104 L720 150 M703 136 H717" fill="none" stroke="var(--accent)" stroke-width="2.5"/><path d="M710 150 V405" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4"/>${[220,280,340].map(y=>`<rect x="706" y="${y}" width="8" height="18" rx="2" fill="var(--m-min)"/>`).join('')}<text class="lbl-s mid" x="710" y="98">forage</text>`);
+  // ISR
+  s+=PT('4',`<rect x="740" y="150" width="340" height="130" fill="var(--m-dt)" opacity=".18"/><rect x="740" y="280" width="340" height="90" fill="var(--m-min)" opacity=".35"/><rect x="740" y="370" width="340" height="50" fill="var(--m-dt)" opacity=".18"/><text class="lbl-s end" x="1074" y="270">argile imperméable</text><text class="lbl-s end" x="1074" y="364">grès minéralisé (aquifère)</text><text class="lbl-s end" x="1074" y="413">argile imperméable</text>${[770,835,900,965,1030].map(x=>`<rect x="${x-6}" y="118" width="12" height="12" rx="2" fill="var(--eq)" stroke="var(--eq-stroke)"/>`).join('')}<text class="lbl-s" x="745" y="104" style="fill:var(--m-rea)">injection : eau + acide + oxydant</text>`);
+  [770,900,1030].forEach(x=>s+=F(`M${x} 132 V352`,'rea','4',{w:4,noCase:true}));
+  [835,965].forEach(x=>s+=F(`M${x} 352 V132`,'sol','4',{w:4,noCase:true}));
+  [[778,827],[892,843],[908,957],[1022,973]].forEach(([a,b])=>s+=F(`M${a} 330 H${b}`,'sol','4',{w:3,noCase:true}));
+  s+=F('M835 112 H1070','sol','4',{w:3,noCase:true,lab:[1070,104,'vers l’usine','end']});
+  // bandeau bas
+  s+=B(20,436,250,62,'Exploration',['géophysique · forages carottés'],'1');
+  s+=B(290,436,250,62,'Radioprotection',['radon · ventilation · dosimètres'],'5');
+  s+=B(560,436,250,62,'Après-mine',['réaménagement · surveillance'],'6');
+  s+=B(830,436,250,62,'Minerai',['0,1 % à quelques % d’uranium'],'2 3');
+  return s;}},
+
+/* ---------- Concentration ---------- */
+conc:{t:'Concentration — du minerai au yellow cake',sub:'Usine de traitement implantée près de la mine',fiche:'conc',
+ intro:'Le minerai contient trop peu d’uranium pour être transporté tel quel. Près de la mine, une usine le broie et le traite chimiquement pour obtenir un concentré solide, le yellow cake, plusieurs centaines de fois plus riche.',
+ steps:[
+ {t:'Concassage et broyage',d:'<p>Le minerai est <b>concassé</b> puis <b>broyé</b> finement et mélangé à de l’eau : on obtient une <b>pulpe</b>. Plus les grains sont fins, plus l’attaque chimique est efficace.</p>'},
+ {t:'Lixiviation',d:'<p>La pulpe est attaquée dans des cuves agitées, le plus souvent par de l’<b>acide sulfurique</b> avec un oxydant (une attaque alcaline est utilisée pour certains minerais). L’uranium passe <b>en solution</b>.</p>'},
+ {t:'Séparation solide-liquide',d:'<p>Par <b>décantation</b> et <b>filtration</b>, on sépare la solution chargée en uranium des <b>résidus solides</b>, qui contiennent encore les descendants radioactifs de l’uranium (radium).</p>'},
+ {t:'Purification',d:'<p>La solution est purifiée et concentrée par <b>extraction par solvant</b> ou sur <b>résines échangeuses d’ions</b> : l’uranium est séparé des autres métaux dissous.</p><p class="note">Pour la lixiviation in situ, la solution pompée arrive directement à cette étape.</p>'},
+ {t:'Précipitation et séchage',d:'<p>L’uranium est <b>précipité</b>, filtré, puis <b>séché</b> ou calciné. On obtient une poudre jaune à brune, le <b>yellow cake</b>, conditionnée en <b>fûts métalliques</b> et expédiée vers la conversion.</p>'},
+ {t:'Résidus et effluents',d:'<p>Les résidus de traitement sont stockés dans des <b>parcs à résidus</b> ou d’anciennes fosses, recouverts et surveillés (radon, eaux). Les effluents sont neutralisés et recyclés autant que possible.</p>'}],
+ svg:()=>{let s='';
+  s+=PT('1',`<path d="M20 260 L70 190 L120 260 Z" fill="var(--m-min)" opacity=".85"/><text class="lbl mid" x="70" y="282">minerai</text>`);
+  s+=F('M120 225 H140','min','1',{w:5});
+  s+=B(140,150,130,110,'Concassage',['broyage'],'1',{top:true,inner:`<circle class="spin" cx="205" cy="225" r="20" fill="none" stroke="var(--m-min)" stroke-width="3" stroke-dasharray="7 5"/><circle cx="205" cy="225" r="5" fill="var(--eq-stroke)"/>`});
+  s+=F('M270 215 H310','min','1 2',{w:6,lab:[290,205,'pulpe','middle']});
+  s+=B(350,40,130,50,'Réactifs',['acide · oxydant'],'2');
+  s+=F('M415 90 V150','rea','2',{w:4});
+  s+=B(310,150,210,130,'Lixiviation',['cuves agitées'],'2',{top:true,inner:[325,390,455].map(x=>`<rect x="${x}" y="200" width="55" height="70" rx="6" fill="var(--m-sol)" opacity=".28" stroke="var(--eq-stroke)"/><path d="M${x+27} 192 V250 M${x+15} 250 H${x+40}" stroke="var(--eq-stroke)" stroke-width="2"/>${bubbles([x+14,x+28,x+42],262,'var(--m-sol)')}`).join('')});
+  s+=F('M520 215 H560','sol','2 3',{w:6});
+  s+=B(560,150,170,130,'Séparation',['décantation · filtration'],'3',{top:true,inner:`<path d="M575 205 H715 L690 265 H600 Z" fill="var(--m-sol)" opacity=".2" stroke="var(--eq-stroke)"/><path d="M610 255 H680 L690 265 H600 Z" fill="var(--m-dech)"/>`});
+  s+=F('M730 215 H770','sol','3 4',{w:6});
+  s+=B(770,150,150,130,'Purification',['solvant ou résines'],'4',{top:true,inner:`${[795,835,875].map(x=>`<rect x="${x}" y="200" width="22" height="70" rx="10" fill="var(--m-sol)" opacity=".25" stroke="var(--eq-stroke)"/>`).join('')}`});
+  s+=F('M920 215 H950','sol','4 5',{w:6});
+  s+=B(950,150,130,130,'Précipitation',['séchage'],'5',{top:true,inner:`<rect class="glow" x="965" y="215" width="100" height="34" rx="17" fill="var(--glow)" opacity=".35"/><rect x="965" y="215" width="100" height="34" rx="17" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`});
+  s+=F('M1015 280 V318','yc','5',{w:6});
+  s+=PT('5',`${[958,998,1038].map(x=>`<rect x="${x}" y="325" width="34" height="50" rx="4" fill="var(--m-yc)" opacity=".9"/><ellipse cx="${x+17}" cy="325" rx="17" ry="5" fill="var(--m-yc)"/><path d="M${x} 342 H${x+34} M${x} 358 H${x+34}" stroke="var(--canvas)" stroke-width="2"/>`).join('')}<text class="lbl mid" x="1015" y="396">yellow cake</text><text class="lbl-s mid" x="1015" y="410">fûts métalliques</text><text class="lbl-s mid" x="1015" y="424">→ conversion (Malvési)</text>`);
+  s+=F('M645 280 V360','dech','3 6',{w:5,lab:[655,325,'résidus solides']});
+  s+=B(540,360,220,90,'Parc à résidus',['couvert et surveillé'],'6',{top:true,inner:`<rect x="560" y="410" width="180" height="26" rx="4" fill="var(--m-dech)" opacity=".5"/><rect x="580" y="404" width="140" height="10" rx="3" fill="var(--m-eau)" opacity=".4"/>`});
+  s+=F('M845 280 V360','eff','4 6',{w:4,lab:[853,325,'raffinats']});
+  s+=B(780,360,150,90,'Effluents',['neutralisation','recyclage'],'6');
+  s+=PT('2 4',`<text class="lbl-s" x="140" y="330">Lixiviation in situ :</text><text class="lbl-s" x="140" y="344">la solution pompée entre</text><text class="lbl-s" x="140" y="358">directement en purification.</text>`);
+  return s;}},
+
+/* ---------- Malvési ---------- */
+malv:{t:'Orano Malvési — du concentré à l’UF₄',sub:'Narbonne (Aude) · première étape de la conversion',fiche:'malv',
+ intro:'Les concentrés arrivent du monde entier avec des impuretés variables. Malvési les purifie, puis transforme l’uranium en tétrafluorure (UF₄), une poudre verte appelée « sel vert ».',
+ steps:[
+ {t:'Réception et échantillonnage',d:'<p>Les fûts de concentrés sont pesés, identifiés et <b>échantillonnés</b> : la teneur en uranium et les impuretés sont mesurées, car elles conditionnent le traitement et le bilan de matière.</p>'},
+ {t:'Dissolution',d:'<p>Le concentré est dissous dans l’<b>acide nitrique</b> : on obtient une solution impure de nitrate d’uranyle.</p>'},
+ {t:'Purification par solvant',d:'<p>Comme à La Hague, une <b>extraction liquide-liquide</b> au tributylphosphate (TBP) fait passer l’uranium dans le solvant et laisse les impuretés dans l’acide. L’uranium est ensuite réextrait : on obtient un <b>nitrate d’uranyle de grande pureté</b>.</p>'},
+ {t:'Précipitation et calcination',d:'<p>L’uranium est précipité puis <b>calciné</b> : on obtient le trioxyde d’uranium <b>UO₃</b>, une poudre.</p>'},
+ {t:'Réduction et hydrofluoration',d:'<p>Dans des fours, l’UO₃ est d’abord <b>réduit par l’hydrogène</b> en UO₂, puis mis au contact d’<b>acide fluorhydrique</b> gazeux : UO₂ + 4 HF → <b>UF₄</b> + 2 H₂O. L’UF₄ est conditionné et expédié vers le Tricastin.</p>'},
+ {t:'Effluents nitratés',d:'<p>Les effluents, chargés en <b>nitrates</b>, sont envoyés dans des <b>bassins de décantation et d’évaporation</b>, puis traités. Les anciens bassins de décantation constituent aujourd’hui une installation nucléaire de base (ECRIN).</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,160,140,90,'Réception',['fûts de concentrés','échantillonnage'],'1');
+  s+=F('M160 205 H195','yc','1 2',{w:6});
+  s+=B(205,40,120,46,'HNO₃',['acide nitrique'],'2');s+=F('M265 86 V160','rea','2',{w:4});
+  s+=B(195,160,140,90,'Dissolution','','2',{inner:bubbles([220,250,280,310],238,'var(--m-sol)')});
+  s+=F('M335 205 H370','sol','2 3',{w:6});
+  s+=column(370,80,230,'3','Purification TBP');
+  s+=F('M420 110 H545 V160','sol','3 4',{w:6,lab:[430,100,'nitrate d’uranyle pur']});
+  s+=B(470,160,150,90,'Précipitation',['calcination → UO₃'],'4',{inner:`<rect class="glow" x="490" y="226" width="110" height="12" rx="6" fill="var(--glow)" opacity=".5"/>`});
+  s+=F('M620 205 H660','uo2','4 5',{w:6,lab:[640,195,'UO₃','middle']});
+  s+=F('M710 60 V140','rea','5',{w:4,lab:[717,74,'H₂']});s+=F('M800 60 V140','rea','5',{w:4,lab:[807,74,'HF']});
+  s+=B(660,140,190,130,'Réduction · fluoration',['UO₃ + H₂ → UO₂ + H₂O','UO₂ + 4 HF → UF₄'],'5',{top:true,inner:`<rect class="glow" x="680" y="214" width="150" height="40" rx="8" fill="var(--glow)" opacity=".28"/><rect x="680" y="214" width="150" height="40" rx="8" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`});
+  s+=F('M850 205 H880','uf4','5',{w:6});
+  s+=B(880,150,200,100,'UF₄',['« sel vert » · conteneurs'],'5',{top:true,inner:`<path d="M950 240 L980 210 L1010 240 Z" fill="var(--m-uf4)" opacity=".85"/>`});
+  s+=F('M980 250 V300 H1092','uf4','5',{w:6,lab:[1088,292,'vers Philippe Coste (Tricastin)','end']});
+  // effluents
+  s+=F('M395 310 V380','eff','3 6',{w:4});s+=F('M545 250 V380','eff','4 6',{w:4});
+  s+=PT('6',`<text class="lbl mid" x="420" y="372">bassins de décantation et d’évaporation</text>${[210,320,430,540].map((x,i)=>`<rect x="${x}" y="385" width="95" height="70" rx="6" fill="var(--m-eff)" opacity=".28" stroke="var(--eq-stroke)"/><rect x="${x+6}" y="438" width="83" height="12" rx="3" fill="var(--m-dech)" opacity=".7"/>`).join('')}`);
+  s+=F('M640 420 H680','eff','6',{w:4});
+  s+=B(680,385,210,75,'Traitement des nitrates',['effluents nitratés'],'6');
+  return s;}},
+
+/* ---------- Philippe Coste ---------- */
+pcoste:{t:'Orano Philippe Coste — de l’UF₄ à l’UF₆',sub:'Tricastin (Drôme) · deuxième étape de la conversion, usine mise en service en 2018',fiche:'pcoste',
+ intro:'L’enrichissement trie des molécules gazeuses : il faut donc un composé d’uranium qui devienne gazeux à basse température. C’est l’hexafluorure d’uranium, UF₆, obtenu en ajoutant du fluor à l’UF₄.',
+ steps:[
+ {t:'Production du fluor',d:'<p>Le fluor F₂ est fabriqué sur place par <b>électrolyse</b> de l’acide fluorhydrique anhydre : 2 HF → F₂ (à l’anode) + H₂ (à la cathode). Le fluor est l’un des corps les plus réactifs qui existent.</p>'},
+ {t:'Fluoration en réacteur à flamme',d:'<p>L’UF₄ en poudre et le fluor sont introduits dans un <b>réacteur à flamme</b> : la réaction UF₄ + F₂ → <b>UF₆</b> est très exothermique. L’UF₆ sort à l’état gazeux ; les cendres, qui contiennent encore de l’uranium, sont recyclées.</p>'},
+ {t:'Filtration et piégeage à froid',d:'<p>Le gaz est filtré puis refroidi dans des <b>cristallisoirs</b> : l’UF₆ se dépose à l’état <b>solide</b> sur les parois froides, tandis que les gaz non condensables continuent vers le traitement des gaz.</p>'},
+ {t:'Remplissage des conteneurs',d:'<p>Les cristallisoirs sont réchauffés : l’UF₆ devient <b>liquide</b> sous pression et est transféré dans des conteneurs <b>48Y</b> (environ 12,5 t d’UF₆). En refroidissant, il redevient solide pour le transport et l’entreposage.</p>'},
+ {t:'Propriétés de l’UF₆',d:'<ul><li>À la pression atmosphérique, l’UF₆ solide se transforme directement en gaz (<b>sublimation</b>) vers 56,5 °C.</li><li>Il réagit violemment avec l’eau ou l’humidité de l’air : il se forme de l’<b>acide fluorhydrique (HF)</b>, très toxique et corrosif, et du fluorure d’uranyle.</li></ul><p class="note">Le risque chimique de l’UF₆ est plus important que son risque radiologique.</p>'},
+ {t:'Traitement des gaz',d:'<p>Les gaz non condensés sont <b>lavés</b> dans des colonnes avant rejet contrôlé : le fluor et l’acide fluorhydrique résiduels sont piégés.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,70,180,80,'Silo d’UF₄',['poudre de Malvési'],'2');
+  s+=F('M200 110 H385 V140','uf4','2',{w:5});
+  s+=B(20,250,190,110,'Électrolyse',['2 HF → F₂ + H₂'],'1',{top:true,inner:`<rect x="45" y="305" width="140" height="44" rx="6" fill="var(--m-rea)" opacity=".2" stroke="var(--eq-stroke)"/><path d="M85 300 V345 M145 300 V345" stroke="var(--eq-stroke)" stroke-width="4"/>${bubbles([80,92,140,152],340,'var(--m-rea)')}`});
+  s+=F('M115 440 V360','rea','1',{w:4,lab:[123,432,'HF anhydre']});
+  s+=F('M60 250 V200','gaz','1',{w:3,lab:[68,214,'H₂']});
+  s+=F('M210 305 H330','rea','1 2',{w:5,lab:[270,295,'F₂','middle']});
+  s+=B(330,140,110,250,'Réacteur',['à flamme'],'2',{top:true,inner:`<ellipse class="glow" cx="385" cy="270" rx="30" ry="70" fill="var(--glow)" opacity=".55"/><ellipse cx="385" cy="285" rx="14" ry="40" fill="var(--m-yc)" opacity=".6"/>`});
+  s+=F('M385 390 V450 H300','dech','2',{w:3,lab:[296,444,'cendres → recyclées','end']});
+  s+=F('M440 170 H500','uf6','2 3',{w:6,lab:[470,160,'UF₆ gaz','middle']});
+  s+=B(500,130,140,80,'Filtres',['poussières'],'3');
+  s+=F('M640 170 H690','uf6','3',{w:6});
+  s+=B(690,120,170,120,'Cristallisoirs',['piégeage à froid','UF₆ solide'],'3',{top:true,inner:`${[0,1,2,3,4].map(i=>`<path d="M${712+i*30} 196 l6 8 l-6 8 l6 8" fill="none" stroke="var(--m-uf6)" stroke-width="2"/>`).join('')}`});
+  s+=F('M775 120 V60 H900','gaz','6',{w:4,lab:[790,52,'gaz non condensés']});
+  s+=B(900,30,180,60,'Lavage des gaz',['→ cheminée'],'6');
+  s+=F('M775 240 V300','uf6','4',{w:6,lab:[783,275,'réchauffé : liquide']});
+  s+=B(640,300,270,100,'Conteneur 48Y',['≈ 12,5 t d’UF₆'],'4',{top:true,inner:`${cyl(660,348,230,40,'var(--m-uf6)')}<rect class="fillup" x="680" y="352" width="190" height="32" rx="6" fill="var(--m-uf6)" opacity=".45"/>`});
+  s+=F('M910 350 H1092','uf6','4',{w:6,lab:[1088,340,'vers Georges Besse II','end']});
+  s+=B(470,420,320,80,'Propriétés de l’UF₆',['sublimation vers 56,5 °C (pression atm.)','+ eau → HF, toxique et corrosif'],'5');
+  return s;}},
+
+/* ---------- Georges Besse II ---------- */
+gb2:{t:'Georges Besse II — enrichissement par centrifugation',sub:'Tricastin · 14 modules de centrifugeuses, 4 nouveaux en construction',fiche:'gb2',
+ intro:'L’uranium naturel ne contient que 0,7 % d’uranium 235, l’isotope fissile. Les REP ont besoin de 3 à 5 %. Les deux isotopes ont presque la même masse : il faut des milliers de centrifugeuses en cascade pour les séparer progressivement.',
+ steps:[
+ {t:'Alimentation',d:'<p>Le conteneur 48Y est placé dans une <b>étuve</b> et réchauffé : l’UF₆ repasse à l’état <b>gazeux</b> et alimente la cascade, au milieu de celle-ci.</p>'},
+ {t:'La centrifugeuse',d:'<p>Dans un rotor qui tourne à très grande vitesse sous vide, la force centrifuge pousse les molécules les plus lourdes (²³⁸UF₆) vers la <b>paroi</b> ; les plus légères (²³⁵UF₆) restent un peu plus près de l’<b>axe</b>. Un courant interne fait monter le gaz enrichi d’un côté et descendre le gaz appauvri de l’autre ; deux écopes les soutirent.</p><p class="note">Voir la centrifugeuse en 3D sous le schéma : réglez la vitesse et observez la répartition des molécules.</p>'},
+ {t:'La cascade',d:'<p>Une machine n’enrichit que très peu. On monte donc les centrifugeuses <b>en série</b> (étages successifs) pour augmenter la teneur, et <b>en parallèle</b> pour augmenter le débit. Le gaz enrichi passe à l’étage supérieur, le gaz appauvri redescend à l’étage inférieur.</p>'},
+ {t:'Deux produits',d:'<ul><li><b>UF₆ enrichi</b> à 3 à 5 % d’uranium 235 : conteneurs <b>30B</b>, plus petits, vers la fabrication du combustible.</li><li><b>UF₆ appauvri</b> à environ 0,2 à 0,3 % : conteneurs 48Y, vers la défluoration.</li></ul>'},
+ {t:'Bilan matière',d:'<p>Pour obtenir <b>1 kg</b> d’uranium enrichi à 4 %, il faut environ <b>8 kg</b> d’uranium naturel ; il reste environ <b>7 kg</b> d’uranium appauvri. Le travail de séparation se mesure en <b>UTS</b> (unités de travail de séparation).</p><p class="note">Vérification : 8 kg × 0,71 % ≈ 57 g d’uranium 235 = 40 g dans le produit + ≈ 17 g dans le résidu.</p>'},
+ {t:'Énergie et capacité',d:'<p>La centrifugation consomme environ <b>50 fois moins d’électricité</b> que la diffusion gazeuse de l’ancienne usine Eurodif, arrêtée en 2012. Georges Besse II a atteint <b>7,5 millions d’UTS</b> en 2016 ; l’extension (+ 2,5 millions d’UTS, 4 modules) doit produire à partir de 2028.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,120,200,170,'Étuve',['conteneur 48Y chauffé','UF₆ → gaz'],'1',{top:true,inner:`<rect class="glow" x="32" y="196" width="176" height="80" rx="10" fill="var(--glow)" opacity=".18"/>${cyl(40,214,160,46,'var(--m-uf6)')}`});
+  s+=F('M220 150 H262 V68 H502 V86','uf6','1 3',{w:5,lab:[270,60,'UF₆ naturel 0,7 %']});
+  const NS=[2,3,4,5,6,6,5,4,3,2];let c='';
+  NS.forEach((n,i)=>{const x=310+i*48,top=230-n*46/2;
+   for(let k=0;k<n;k++){const y=top+k*46+4;c+=`<rect x="${x}" y="${y}" width="16" height="38" rx="7" fill="var(--eq)" stroke="var(--m-ue)" stroke-width="1.8"/><rect class="glow" x="${x+4}" y="${y+5}" width="8" height="28" rx="4" fill="var(--m-ue)" opacity=".35" style="animation-delay:${((i+k)*.25).toFixed(2)}s"/>`;}
+   if(i<NS.length-1){c+=F(`M${x+18} 212 H${x+46}`,'ue','3',{w:2,noCase:true});c+=F(`M${x+46} 250 H${x+18}`,'uapp','3',{w:2,noCase:true});}});
+  s+=PT('2 3',c);
+  s+=PT('3',`<text class="lbl-s mid" x="526" y="374">étages en série →</text><text class="lbl-s mid" x="526" y="388">enrichi vers la droite, appauvri vers la gauche</text>`);
+  s+=F('M760 212 H860','ue','4',{w:6,lab:[810,202,'enrichi 3 à 5 %','middle']});
+  s+=B(860,140,220,120,'Produit enrichi',['conteneur 30B','UF₆ à 3-5 % d’²³⁵U'],'4',{top:true,inner:cyl(900,206,140,36,'var(--m-ue)')});
+  s+=F('M318 280 V480 H970 V420','uapp','4',{w:6,lab:[640,472,'appauvri ≈ 0,2 à 0,3 %','middle']});
+  s+=B(860,300,220,120,'Résidu appauvri',['conteneur 48Y','→ défluoration'],'4',{top:true,inner:cyl(890,366,160,40,'var(--m-uapp)')});
+  s+=B(860,24,220,100,'Bilan matière',['≈ 8 kg d’uranium naturel','→ 1 kg à 4 %','+ ≈ 7 kg appauvri'],'5',{top:true});
+  s+=B(20,330,260,170,'Centrifugeuse',['rotor à très grande vitesse','²³⁸U → paroi','²³⁵U → axe'],'2',{top:true,inner:`<rect x="226" y="350" width="40" height="140" rx="12" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="232" y="358" width="28" height="124" rx="9" fill="var(--m-uf6)" opacity=".15"/><path d="M246 352 V488" stroke="var(--eq-stroke)" stroke-dasharray="3 3"/>${[0,1,2].map(i=>`<circle class="tz-heavy-s" cx="246" cy="${390+i*30}" r="3.2" fill="var(--m-uapp)" style="animation-delay:${i*.5}s"/><circle class="tz-light-s" cx="246" cy="${400+i*30}" r="3.2" fill="var(--m-ue)" style="animation-delay:${i*.5+.25}s"/>`).join('')}`});
+  s+=B(330,400,270,50,'Cascade',['des milliers de machines'],'3');
+  s+=B(620,400,220,50,'Énergie',['≈ 50 × moins que la diffusion'],'6');
+  return s;}},
+
+/* ---------- Défluoration ---------- */
+defl:{t:'Défluoration et entreposage de l’uranium appauvri',sub:'Usine W du Tricastin · entreposage à Bessines-sur-Gartempe et au Tricastin',fiche:'defl',
+ intro:'Pour 1 kg d’uranium enrichi, l’enrichissement laisse environ 7 kg d’uranium appauvri sous forme d’UF₆. Pour l’entreposer durablement et plus sûrement, on le transforme en oxyde stable, U₃O₈.',
+ steps:[
+ {t:'Conteneurs d’UF₆ appauvri',d:'<p>L’UF₆ appauvri sort de Georges Besse II dans des conteneurs <b>48Y</b>, entreposés sur des parcs avant leur traitement.</p>'},
+ {t:'Hydrolyse et calcination',d:'<p>Dans l’<b>usine W</b>, l’UF₆ est vaporisé et mis au contact de <b>vapeur d’eau</b> : il se forme du fluorure d’uranyle (UO₂F₂) et de l’acide fluorhydrique. Le fluorure d’uranyle est ensuite transformé en <b>U₃O₈</b> dans un four.</p>'},
+ {t:'Récupération de l’acide fluorhydrique',d:'<p>L’<b>acide fluorhydrique</b> produit est récupéré, purifié et <b>valorisé</b> dans l’industrie chimique : le fluor n’est pas perdu.</p>'},
+ {t:'Conditionnement',d:'<p>L’U₃O₈ est une <b>poudre stable</b>, peu soluble, qui ne présente pas le risque chimique de l’UF₆. Elle est conditionnée en <b>conteneurs métalliques</b>.</p>'},
+ {t:'Entreposage',d:'<p>Les conteneurs sont entreposés dans des bâtiments, principalement à <b>Bessines-sur-Gartempe</b> (Haute-Vienne) et au <b>Tricastin</b>. Fin 2024, la France détenait environ <b>stock de matière</b> d’uranium appauvri (Andra).</p>'},
+ {t:'Une matière, pas un déchet',d:'<p>L’uranium appauvri est classé <b>matière radioactive</b> : une réutilisation est prévue.</p><ul><li>Il sert déjà de <b>support au MOX</b> fabriqué à Melox.</li><li>Il peut être <b>réenrichi</b> si le prix de l’uranium naturel augmente.</li><li>Il pourrait alimenter de futurs <b>réacteurs à neutrons rapides</b>.</li></ul>'}],
+ svg:()=>{let s='';
+  s+=B(20,140,240,180,'Parc d’entreposage',['conteneurs 48Y d’UF₆ appauvri'],'1',{top:true,inner:[0,1,2].map(r=>[0,1].map(c=>cyl(40+c*110,200+r*38,95,28,'var(--m-uapp)')).join('')).join('')});
+  s+=F('M260 230 H300','uapp','1 2',{w:6});
+  s+=B(300,120,190,220,'Hydrolyse',['UF₆ + vapeur d’eau'],'2',{top:true,inner:`<rect x="345" y="180" width="100" height="140" rx="16" fill="var(--m-uapp)" opacity=".18" stroke="var(--eq-stroke)" stroke-width="2"/>${bubbles([365,385,405,425],310,'var(--m-eau)','rise')}`});
+  s+=F('M490 250 H530','uapp','2',{w:6,lab:[510,240,'UO₂F₂','middle']});
+  s+=B(530,180,220,110,'Four de calcination',['→ U₃O₈'],'2',{inner:`<rect class="glow" x="550" y="252" width="180" height="26" rx="13" fill="var(--glow)" opacity=".35"/><rect x="550" y="252" width="180" height="26" rx="13" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`});
+  s+=F('M395 120 V60 H560','rea','3',{w:4,lab:[405,74,'HF']});
+  s+=B(560,30,220,60,'Acide fluorhydrique',['récupéré et valorisé'],'3');
+  s+=F('M750 235 H800','uapp','4',{w:6,lab:[775,225,'U₃O₈','middle']});
+  s+=B(800,160,130,130,'Conditionnement',['poudre en','conteneurs'],'4',{top:true,inner:`<rect x="835" y="235" width="60" height="44" rx="4" fill="var(--m-uapp)" opacity=".7"/>`});
+  s+=F('M865 290 V340','uapp','4 5',{w:6});
+  s+=B(800,340,280,110,'Entreposage',['Bessines-sur-Gartempe (Haute-Vienne)','Tricastin (Drôme)'],'5',{top:true,inner:[0,1,2,3,4].map(i=>`<rect x="${830+i*46}" y="408" width="36" height="30" rx="3" fill="var(--m-uapp)" opacity=".55"/>`).join('')});
+  s+=B(300,380,440,90,'Une matière valorisable',['support du MOX · réenrichissement','réacteurs à neutrons rapides'],'6');
+  s+=F('M800 425 H740','uapp','6',{w:4});
+  return s;}},
+
+/* ---------- Romans ---------- */
+romans:{t:'Framatome Romans — de l’UF₆ enrichi aux pastilles',sub:'Romans-sur-Isère (Drôme) · fabrication du combustible UOX',fiche:'romans',
+ intro:'L’UF₆ enrichi est transformé en poudre d’oxyde d’uranium UO₂, puis en petites pastilles céramiques. La céramique retient une partie des produits de fission. La première des trois barrières de confinement du REP est la gaine du crayon.',
+ steps:[
+ {t:'Vaporisation de l’UF₆',d:'<p>Le conteneur 30B est chauffé en <b>étuve</b> : l’UF₆ enrichi repasse à l’état gazeux.</p>'},
+ {t:'Conversion en poudre d’UO₂',d:'<p>Dans des fours, l’UF₆ réagit avec de la <b>vapeur d’eau</b> et de l’<b>hydrogène</b> (voie sèche) : on obtient une poudre d’<b>UO₂</b>, noire. L’acide fluorhydrique formé est récupéré.</p>'},
+ {t:'Préparation de la poudre',d:'<p>La poudre est <b>homogénéisée</b> et préparée (additifs, granulation) pour se tasser régulièrement dans les moules de la presse.</p>'},
+ {t:'Pressage',d:'<p>Une presse comprime la poudre en <b>pastilles « crues »</b> d’environ 8 mm de diamètre, encore fragiles.</p>'},
+ {t:'Frittage',d:'<p>Les pastilles passent dans un four à environ <b>1 700 °C</b> sous <b>hydrogène</b>. Les grains de poudre se soudent : la pastille se rétracte et devient une <b>céramique dense</b> et résistante d’environ 7 g.</p>'},
+ {t:'Rectification et contrôle',d:'<p>Les pastilles sont <b>meulées</b> au diamètre exact, puis <b>contrôlées</b> (dimensions, aspect, densité). Elles sont ensuite rangées pour le remplissage des crayons.</p><p class="note">Ordre de grandeur souvent cité : une pastille produit en réacteur autant d’énergie qu’environ une tonne de charbon.</p>'},
+ {t:'Maîtrise de la criticité',d:'<p>L’uranium enrichi peut déclencher une réaction en chaîne s’il est rassemblé en trop grande quantité. Les appareils ont une <b>géométrie sûre</b> (cuves étroites, couches minces), les <b>masses</b> par poste sont limitées et la présence d’eau (<b>modérateur</b>) est contrôlée.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,140,170,150,'Étuve',['conteneur 30B'],'1',{top:true,inner:`<rect class="glow" x="32" y="210" width="146" height="60" rx="10" fill="var(--glow)" opacity=".18"/>${cyl(45,222,120,36,'var(--m-ue)')}`});
+  s+=F('M190 215 H230','ue','1 2',{w:6});
+  s+=F('M325 70 V140','rea','2',{w:4,lab:[333,84,'vapeur · hydrogène']});
+  s+=B(230,140,190,150,'Conversion',['UF₆ → poudre d’UO₂'],'2',{top:true,inner:`<rect class="glow" x="250" y="210" width="150" height="30" rx="15" fill="var(--glow)" opacity=".3"/><rect x="250" y="210" width="150" height="30" rx="15" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M265 255 h120" stroke="var(--m-uo2)" stroke-width="6" stroke-dasharray="2 4"/>`});
+  s+=F('M325 290 V340','rea','2',{w:3,lab:[333,325,'HF récupéré']});
+  s+=F('M420 215 H460','uo2','2 3',{w:6,lab:[440,205,'poudre','middle']});
+  s+=B(460,140,150,150,'Poudre',['homogénéisation'],'3',{top:true,inner:`<path d="M495 200 H575 L550 250 H520 Z" fill="var(--m-uo2)" opacity=".35" stroke="var(--eq-stroke)" stroke-width="2"/><path d="M535 250 V270" stroke="var(--eq-stroke)" stroke-width="4"/>`});
+  s+=F('M610 215 H650','uo2','3 4',{w:6});
+  s+=B(650,120,150,170,'Presse',['pastilles crues'],'4',{top:true,inner:`<rect x="695" y="232" width="60" height="40" rx="3" fill="var(--eq-stroke)" opacity=".5"/><rect x="713" y="232" width="24" height="40" fill="var(--canvas)"/><g class="punch"><rect x="715" y="170" width="20" height="58" rx="2" fill="var(--m-coq)"/></g><rect x="715" y="256" width="20" height="14" rx="2" fill="var(--m-uo2)"/>`});
+  s+=F('M800 215 H840','uo2','4 5',{w:6});
+  s+=B(840,120,240,170,'Four de frittage',['≈ 1 700 °C sous hydrogène'],'5',{top:true,inner:`<rect class="glow" x="860" y="200" width="200" height="56" rx="8" fill="var(--glow)" opacity=".3"/><rect x="860" y="200" width="200" height="56" rx="8" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>${[0,1,2,3].map(i=>`<rect class="pel" x="866" y="222" width="14" height="14" rx="3" fill="var(--m-uo2)" style="animation-delay:${i*1}s"/>`).join('')}`});
+  s+=F('M960 290 V340','uo2','5 6',{w:6});
+  s+=B(840,340,240,130,'Rectification · contrôle',['meulage au diamètre','contrôle dimensionnel'],'6',{top:true,inner:`<circle class="spin" cx="1030" cy="430" r="22" fill="none" stroke="var(--m-coq)" stroke-width="5" stroke-dasharray="6 4"/>${[0,1,2,3,4].map(i=>`<rect x="${870+i*24}" y="420" width="16" height="18" rx="3" fill="var(--m-uo2)"/>`).join('')}`});
+  s+=F('M840 405 H720','uo2','6',{w:6,lab:[724,395,'vers les crayons']});
+  s+=B(20,340,400,130,'Maîtrise de la criticité',['géométrie sûre des appareils','masses limitées par poste','contrôle de la modération (eau)'],'7',{top:true});
+  s+=PT('4 5 6',`<text class="lbl-s" x="460" y="330">Pastille finie : ≈ 8 mm de diamètre, ≈ 7 g</text>`);
+  return s;}},
+
+/* ---------- Crayons et assemblages ---------- */
+assemb:{t:'Crayons et assemblages',sub:'Exemple de l’assemblage 17 × 17 des REP 900 et 1300 MWe',fiche:'assemb',
+ intro:'Les pastilles sont empilées dans des gaines en alliage de zirconium pour former des crayons. Les crayons sont ensuite réunis dans un squelette métallique : l’assemblage, unité de chargement du cœur.',
+ steps:[
+ {t:'Gaines en alliage de zirconium',d:'<p>Le zirconium absorbe très peu les neutrons et résiste à la corrosion par l’eau chaude. Du minerai de zircon, la filière Framatome produit l’éponge de zirconium, les lingots d’alliage puis des <b>tubes d’environ 4 m</b>. La gaine est la <b>première barrière</b> de confinement.</p>'},
+ {t:'Remplissage du crayon',d:'<p>Environ <b>300 pastilles</b> sont empilées dans la gaine. Un <b>ressort</b> maintient la colonne en laissant un espace libre (chambre d’expansion) pour les gaz de fission.</p>'},
+ {t:'Fermeture du crayon',d:'<p>Le crayon est rempli d’<b>hélium sous pression</b>, puis fermé par des <b>bouchons soudés</b>. Les soudures et l’étanchéité sont contrôlées.</p>'},
+ {t:'Le squelette',d:'<p>Le squelette réunit <b>24 tubes-guides</b> (où coulisseront les barres de commande), <b>1 tube d’instrumentation</b>, des <b>grilles de maintien</b> et deux <b>embouts</b>. Les grilles tiennent les crayons écartés pour que l’eau circule entre eux.</p>'},
+ {t:'Insertion des crayons',d:'<p>Les <b>264 crayons</b> sont introduits dans les cellules des grilles : 17 × 17 = 289 positions = 264 crayons + 24 tubes-guides + 1 tube d’instrumentation. L’assemblage terminé fait l’objet de contrôles finaux.</p>'},
+ {t:'Expédition vers la centrale',d:'<p>L’assemblage neuf est <b>peu radioactif</b> : il est transporté dans un emballage dédié, puis entreposé à la centrale avant chargement. Un cœur de REP 1300 MWe compte <b>193 assemblages</b>, un REP 900 MWe <b>157</b>.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,30,240,90,'Filière zirconium',['zircon → éponge → alliage','→ tubes de gaine'],'1',{top:true});
+  s+=F('M150 120 V172','zr','1 2',{w:4,lab:[158,148,'gaine ≈ 4 m']});
+  s+=B(20,165,110,60,'Pastilles',['≈ 300 / crayon'],'2');
+  s+=F('M130 190 H160','uo2','2',{w:5});
+  s+=PT('1 2 3',`<rect x="160" y="180" width="600" height="20" rx="4" fill="none" stroke="var(--m-zr)" stroke-width="2.5"/>`);
+  s+=PT('2',`<g class="feed">${Array.from({length:46},(_,i)=>`<rect x="${174+i*11.4}" y="183" width="10" height="14" rx="2" fill="var(--m-uo2)"/>`).join('')}</g><path d="M705 190 l5 -7 l5 14 l5 -14 l5 14 l5 -14 l5 14 l5 -7" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/><text class="lbl-s mid" x="725" y="174">ressort</text><text class="lbl-s mid" x="430" y="174">colonne de pastilles</text>`);
+  s+=PT('3',`<rect x="160" y="180" width="12" height="20" rx="3" fill="var(--m-zr)"/><rect x="748" y="180" width="12" height="20" rx="3" fill="var(--m-zr)"/><circle class="glow" cx="760" cy="190" r="10" fill="var(--glow)" opacity=".6"/><text class="lbl-s mid" x="430" y="218">hélium sous pression</text>`);
+  s+=F('M772 190 H800','comb','3',{w:4});
+  s+=B(800,140,280,100,'Fermeture du crayon',['hélium sous pression','bouchons soudés · contrôles'],'3',{top:true});
+  // section 17x17
+  let g='';const c0x=40,c0y=290,cs=12;
+  for(let r=0;r<17;r++)for(let c=0;c<17;c++){const cx=c0x+c*cs+6,cy=c0y+r*cs+6;const gt=GT.some(([a,b])=>a===r&&b===c),ins=r===8&&c===8;
+   g+=gt?`<circle cx="${cx}" cy="${cy}" r="5" fill="var(--canvas)" stroke="var(--accent)" stroke-width="2"/>`:ins?`<circle cx="${cx}" cy="${cy}" r="5" fill="var(--m-yc)"/>`:`<circle cx="${cx}" cy="${cy}" r="4.3" fill="var(--m-comb)" opacity=".85"/>`;}
+  s+=PT('4 5',`<rect x="${c0x-4}" y="${c0y-4}" width="${17*cs+8}" height="${17*cs+8}" rx="4" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>${g}<text class="lbl mid" x="142" y="278">section 17 × 17</text>`);
+  s+=PT('4 5',`<circle cx="270" cy="430" r="4.3" fill="var(--m-comb)"/><text class="lbl-s" x="282" y="434">crayon (264)</text><circle cx="270" cy="452" r="5" fill="var(--canvas)" stroke="var(--accent)" stroke-width="2"/><text class="lbl-s" x="282" y="456">tube-guide (24)</text><circle cx="270" cy="474" r="5" fill="var(--m-yc)"/><text class="lbl-s" x="282" y="478">instrumentation (1)</text>`);
+  // élévation
+  s+=PT('4',`<rect x="330" y="290" width="24" height="96" rx="3" fill="var(--m-coq)"/><rect x="736" y="290" width="24" height="96" rx="3" fill="var(--m-coq)"/>${[300,330,360,376].map(y=>`<path d="M354 ${y} H736" stroke="var(--accent)" stroke-width="1.6"/>`).join('')}${[390,450,510,570,630,690].map(x=>`<rect x="${x}" y="286" width="7" height="104" rx="1.5" fill="var(--eq-stroke)"/>`).join('')}<text class="lbl-s mid" x="342" y="278">embout</text><text class="lbl-s mid" x="748" y="278">embout</text><text class="lbl-s mid" x="545" y="278">grilles de maintien</text>`);
+  s+=PT('5',`<g class="rodin">${Array.from({length:12},(_,i)=>`<path d="M362 ${295+i*7.8} H732" stroke="var(--m-comb)" stroke-width="3.2" opacity=".85"/>`).join('')}</g>`);
+  s+=B(560,410,220,70,'Squelette',['tubes-guides · grilles · embouts'],'4');
+  s+=B(800,270,280,90,'Assemblage',['264 crayons · contrôles finaux'],'5',{top:true});
+  s+=F('M940 360 V380','comb','5 6',{w:5});
+  s+=B(800,380,280,120,'Expédition',['emballage de transport','vers la centrale'],'6',{top:true,inner:`<g class="tr-move-s"><rect x="860" y="448" width="110" height="24" rx="5" fill="var(--eq)" stroke="var(--m-comb)" stroke-width="2"/><rect x="970" y="452" width="26" height="20" rx="3" fill="var(--eq-stroke)"/><circle cx="878" cy="478" r="6" fill="var(--eq-stroke)"/><circle cx="950" cy="478" r="6" fill="var(--eq-stroke)"/><circle cx="986" cy="478" r="6" fill="var(--eq-stroke)"/></g>`});
+  return s;}},
+
+/* ---------- Risques et transports ---------- */
+risques:{t:'Risques, transports et contrôles de l’amont',sub:'Le risque chimique domine souvent ; la criticité apparaît avec l’enrichissement',fiche:'risques',
+ intro:'Les matières de l’amont sont peu radioactives, mais elles sont souvent chimiquement dangereuses et voyagent entre de nombreux sites. Chaque risque appelle des parades spécifiques.',
+ steps:[
+ {t:'Risque chimique',d:'<p>L’amont manipule de grandes quantités de produits dangereux : <b>UF₆</b>, <b>acide fluorhydrique</b>, <b>fluor</b>, acide nitrique, hydrogène. Une fuite d’UF₆ au contact de l’humidité de l’air forme un nuage d’acide fluorhydrique, toxique par inhalation et très corrosif.</p><p class="note">Parades : confinement, détection, réseaux d’arrosage, conteneurs éprouvés, UF₆ manipulé autant que possible à l’état solide.</p>'},
+ {t:'Risque de criticité',d:'<p>Dès que l’uranium est <b>enrichi</b>, une quantité suffisante peut entretenir une réaction en chaîne. On joue sur la <b>géométrie</b> des appareils, la <b>masse</b> de matière, la <b>modération</b> (présence d’eau) et la <b>réflexion</b> des neutrons.</p>'},
+ {t:'Risque radiologique',d:'<p>L’uranium naturel ou enrichi est <b>faiblement radioactif</b> (émetteur alpha). Le danger principal est la <b>contamination interne</b> par inhalation de poussières. Dans les mines, l’enjeu majeur est le <b>radon</b>.</p>'},
+ {t:'Transports',d:'<ul><li>Concentrés : fûts métalliques en conteneurs maritimes.</li><li>UF₆ naturel : conteneurs <b>48Y</b> ; UF₆ enrichi : conteneurs <b>30B</b> placés dans une <b>coque de protection</b>.</li><li>Poudres et assemblages neufs : emballages dédiés.</li></ul><p class="note">Ils suivent la réglementation internationale du transport des matières radioactives.</p>'},
+ {t:'Contrôles',d:'<p>L’<b>ASNR</b> contrôle la sûreté et la radioprotection des installations. Les matières nucléaires sont aussi soumises aux <b>garanties</b> d’Euratom et de l’AIEA (comptabilité, inspections) pour vérifier qu’elles ne sont pas détournées.</p>'}],
+ svg:()=>{let s='';
+  s+=B(20,30,340,60,'Risque chimique',['UF₆ + eau → HF, toxique et corrosif'],'1');
+  s+=PT('1',`${cyl(40,190,160,50,'var(--m-uf6)')}<path d="M232 140 q10 16 0 24 q-10 -8 0 -24z" fill="var(--m-eau)"/><ellipse class="glow" cx="290" cy="215" rx="55" ry="30" fill="var(--m-rea)" opacity=".45"/><text class="lbl mid" x="290" y="220" style="font-weight:700">HF</text><path d="M200 215 H232" stroke="var(--m-uf6)" stroke-width="3" stroke-dasharray="4 4"/><text class="lbl-s mid" x="232" y="132">humidité</text><text class="lbl-s mid" x="120" y="264">conteneur d’UF₆</text>`);
+  s+=B(380,30,340,60,'Risque de criticité',['dès que l’uranium est enrichi'],'2');
+  s+=PT('2',`<rect x="420" y="120" width="30" height="140" rx="8" fill="var(--m-ue)" opacity=".3" stroke="var(--m-ue)" stroke-width="2"/><text class="lbl mid" x="435" y="282" style="fill:var(--m-solv);font-weight:700">✓ géométrie sûre</text><rect x="510" y="170" width="120" height="90" rx="8" fill="var(--m-ue)" opacity=".2" stroke="var(--m-ue)" stroke-width="2"/><path d="M515 175 L625 255 M625 175 L515 255" stroke="var(--m-pf)" stroke-width="3"/><text class="lbl mid" x="570" y="282" style="fill:var(--m-pf);font-weight:700">✗ cuve trop large</text><text class="lbl-s" x="650" y="140">masse</text><text class="lbl-s" x="650" y="160">géométrie</text><text class="lbl-s" x="650" y="180">modération</text><text class="lbl-s" x="650" y="200">réflexion</text>`);
+  s+=B(740,30,340,60,'Risque radiologique',['faible activité · radon · poussières'],'3');
+  s+=PT('3',`<path d="M760 290 L800 240 L860 255 L900 225 L960 250 L1000 235 L1060 290 Z" fill="var(--m-min)" opacity=".7"/>${[820,870,920,970].map((x,i)=>`<circle class="rise" cx="${x}" cy="245" r="4" fill="var(--m-gaz)" style="animation-delay:${i*.6}s"/>`).join('')}<text class="lbl" x="770" y="140" style="fill:var(--m-gaz);font-weight:700">radon</text><rect x="1000" y="120" width="40" height="60" rx="6" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="1008" y="130" width="24" height="16" rx="2" fill="var(--m-solv)" opacity=".6"/><text class="lbl-s mid" x="1020" y="196">dosimètre</text>`);
+  s+=B(20,330,250,140,'Transports',['UF₆ naturel : 48Y','UF₆ enrichi : 30B + coque','poudres · assemblages neufs'],'4',{top:true});
+  s+=PT('4',`<path d="M300 470 H810" stroke="var(--eq-stroke)" stroke-width="3"/><path d="M300 470 H810" stroke="var(--label)" stroke-width="1" stroke-dasharray="14 12" opacity=".5"/><g class="tr-move"><rect x="330" y="420" width="170" height="30" rx="4" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/><rect x="350" y="398" width="130" height="28" rx="14" fill="var(--eq)" stroke="var(--m-ue)" stroke-width="2.5"/><rect x="500" y="418" width="40" height="32" rx="5" fill="var(--eq-stroke)"/>${[350,400,480,525].map(x=>`<circle cx="${x}" cy="456" r="8" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`).join('')}</g><text class="lbl-s" x="300" y="392">coque de protection</text>`);
+  s+=B(830,330,250,90,'Contrôles',['ASNR : sûreté','Euratom · AIEA : garanties'],'5',{top:true});
+  return s;}}
+};
+const VIEW_ORDER=['mine','conc','malv','pcoste','gb2','defl','romans','assemb','risques'];
+const NAV_LABEL={mine:'Mines',conc:'Concentration',malv:'Malvési',pcoste:'Philippe Coste',gb2:'Georges Besse II',defl:'Uranium appauvri',romans:'Romans · pastilles',assemb:'Crayons · assemblages',risques:'Risques · transports'};
+
+
+/* ---------- Bilan matière : d’une tonne de minerai à l’uranium enrichi à 4,5 % ---------- */
+const BIL={g:0.001,GRADES:[[0.001,'0,1 %','minerai courant'],[0.005,'0,5 %','minerai riche'],[0.02,'2 %','très riche'],[0.15,'15 %','exceptionnel (Canada)']]};
+const nf=(v,d=3)=>{if(v===0)return '0';const a=Math.abs(v);const r=a>=100?Math.round(v):Number(v.toPrecision(d));return r.toLocaleString('fr-FR');};
+function bilCalc(g=BIL.g){
+ const XF=0.00711,XP=0.045,XT=0.0025,Vf=x=>(2*x-1)*Math.log(x/(1-x));
+ const uOre=1000*g,uYc=uOre*0.95,u3o8=uYc*842/714,uConv=uYc*0.995,uf6=uConv*352/238;
+ const fp=(XP-XT)/(XF-XT),uEnr=uConv/fp,uTail=uConv-uEnr;
+ const swuKg=Vf(XP)+(fp-1)*Vf(XT)-fp*Vf(XF),swu=uEnr*swuKg;
+ const uo2=uEnr*270/238,pel=uo2*1000/7,rods=pel/300,asmFrac=uEnr/500;
+ const mwhE=uEnr*45*24*0.33,oreAsm=500/uEnr;
+ return {uOre,uYc,u3o8,uConv,uf6,fp,uEnr,uTail,swu,swuKg,uo2,pel,rods,asmFrac,mwhE,oreAsm,res:1000-uOre+(uOre-uYc)};}
+FICHE.bilan={t:'Bilan matière',full:'D’une tonne de minerai à l’uranium enrichi à 4,5 %',m:'ue',view:'bilan',
+ role:'Suivre la quantité d’uranium à chaque étape de l’amont, pour une tonne de minerai.',
+ does:['Choisissez la teneur du minerai : tous les résultats sont recalculés.','Hypothèses : récupération 95 % à la concentration, pertes 0,5 % à la conversion, enrichissement à 4,5 % avec un rejet à 0,25 %.','Résultats arrondis : ordres de grandeur, pas des données d’exploitation.'],
+ io:[['Entrée','1 t de minerai'],['Sortie','Uranium enrichi à 4,5 %, pastilles, crayons']]};
+VIEWS.bilan={t:'Bilan matière — d’une tonne de minerai à l’uranium enrichi à 4,5 %',sub:'Cliquez sur une teneur en haut du schéma pour recalculer toute la chaîne',fiche:'bilan',
+ intro:'Combien d’uranium enrichi tire-t-on d’une tonne de minerai ? On suit l’uranium étape par étape : ce qui est récupéré, ce qui est perdu et ce qui part en uranium appauvri.',
+ steps:[
+ {t:'Le minerai',get d(){const c=bilCalc();return `<p>La teneur choisie est de <b>${BIL.GRADES.find(x=>x[0]===BIL.g)[1]}</b> : 1 t de minerai contient <b>${nf(c.uOre)} kg d’uranium</b>. Tout le reste (${nf(1000-c.uOre)} kg) est de la roche.</p><p class="note">Calcul : 1 000 kg × ${(BIL.g*100).toLocaleString('fr-FR')} % = ${nf(c.uOre)} kg.</p>`;}},
+ {t:'Concentration → yellow cake',get d(){const c=bilCalc();return `<p>L’usine de concentration récupère environ <b>95 %</b> de l’uranium : <b>${nf(c.uYc)} kg d’uranium</b>, soit <b>${nf(c.u3o8)} kg de concentré</b> exprimé en U₃O₈. Le reste part dans les résidus.</p><p class="note">Masse d’U₃O₈ = masse d’uranium × 842 / 714 ≈ × 1,18 (3 atomes d’uranium sur une molécule de masse 842 g/mol).</p>`;}},
+ {t:'Conversion → UF₆',get d(){const c=bilCalc();return `<p>Malvési puis Philippe Coste transforment le concentré en UF₆ avec environ 0,5 % de pertes : <b>${nf(c.uConv)} kg d’uranium</b>, contenus dans <b>${nf(c.uf6)} kg d’UF₆</b>.</p><p class="note">Masse d’UF₆ = masse d’uranium × 352 / 238 ≈ × 1,48 : le fluor ajoute presque la moitié de la masse.</p>`;}},
+ {t:'Enrichissement à 4,5 %',get d(){const c=bilCalc();return `<p>On conserve l’uranium 235 entre l’entrée (0,711 %), le produit (4,5 %) et le rejet (0,25 %). Il faut <b>${nf(c.fp)} kg d’uranium naturel par kg d’uranium enrichi</b> :</p><ul><li>uranium enrichi à 4,5 % : <b>${nf(c.uEnr)} kg</b> ;</li><li>uranium appauvri à 0,25 % : <b>${nf(c.uTail)} kg</b>.</li></ul><p class="note">F / P = (4,5 − 0,25) / (0,711 − 0,25) ≈ 9,2. Travail de séparation : ≈ ${nf(c.swuKg,2)} UTS par kg produit, soit ≈ ${nf(c.swu,2)} UTS ici.</p>`;}},
+ {t:'Pastilles',get d(){const c=bilCalc();return `<p>À Romans, l’uranium enrichi devient de l’oxyde UO₂ : <b>${nf(c.uo2)} kg d’UO₂</b>, soit environ <b>${nf(c.pel,2)} pastilles</b> de 7 g.</p><p class="note">Masse d’UO₂ = masse d’uranium × 270 / 238 ≈ × 1,13.</p>`;}},
+ {t:'Crayons, assemblage, électricité',get d(){const c=bilCalc();return `<p>Avec environ 300 pastilles par crayon, cela représente <b>${nf(c.rods,2)} crayon(s)</b>. Un assemblage contient environ 0,5 t d’uranium : il faut donc <b>≈ ${nf(c.oreAsm,2)} t de minerai</b> à ${BIL.GRADES.find(x=>x[0]===BIL.g)[1]} pour en remplir un seul.</p><p>En réacteur, cet uranium enrichi produira environ <b>${nf(c.mwhE,2)} MWh d’électricité</b>.</p><p class="note">Hypothèses : taux de combustion 45 GWj/t, rendement de la centrale 33 %.</p>`;}},
+ {t:'Ce qu’il faut retenir',get d(){const c=bilCalc();return `<ul><li>Sur 1 t de minerai à ${BIL.GRADES.find(x=>x[0]===BIL.g)[1]}, on obtient <b>${nf(c.uEnr)} kg d’uranium enrichi</b>, soit ${nf(c.uEnr,2)} ‰ de la masse de départ.</li><li>Les pertes chimiques sont faibles : l’essentiel de l’uranium extrait part en <b>uranium appauvri</b> (≈ 9 kg sur 10).</li><li>La teneur du minerai change tout : plus elle est élevée, moins il faut extraire de roche et produire de résidus.</li></ul>`;}}],
+ svg:()=>{const c=bilCalc();let s='';
+  s+=`<text class="lbl" x="20" y="34" style="font-weight:700">Teneur en uranium du minerai :</text>`;
+  BIL.GRADES.forEach(([g,l,d],i)=>{const x=230+i*212,on=g===BIL.g;s+=`<g class="bil-chip" data-g="${g}" tabindex="0" role="button" aria-pressed="${on}" style="cursor:pointer"><rect x="${x}" y="14" width="200" height="34" rx="17" fill="${on?'var(--btn-active)':'var(--btn)'}" stroke="${on?'var(--btn-active-border)':'var(--border)'}" stroke-width="${on?2:1}"/><text class="lbl mid" x="${x+100}" y="35"><tspan style="font-weight:700">${l}</tspan> · ${d}</text></g>`;});
+  const BX=[20,202,384,566,748,930],BW=150,BY=95,BH=150;
+  const box=(i,t,sub,big,unit,st,mc)=>B(BX[i],BY,BW,BH,t,sub,st,{top:true,inner:`<rect x="${BX[i]}" y="${BY+BH-8}" width="${BW}" height="8" rx="3" fill="var(--m-${mc})" opacity=".9"/><text class="eq-t" x="${BX[i]+BW/2}" y="${BY+102}" style="font-size:24px">${big}</text><text class="eq-s" x="${BX[i]+BW/2}" y="${BY+120}">${unit}</text>`});
+  const fw=u=>Math.max(3,Math.min(14,3+11*u/c.uOre));
+  s+=F(`M170 170 H202`,'min','1 2',{w:fw(c.uOre)});s+=F(`M352 170 H384`,'yc','2 3',{w:fw(c.uYc)});s+=F(`M534 170 H566`,'uf6','3 4',{w:fw(c.uConv)});
+  s+=F(`M716 170 H748`,'ue','4 5',{w:fw(c.uEnr)});s+=F(`M898 170 H930`,'uo2','5 6',{w:fw(c.uEnr)});
+  s+=box(0,'Minerai',['1 000 kg extraits'],nf(c.uOre),'kg d’uranium','1 7','min');
+  s+=box(1,'Yellow cake',['récupération ≈ 95 %'],nf(c.u3o8),'kg d’U₃O₈','2','yc');
+  s+=box(2,'UF₆ naturel',['0,711 % d’²³⁵U'],nf(c.uf6),'kg d’UF₆','3','uf6');
+  s+=box(3,'Uranium enrichi',['4,5 % d’²³⁵U'],nf(c.uEnr),'kg d’uranium','4 7','ue');
+  s+=box(4,'Pastilles d’UO₂',[nf(c.uo2)+' kg d’UO₂'],nf(c.pel,2),'pastilles de 7 g','5','uo2');
+  s+=box(5,'Crayons',['≈ 300 pastilles / crayon'],nf(c.rods,2),'crayon(s)','6','comb');
+  // contenus en uranium au-dessus des flèches
+  [[186,c.uOre],[368,c.uYc],[550,c.uConv],[732,c.uEnr],[914,c.uEnr]].forEach(([x,u],i)=>{if(i<4)s+=`<text class="lbl-s mid" x="${x}" y="${i%2?82:82}">${nf(u)} kg U</text>`;});
+  // dérivations
+  s+=F('M95 245 V300','dech','1 2',{w:5});
+  s+=B(20,300,250,70,'Roche, stériles, résidus',['≈ '+nf(c.res)+' kg','dont '+nf(c.uOre-c.uYc)+' kg d’uranium non récupéré'],'1 2');
+  s+=F('M641 245 V300','uapp','4',{w:Math.max(3,Math.min(14,3+11*c.uTail/c.uOre))});
+  s+=B(490,300,300,70,'Uranium appauvri',[nf(c.uTail)+' kg à 0,25 % d’²³⁵U','matière valorisable, entreposée'],'4');
+  s+=F('M1005 245 V300','comb','6',{w:5});
+  s+=B(850,300,230,70,'Électricité produite',['≈ '+nf(c.mwhE,2)+' MWh','(45 GWj/t · rendement 33 %)'],'6');
+  // synthèse
+  s+=B(20,410,520,72,'Pour remplir un assemblage (≈ 0,5 t d’uranium)',['il faut extraire ≈ '+nf(c.oreAsm,2)+' t de minerai à '+BIL.GRADES.find(x=>x[0]===BIL.g)[1],'et traiter ≈ '+nf(c.oreAsm*c.uConv/1000,2)+' t d’uranium naturel'],'6 7');
+  s+=B(560,410,520,72,'Enrichissement',['F / P = (4,5 − 0,25) / (0,711 − 0,25) ≈ '+nf(c.fp,2),'travail de séparation ≈ '+nf(c.swu,2)+' UTS pour cette tonne'],'4 7');
+  return s;}};
+VIEW_ORDER.push('bilan');NAV_LABEL.bilan='Bilan matière';
+function bilRefresh(){if(cur!=='bilan')return;const V=VIEWS.bilan;$('det').innerHTML=V.svg();
+ $('det').querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+ setStep(step);}
+document.addEventListener('click',e=>{const ch=e.target.closest&&e.target.closest('.bil-chip');if(ch){BIL.g=+ch.dataset.g;bilRefresh();}});
+document.addEventListener('keydown',e=>{const ch=e.target.closest&&e.target.closest('.bil-chip');if(ch&&(e.key==='Enter'||e.key===' ')){e.preventDefault();BIL.g=+ch.dataset.g;bilRefresh();const n=$('det').querySelector(`.bil-chip[data-g="${BIL.g}"]`);if(n)n.focus();}});
+
+/* =====================================================================
+   5. FICHE DANS LE PANNEAU LATÉRAL
+   ===================================================================== */
+function renderFiche(id,inDetail){const f=FICHE[id];if(!f)return;
+ $('aside').innerHTML=`<div class="kicker">Fiche installation</div><h2>${f.t}</h2><p style="margin:0 0 8px;color:var(--muted)">${f.full}</p><p>${f.role}</p>
+ <h3>Ce qui s’y passe</h3><ul>${f.does.map(d=>`<li>${d}</li>`).join('')}</ul>
+ ${f.keys?`<h3>Repères chiffrés</h3><div class="facts">${f.keys.map(([a,b])=>`<div class="fact"><b>${a}</b>${b}</div>`).join('')}</div>`:''}
+ ${f.io?`<h3>Entrées et sorties</h3><div class="io">${f.io.map(([a,b])=>`<span>${a}</span><div>${b}</div>`).join('')}</div>`:''}
+ ${!inDetail&&f.view?`<button class="btn primary openbtn" type="button" id="openView">Ouvrir la vue détaillée →</button>`:''}
+ <div class="warning">Schémas de principe, sans données d’exploitation. Chiffres arrondis d’après Orano, Framatome, Andra et l’AIEA (2023-2026).</div>`;
+ const b=$('openView');if(b)b.onclick=()=>openView(f.view);}
+function asideHome(){$('aside').innerHTML=`<div class="kicker">Mode d’emploi</div><h2>Synoptique général</h2><p>Le schéma suit l’uranium de la mine jusqu’à l’assemblage livré à la centrale, et montre les matières qui reviennent de l’aval.</p><ul><li><b>Cliquez sur une installation</b> pour afficher sa fiche et ses flux.</li><li><b>Filtrez un flux</b> (UF₆, uranium appauvri…) pour suivre son trajet.</li><li><b>Ouvrez la vue détaillée</b> pour une lecture guidée étape par étape.</li><li>La <b>visite guidée</b> enchaîne automatiquement toutes les installations.</li></ul><h3>Ordres de grandeur</h3><div class="facts"><div class="fact"><b>0,7 % → 3 à 5 %</b>teneur en uranium 235, avant et après enrichissement</div><div class="fact"><b>≈ 8 kg</b>d’uranium naturel pour 1 kg d’uranium enrichi à 4 %</div><div class="fact"><b>6 000 à 8 000 t</b>d’uranium naturel par an pour le parc français (AIEA, 2025)</div></div><div class="warning">Schémas fonctionnels non dimensionnés et non géographiques. La suite du parcours : <a href="lahague.html">parcours La Hague (aval)</a>.</div>`;}
+
+/* =====================================================================
+   6. NAVIGATION
+   ===================================================================== */
+let cur='syn',step=0,playTimer=null,tourTimer=null,selNode=null,filter='all';
+function buildNav(){$('nav').innerHTML=`<button type="button" data-go="syn">Synoptique général</button><span class="sep"></span>`+VIEW_ORDER.map(v=>`<button type="button" data-go="${v}">${NAV_LABEL[v]}</button>`).join('');
+ $('nav').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>b.dataset.go==='syn'?showSyn():openView(b.dataset.go));}
+function markNav(){$('nav').querySelectorAll('[data-go]').forEach(b=>b.classList.toggle('active',b.dataset.go===cur));}
+function crumbs(){$('crumbs').innerHTML=cur==='syn'?'<span>Synoptique général</span>':`<a id="toSyn">Synoptique général</a><span>›</span><span>${NAV_LABEL[cur]}</span>`;const a=$('toSyn');if(a)a.onclick=showSyn;}
+function showSyn(){stopTour();stopPlay();cur='syn';$('synSec').classList.remove('hidden');$('detSec').classList.add('hidden');markNav();crumbs();if(selNode)renderFiche(selNode);else asideHome();window.scrollTo({top:0,behavior:'smooth'});}
+function openView(v){stopTour();stopPlay();cur=v;const V=VIEWS[v];step=0;
+ $('synSec').classList.add('hidden');$('detSec').classList.remove('hidden');
+ $('det').setAttribute('aria-label',V.t);
+ $('det').innerHTML=V.svg();
+ $('det').setAttribute('viewBox','0 0 1100 520');
+ const used=[...new Set([...$('det').querySelectorAll('.fl')].map(g=>g.dataset.m))];
+ $('detLegend').innerHTML=`<b style="color:var(--text)">${V.t}</b>&nbsp;·&nbsp;`+used.map(m=>`<span class="m-${m}"><i></i>${MAT[m]}</span>`).join('');
+ $('steps').innerHTML=`<button class="sbtn" type="button" data-step="0">Vue d’ensemble</button>`+V.steps.map((st,i)=>`<button class="sbtn" type="button" data-step="${i+1}">${i+1} · ${st.t}</button>`).join('');
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.onclick=()=>{stopPlay();setStep(+b.dataset.step);});
+ $('det').querySelectorAll('.eq').forEach(e=>{const go=()=>{const s=(e.dataset.s||'').split(' ').filter(Boolean)[0];if(s){stopPlay();setStep(+s);}};e.onclick=go;e.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();go();}};});
+ const i=VIEW_ORDER.indexOf(v);$('prevView').disabled=i<=0;$('nextView').disabled=i>=VIEW_ORDER.length-1;
+ markNav();crumbs();renderFiche(V.fiche,true);setStep(0);renderTechZoom();window.scrollTo({top:0,behavior:'smooth'});}
+function setStep(n){const V=VIEWS[cur];step=n;
+ $('det').querySelectorAll('[data-s]').forEach(e=>{const on=n===0||e.dataset.s.split(' ').includes(String(n));e.classList.toggle('dim',!on);if(e.classList.contains('eq'))e.classList.toggle('hl',n>0&&on);});
+ $('steps').querySelectorAll('.sbtn').forEach(b=>b.classList.toggle('active',+b.dataset.step===n));
+ if(cur==='r1'){const z=$('techZoom');if(z)z.dataset.currentStep=String(n);}
+ $('stepText').innerHTML=n===0?`<h3>${V.t}</h3><p>${V.intro}</p><p class="note">${V.sub}. Choisissez une étape ou lancez la lecture guidée ; cliquez sur un équipement pour afficher l’étape correspondante.</p>`:`<h3>Étape ${n} / ${V.steps.length} — ${V.steps[n-1].t}</h3>${V.steps[n-1].d}`;}
+$('prevView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i>0)openView(VIEW_ORDER[i-1]);};
+$('nextView').onclick=()=>{const i=VIEW_ORDER.indexOf(cur);if(i<VIEW_ORDER.length-1)openView(VIEW_ORDER[i+1]);};
+function stopPlay(){if(playTimer){clearInterval(playTimer);playTimer=null;}$('playBtn').textContent='▶ Lecture guidée';}
+$('playBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(playTimer){stopPlay();return;}const V=VIEWS[cur];$('playBtn').textContent='⏸ Arrêter la lecture';setStep(step>=V.steps.length?1:step+1);
+ playTimer=setInterval(()=>{if(step>=VIEWS[cur].steps.length){stopPlay();return;}setStep(step+1);},9000);};
+
+/* Synoptique : sélection, filtre, visite guidée */
+function applySyn(){const syn=$('syn');
+ syn.querySelectorAll('.node').forEach(n=>{const id=n.dataset.node;let on=true;
+  if(selNode)on=id===selNode||[...syn.querySelectorAll('.fl')].some(f=>(f.dataset.n||'').split(' ').includes(selNode)&&(f.dataset.n||'').split(' ').includes(id));
+  if(filter!=='all')on=on&&[...syn.querySelectorAll(`.fl[data-m="${filter}"]`)].some(f=>(f.dataset.n||'').split(' ').includes(id));
+  n.classList.toggle('dim',!on);n.classList.toggle('sel',id===selNode);});
+ syn.querySelectorAll('.fl').forEach(f=>{const ns=(f.dataset.n||'').split(' ');let on=true;if(selNode)on=ns.includes(selNode);if(filter!=='all')on=on&&f.dataset.m===filter;f.classList.toggle('dim',!on);});}
+function selectNode(id){selNode=selNode===id&&!tourTimer?null:id;applySyn();if(selNode)renderFiche(selNode);else asideHome();}
+function stopTour(){if(tourTimer){clearInterval(tourTimer);tourTimer=null;}$('tourBtn').textContent='▶ Visite guidée';}
+const TOUR=['mine','conc','residus','malv','effl','pcoste','gb2','defl','stock','romans','zr','assemb','reacteur','lahague','melox','transport','risques'];
+$('tourBtn').onclick=()=>{if(document.body.classList.contains('paused'))setPaused(false);if(tourTimer){stopTour();return;}filter='all';markFilters();let i=0;$('tourBtn').textContent='⏸ Arrêter la visite';selNode=null;selectNode(TOUR[0]);
+ tourTimer=setInterval(()=>{i++;if(i>=TOUR.length){stopTour();selNode=null;applySyn();asideHome();return;}selNode=null;selectNode(TOUR[i]);},7000);};
+function markFilters(){$('filters').querySelectorAll('.chip').forEach(c=>c.classList.toggle('active',c.dataset.f===filter));}
+
+/* =====================================================================
+   7. THÈME ET ANIMATIONS
+   ===================================================================== */
+const root=document.documentElement;
+const SUN='<circle cx="12" cy="12" r="4.5"/><path d="M12 2M12 19.5V22M2 12h2.5M19.5 12H22M4.9 4.9l1.8 1.8M17.3 17.3l1.8 1.8M4.9 19.1l1.8-1.8M17.3 6.7l1.8-1.8"/>',MOON='<path d="M20.5 14.5A8.5 8.5 0 0 1 9.5 3.5a8.5 8.5 0 1 0 11 11z"/>';
+function setTheme(t,set=true){if(set){root.dataset.theme=t;try{localStorage.setItem('amont-theme',t)}catch(e){}}const d=t==='dark';$('themeIcon').innerHTML=d?SUN:MOON;$('themeTxt').textContent=d?'Thème clair':'Thème sombre';$('themeBtn').setAttribute('aria-pressed',String(!d));}
+const curTheme=()=>root.dataset.theme||((()=>{try{return matchMedia('(prefers-color-scheme: light)').matches}catch(e){return false}})()?'light':'dark');
+try{const saved=localStorage.getItem('amont-theme');if(saved==='light'||saved==='dark')root.dataset.theme=saved;}catch(e){}
+setTheme(curTheme(),false);
+$('themeBtn').onclick=()=>setTheme(curTheme()==='dark'?'light':'dark');
+function setPaused(p){if(p){stopPlay();stopTour();}document.body.classList.toggle('paused',p);$('pauseBtn').textContent=p?'▶ Animations':'⏸ Animations';$('pauseBtn').classList.toggle('active',p);}
+$('pauseBtn').onclick=()=>setPaused(!document.body.classList.contains('paused'));
+try{if(matchMedia('(prefers-reduced-motion: reduce)').matches)setPaused(true);}catch(e){}
+
+/* =====================================================================
+   CENTRIFUGEUSE 3D (canvas, projection perspective faite à la main)
+   ===================================================================== */
+let C3D=null;
+function c3dMarkup(){return `<div class="c3d-ctrl">
+ <label class="c3d-sl">Vitesse de rotation <input type="range" id="c3dSpeed" min="0" max="100" value="80" aria-label="Vitesse de rotation"><b id="c3dSpeedV">80 %</b></label>
+ <label><input type="checkbox" id="c3dFlow" checked> Contre-courant et soutirages</label>
+ <span class="c3d-views"><button type="button" class="btn" data-el="16">Vue de côté</button><button type="button" class="btn" data-el="42">Perspective</button><button type="button" class="btn" data-el="88">Vue de dessus</button></span>
+ <button type="button" class="btn" id="c3dMix">Mélanger</button></div>
+ <canvas class="c3d-cv" id="c3dCv" role="img" aria-label="Centrifugeuse en 3D : la rotation pousse les molécules lourdes d’UF₆ vers la paroi"></canvas>`;}
+
+function initC3D(){
+ const cv=$('c3dCv');if(!cv)return null;
+ const W=1100,H=560,dpr=Math.min(2,window.devicePixelRatio||1);
+ cv.width=W*dpr;cv.height=H*dpr;const g=cv.getContext('2d');g.setTransform(dpr,0,0,dpr,0,0);
+ const R=1,HH=1.5,NP=340,LIGHT=0.4,D=0.05,KH=1.0,KL=0.3,WALL=0.975;
+ const P=[];
+ const gn=()=>(Math.random()+Math.random()+Math.random()-1.5)*2;
+ const mix=p=>{p.r=R*Math.sqrt(Math.random())*WALL;p.t=Math.random()*6.2832;p.z=(Math.random()*2-1)*HH*.97;};
+ for(let i=0;i<NP;i++){const p={l:i<NP*LIGHT};mix(p);P.push(p);}
+ const st={speed:.8,flow:true,az:.4,el:16*Math.PI/180,elT:null,rot:0,dash:0,top:LIGHT,bot:LIGHT,col:{},cf:0,last:performance.now(),raf:0,alive:true};
+ const readCol=()=>{const cs=getComputedStyle(document.documentElement);['--m-ue','--m-uapp','--eq-stroke','--label','--sublabel','--accent','--m-uf6','--canvas','--glow','--panel2','--border'].forEach(k=>st.col[k]=cs.getPropertyValue(k).trim());};
+ readCol();
+ /* ---------- contrôles ---------- */
+ const sp=$('c3dSpeed'),spv=$('c3dSpeedV');
+ sp.oninput=()=>{st.speed=sp.value/100;spv.textContent=sp.value+' %';};
+ $('c3dFlow').onchange=e=>{st.flow=e.target.checked;st.top=st.bot=LIGHT;};
+ $('c3dMix').onclick=()=>{P.forEach(mix);st.top=st.bot=LIGHT;};
+ cv.parentNode.querySelectorAll('[data-el]').forEach(b=>b.onclick=()=>{st.elT=b.dataset.el*Math.PI/180;});
+ let drag=null;
+ cv.addEventListener('pointerdown',e=>{drag=[e.clientX,e.clientY];st.elT=null;try{cv.setPointerCapture(e.pointerId)}catch(_){}});
+ cv.addEventListener('pointermove',e=>{if(!drag)return;const k=W/cv.getBoundingClientRect().width;st.az-=(e.clientX-drag[0])*.008*k;st.el=Math.max(.04,Math.min(1.54,st.el+(e.clientY-drag[1])*.008*k));drag=[e.clientX,e.clientY];});
+ const end=()=>drag=null;cv.addEventListener('pointerup',end);cv.addEventListener('pointercancel',end);
+ /* ---------- physique simplifiée ---------- */
+ function step(dt){const w=st.speed,om=w*4.2;st.rot+=om*dt;st.dash+=dt*30;
+  const U=st.flow&&w>.15?.38*w:0;
+  for(const p of P){p.t+=om*dt;
+   const k=p.l?KL:KH,rr=Math.max(.02,p.r);
+   p.r+=(k*w*w*rr+D/rr)*dt+Math.sqrt(2*D*dt)*gn();
+   if(p.r<0)p.r=-p.r;if(p.r>WALL)p.r=2*WALL-p.r;
+   const q=p.r/R;p.z+=U*(1-2*q*q)*dt+Math.sqrt(.03*dt)*gn();
+   if(U>0&&p.z>HH){st.top=st.top*.97+(p.l?.03:0);p.z=gn()*.06;p.r=.04+Math.random()*.1;p.t=Math.random()*6.2832;}
+   else if(U>0&&p.z<-HH){st.bot=st.bot*.97+(p.l?.03:0);p.z=gn()*.06;p.r=.04+Math.random()*.1;p.t=Math.random()*6.2832;}
+   else if(p.z>HH){p.z=2*HH-p.z;}else if(p.z<-HH){p.z=-2*HH-p.z;}}}
+ /* ---------- projection ---------- */
+ const CX=310,CY=292;let S=95;
+ function pr(x,y,zz){const ca=Math.cos(st.az),sa=Math.sin(st.az),ce=Math.cos(st.el),se=Math.sin(st.el);
+  const x1=x*ca-zz*sa,d0=x*sa+zz*ca,up=y*ce+d0*se,dep=d0*ce-y*se,k=14/(14+dep);return [CX+x1*S*k,CY-up*S*k,dep,k];}
+ const cyl=(r,th,y)=>pr(r*Math.cos(th),y,r*Math.sin(th));
+ const C=n=>st.col[n];
+ function path(ptsArr,col,w,alpha=1,dash=null,off=0){if(ptsArr.length<2)return;g.save();g.globalAlpha=alpha;g.strokeStyle=col;g.lineWidth=w;g.lineCap='round';g.lineJoin='round';if(dash){g.setLineDash(dash);g.lineDashOffset=-off;}g.beginPath();ptsArr.forEach((p,i)=>i?g.lineTo(p[0],p[1]):g.moveTo(p[0],p[1]));g.stroke();g.restore();}
+ function ring(r,y,col,w,alpha,part){const a=[];for(let i=0;i<=72;i++){const th=i/72*6.2832,p=cyl(r,th,y);if(part==='all'||(part==='front'?p[2]<=0:p[2]>0))a.push(p);else{path(a,col,w,alpha);a.length=0;}}path(a,col,w,alpha);}
+ function arrowHead(x1,y1,x2,y2,col,sz=8){const a=Math.atan2(y2-y1,x2-x1);g.fillStyle=col;g.beginPath();g.moveTo(x2,y2);g.lineTo(x2-sz*Math.cos(a-.45),y2-sz*Math.sin(a-.45));g.lineTo(x2-sz*Math.cos(a+.45),y2-sz*Math.sin(a+.45));g.closePath();g.fill();}
+ function arrow(x1,y1,x2,y2,col,w=2.5,sz=9){path([[x1,y1],[x2,y2]],col,w);arrowHead(x1,y1,x2,y2,col,sz);}
+ function tx(t,x,y,col,size=12,align='left',bold=false){g.font=`${bold?'700 ':''}${size}px system-ui,"Segoe UI",sans-serif`;g.fillStyle=col;g.textAlign=align;g.fillText(t,x,y);}
+ function label(t,x,y,lx,ly,align='left'){path([[x,y],[lx,ly]],C('--sublabel'),1,.7);g.fillStyle=C('--sublabel');g.beginPath();g.arc(x,y,2.5,0,6.29);g.fill();[].concat(t).forEach((l,i)=>tx(l,lx+(align==='left'?4:-4),ly+4+i*15,C('--label'),12,align));}
+ /* ---------- vue 3D ---------- */
+ function draw3D(){
+  const side=1-Math.max(0,Math.min(1,(st.el-.9)/.5));
+  S=95+55*Math.max(0,Math.min(1,(st.el-.7)/.8));
+  // carter fixe
+  const RC=1.17,YC=1.78;
+  ring(RC,-YC,C('--eq-stroke'),1.5,.45,'all');
+  [-st.az,Math.PI-st.az].forEach(th=>{const a=cyl(RC,th,-YC),b=cyl(RC,th,YC);path([a,b],C('--eq-stroke'),1.5,.45*side);});
+  // rotor : moitié arrière
+  ring(R,-HH,C('--m-ue'),2,.35,'back');ring(R,HH,C('--m-ue'),2,.35,'back');
+  const NS=16,stripes=[];for(let i=0;i<NS;i++){const th=st.rot+i/NS*6.2832,a=cyl(R,th,-HH),b=cyl(R,th,HH);stripes.push([a,b,(a[2]+b[2])/2]);}
+  stripes.filter(s=>s[2]>0).forEach(s=>path([s[0],s[1]],C('--eq-stroke'),2,.22));
+  // tubes fixes coaxiaux (alimentation et écopes)
+  const tA=cyl(0,0,YC+.45),tB=cyl(0,0,0);
+  if(side>.3){path([tA,tB],C('--eq-stroke'),6,.9);path([tA,tB],C('--m-uf6'),2.5,.9,[6,6],st.dash);}
+  const feed=cyl(0,0,0);g.fillStyle=C('--m-uf6');g.beginPath();g.arc(feed[0],feed[1],5*feed[3],0,6.29);g.fill();
+  const scA=0;[[HH-.16,'--m-ue'],[-HH+.16,'--m-uapp']].forEach(([y,c])=>{const a=cyl(0,scA,y),b=cyl(.93,scA,y);path([a,b],C('--eq-stroke'),5,.9);path([a,b],C(c),2,.95);});
+  // particules triées de l’arrière vers l’avant
+  const L=P.map(p=>{const q=cyl(p.r,p.t,p.z);return [q,p];}).sort((a,b)=>b[0][2]-a[0][2]);
+  for(const [q,p] of L){g.fillStyle=p.l?C('--m-ue'):C('--m-uapp');g.globalAlpha=.55+.45*Math.min(1,Math.max(0,(1-q[2])/2));g.beginPath();g.arc(q[0],q[1],(p.l?2.8:4)*q[3],0,6.29);g.fill();}
+  g.globalAlpha=1;
+  // rotor : moitié avant
+  stripes.filter(s=>s[2]<=0).forEach(s=>path([s[0],s[1]],C('--eq-stroke'),2,.45));
+  ring(R,-HH,C('--m-ue'),2.5,.9,'front');ring(R,HH,C('--m-ue'),2.5,.9,'all');
+  // contre-courant
+  if(st.flow&&st.speed>.15&&side>.2){
+   [-st.az,Math.PI-st.az].forEach(th=>{const P2=(r,y)=>cyl(r,th,y);
+    const up=[P2(.3,-1.05),P2(.3,1.05)],top=[P2(.3,1.2),P2(.78,1.2)],dn=[P2(.84,1.05),P2(.84,-1.05)],bot=[P2(.78,-1.2),P2(.3,-1.2)];
+    [up,top,dn,bot].forEach(s=>{path(s,C('--accent'),2,.75*side,[5,7],st.dash);arrowHead(s[0][0],s[0][1],s[1][0],s[1][1],C('--accent'),8);});});}
+  // moteur et palier
+  const m=cyl(0,0,-YC-.12),mag=cyl(0,0,YC);
+  if(side>.3){g.fillStyle=C('--eq-stroke');g.globalAlpha=.85;g.fillRect(m[0]-34,m[1]-6,68,22);g.globalAlpha=1;
+  const pivot=cyl(0,0,-HH),mb=cyl(0,0,-YC);path([pivot,mb],C('--eq-stroke'),3,.9);
+  g.strokeStyle=C('--eq-stroke');g.lineWidth=2;g.strokeRect(mag[0]-18,mag[1]-5,36,10);}
+  // rotation : flèche circulaire au sommet
+  if(st.speed>0){const a=[];for(let i=0;i<=20;i++)a.push(cyl(1.32,st.rot*.15+ .3+i/20*1.6,HH+.05));path(a,C('--glow'),2.5,.9);const n=a.length;arrowHead(a[n-2][0],a[n-2][1],a[n-1][0],a[n-1][1],C('--glow'),10);}
+  // repères
+  if(side>.6){
+   const t1=cyl(.6,scA,HH-.16),t2=cyl(.6,scA,-HH+.16);
+   label(['écope haute','→ UF₆ enrichi'],t1[0],t1[1],520,92);
+   label(['écope basse','→ UF₆ appauvri'],t2[0],t2[1],520,466);
+   label(['alimentation','UF₆ (axe fixe)'],feed[0],feed[1],520,300);
+   label('moteur',m[0]+34,m[1]+5,520,522);
+   label(['palier','magnétique'],mag[0]+18,mag[1],520,36);
+   const wl=cyl(R,-st.az,.55);label('paroi du rotor',wl[0],wl[1],150,250,'right');
+   const cs=cyl(RC,-st.az,-.9);label(['carter','sous vide'],cs[0],cs[1],150,390,'right');
+  }
+  // sorties
+  if(st.flow&&st.speed>.15){const bx=18,by=24;g.fillStyle=C('--panel2');g.globalAlpha=.88;g.fillRect(bx,by,226,96);g.globalAlpha=1;g.strokeStyle=C('--border');g.strokeRect(bx,by,226,96);
+   tx('Part de molécules légères (²³⁵UF₆)',bx+10,by+18,C('--label'),11.5,'left',true);
+   [['sortie haute',st.top,'--m-ue'],['alimentation',LIGHT,'--m-uf6'],['sortie basse',st.bot,'--m-uapp']].forEach(([n,v,c],i)=>{const y=by+38+i*21;tx(n,bx+10,y+4,C('--sublabel'),11);g.fillStyle=C('--border');g.fillRect(bx+90,y-5,90,10);g.fillStyle=C(c);g.fillRect(bx+90,y-5,90*v,10);tx(Math.round(v*100)+' %',bx+186,y+4,C('--label'),11.5,'left',true);});}
+  // message
+  const msg=st.speed<.05?'À l’arrêt : les deux sortes de molécules restent mélangées uniformément.':'La force centrifuge pousse les molécules vers la paroi, davantage les plus lourdes (²³⁸UF₆).';
+  tx(msg,18,548,C('--label'),12.5);
+ }
+ /* ---------- coupe transversale + profil ---------- */
+ function drawRight(){
+  const x0=640;path([[x0-10,20],[x0-10,540]],C('--border'),1,1);
+  const DX=790,DY=180,RD=120;
+  tx('Coupe transversale (vue de dessus)',x0+10,32,C('--label'),13,'left',true);
+  g.strokeStyle=C('--m-ue');g.lineWidth=3;g.beginPath();g.arc(DX,DY,RD,0,6.29);g.stroke();
+  for(let i=0;i<16;i++){const a=st.rot+i/16*6.2832;path([[DX+(RD-6)*Math.cos(a),DY+(RD-6)*Math.sin(a)],[DX+RD*Math.cos(a),DY+RD*Math.sin(a)]],C('--eq-stroke'),2,.8);}
+  for(const p of P){g.fillStyle=p.l?C('--m-ue'):C('--m-uapp');g.globalAlpha=.8;g.beginPath();g.arc(DX+p.r*RD*Math.cos(p.t),DY+p.r*RD*Math.sin(p.t),p.l?2.2:3,0,6.29);g.fill();}g.globalAlpha=1;
+  g.fillStyle=C('--eq-stroke');g.beginPath();g.arc(DX,DY,4,0,6.29);g.fill();
+  // forces sur deux traceurs
+  const w2=st.speed*st.speed;
+  [[st.rot*.5,false],[st.rot*.5+Math.PI,true]].forEach(([a,l])=>{const r0=.5*RD,px=DX+r0*Math.cos(a),py=DY+r0*Math.sin(a),Lf=(l?KL:KH)*w2*58;
+   g.fillStyle=l?C('--m-ue'):C('--m-uapp');g.strokeStyle=C('--label');g.lineWidth=1.5;g.beginPath();g.arc(px,py,l?6:8,0,6.29);g.fill();g.stroke();
+   if(Lf>4)arrow(px+Math.cos(a)*9,py+Math.sin(a)*9,px+Math.cos(a)*(9+Lf),py+Math.sin(a)*(9+Lf),C('--glow'),3,9);});
+  if(st.speed>0){const a=[];for(let i=0;i<=24;i++){const t=st.rot*.2+i/24*1.4;a.push([DX+(RD+16)*Math.cos(t),DY+(RD+16)*Math.sin(t)]);}path(a,C('--glow'),2.5,.9);arrowHead(a[23][0],a[23][1],a[24][0],a[24][1],C('--glow'),10);}
+  tx('F = m · ω² · r',x0+300,82,C('--glow'),14,'left',true);
+  tx('même vitesse de rotation,',x0+300,102,C('--sublabel'),11.5);tx('masse plus grande → force',x0+300,117,C('--sublabel'),11.5);tx('plus grande',x0+300,132,C('--sublabel'),11.5);
+  // profil radial (anneaux de même surface)
+  const NB=5,hH=new Array(NB).fill(0),hL=new Array(NB).fill(0);let nH=0,nL=0;
+  for(const p of P){const b=Math.min(NB-1,Math.floor((p.r/WALL)**2*NB));if(p.l){hL[b]++;nL++;}else{hH[b]++;nH++;}}
+  const by=505,bx=x0+52,gw=82;
+  tx('Répartition selon la distance à l’axe',x0+10,338,C('--label'),13,'left',true);
+  tx('(5 anneaux de même surface : mélange uniforme = 20 % partout)',x0+10,355,C('--sublabel'),11);
+  const yu=by-20*1.6;path([[bx-8,yu],[bx+NB*gw,yu]],C('--sublabel'),1,.6,[4,4]);tx('20 %',bx-10,yu+4,C('--sublabel'),10.5,'right');
+  for(let b=0;b<NB;b++){const vh=hH[b]/nH*100,vl=hL[b]/nL*100,x=bx+b*gw;
+   g.fillStyle=C('--m-uapp');g.fillRect(x,by-Math.min(130,vh*1.6),30,Math.min(130,vh*1.6));
+   g.fillStyle=C('--m-ue');g.fillRect(x+34,by-Math.min(130,vl*1.6),30,Math.min(130,vl*1.6));}
+  path([[bx-8,by],[bx+NB*gw,by]],C('--eq-stroke'),1.5,1);
+  tx('près de l’axe',bx,by+16,C('--sublabel'),11);tx('contre la paroi',bx+NB*gw-14,by+16,C('--sublabel'),11,'right');
+  g.fillStyle=C('--m-uapp');g.fillRect(x0+10,528,12,10);tx('²³⁸UF₆ (lourd)',x0+27,537,C('--label'),11.5);
+  g.fillStyle=C('--m-ue');g.fillRect(x0+140,528,12,10);tx('²³⁵UF₆ (léger)',x0+157,537,C('--label'),11.5);
+ }
+ function draw(){g.clearRect(0,0,W,H);draw3D();drawRight();}
+ function frame(now){if(!st.alive)return;st.raf=requestAnimationFrame(frame);
+  if(!cv.isConnected){stop();return;}
+  const dt=Math.min(.05,(now-st.last)/1000);st.last=now;
+  if(cv.offsetParent===null)return;
+  if(st.elT!=null){st.el+=(st.elT-st.el)*Math.min(1,dt*5);if(Math.abs(st.elT-st.el)<.002)st.elT=null;}
+  if(!document.body.classList.contains('paused')){step(dt/2);step(dt/2);}
+  if(++st.cf%30===1)readCol();draw();}
+ function stop(){st.alive=false;cancelAnimationFrame(st.raf);}
+ // préchauffage : état proche de l’équilibre dès l’ouverture
+ for(let i=0;i<240;i++)step(.03);
+ st.raf=requestAnimationFrame(frame);
+ return {stop};
+}
+
+
+/* =====================================================================
+   GROS PLANS TECHNIQUES (Georges Besse II, Romans)
+   ===================================================================== */
+let techMode={gb2:'c3d',romans:'pastille'};
+function centriTechSVG(){
+ let stripes='';for(let x=332;x<=610;x+=24)stripes+=`<path d="M${x} 60 V460" stroke="var(--eq-stroke)" stroke-width="6" opacity=".22"/>`;
+ let mol='';
+ [0,1,2,3,4,5].forEach(i=>{const y=200+(i%3)*40,d=(i*.6).toFixed(1);
+  mol+=`<circle class="${i%2?'tz-heavy-r':'tz-heavy-l'}" cx="470" cy="${y}" r="6" fill="var(--m-uapp)" style="animation-delay:${d}s"/>`;
+  mol+=`<circle class="${i%2?'tz-light-r':'tz-light-l'}" cx="470" cy="${y+20}" r="5" fill="var(--m-ue)" style="animation-delay:${(i*.6+.3).toFixed(1)}s"/>`;});
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="Coupe de principe d’une centrifugeuse d’enrichissement">
+ <defs><clipPath id="tzRotor"><rect x="380" y="60" width="180" height="400" rx="18"/></clipPath></defs>
+ <rect x="360" y="40" width="220" height="440" rx="26" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="3"/>
+ <rect x="380" y="60" width="180" height="400" rx="18" fill="var(--m-uf6)" opacity=".1"/>
+ <g clip-path="url(#tzRotor)"><g class="tz-rot">${stripes}</g></g>
+ <rect x="380" y="60" width="180" height="400" rx="18" fill="none" stroke="var(--m-ue)" stroke-width="2.5"/>
+ <path d="M470 60 V460" stroke="var(--label)" stroke-dasharray="4 5" opacity=".5"/>
+ ${F('M396 110 V430','uapp','',{w:3,noCase:true})}${F('M544 110 V430','uapp','',{w:3,noCase:true})}
+ ${F('M452 430 V110','ue','',{w:3,noCase:true})}${F('M488 430 V110','ue','',{w:3,noCase:true})}
+ ${mol}
+ ${F('M230 260 H462','uf6','',{w:5,lab:[236,250,'alimentation UF₆']})}
+ ${F('M470 64 V22 H640','ue','',{w:5,lab:[650,27,'soutirage enrichi']})}
+ ${F('M520 456 V500 H640','uapp','',{w:5,lab:[650,505,'soutirage appauvri']})}
+ <rect x="436" y="482" width="68" height="24" rx="4" fill="var(--eq-stroke)"/><text class="tech-small" x="420" y="499" text-anchor="end">moteur</text>
+ <text class="tech-strong" x="630" y="90">Ce qui se passe dans le rotor</text>
+ <text class="tech-label" x="630" y="125">1. Le rotor tourne à très grande vitesse, sous vide.</text>
+ <text class="tech-label" x="630" y="155">2. La force centrifuge pousse les molécules</text>
+ <text class="tech-label" x="650" y="177">les plus lourdes (²³⁸UF₆) vers la paroi.</text>
+ <text class="tech-label" x="630" y="207">3. Les plus légères (²³⁵UF₆) restent plus près de l’axe.</text>
+ <text class="tech-label" x="630" y="237">4. Un courant interne fait monter le gaz enrichi</text>
+ <text class="tech-label" x="650" y="259">et descendre le gaz appauvri.</text>
+ <text class="tech-label" x="630" y="289">5. Deux écopes soutirent les deux flux.</text>
+ <text class="tech-small" x="630" y="330">Le gain par machine est faible : on monte des milliers</text>
+ <text class="tech-small" x="630" y="348">de centrifugeuses en cascade.</text>
+ <circle cx="80" cy="120" r="6" fill="var(--m-uapp)"/><text class="tech-label" x="96" y="125">²³⁸UF₆ (plus lourd)</text>
+ <circle cx="80" cy="150" r="5" fill="var(--m-ue)"/><text class="tech-label" x="96" y="155">²³⁵UF₆ (plus léger)</text>
+ <text class="tech-small" x="70" y="200">Écart de masse entre les deux</text>
+ <text class="tech-small" x="70" y="218">molécules : moins de 1 %.</text>
+ </svg>`;}
+function bilanTechSVG(){
+ const sq=(x,y,c,t)=>`<rect x="${x}" y="${y}" width="54" height="54" rx="8" fill="${c}" opacity=".85"/><text class="tech-small" x="${x+27}" y="${y+32}" text-anchor="middle" style="fill:var(--canvas);font-weight:700">${t}</text>`;
+ let L='';for(let i=0;i<8;i++)L+=sq(60+(i%4)*64,120+Math.floor(i/4)*64,'var(--m-uf6)','1 kg');
+ let R='';for(let i=0;i<7;i++)R+=sq(760+(i%4)*64,250+Math.floor(i/4)*64,'var(--m-uapp)','1 kg');
+ const bar=(x,h,c,lab,val)=>`<rect class="tz-bar" x="${x}" y="${480-h}" width="70" height="${h}" rx="4" fill="${c}"/><text class="tech-small" x="${x+35}" y="${470-h}" text-anchor="middle">${val}</text><text class="tech-small" x="${x+35}" y="505" text-anchor="middle">${lab}</text>`;
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="Bilan matière de l’enrichissement">
+ <text class="tech-strong" x="60" y="60">Pour 1 kg d’uranium enrichi à 4 %</text>
+ <text class="tech-label" x="60" y="98">Uranium naturel : 8 kg à 0,71 %</text>${L}
+ ${F('M330 180 H540','uf6','',{w:8,noArrow:true,lab:[435,168,'cascade','middle']})}${F('M540 180 V147 H740','ue','',{w:6})}${F('M540 180 V308 H740','uapp','',{w:6})}
+ <text class="tech-label" x="760" y="98">Produit : 1 kg à 4 %</text>${sq(760,120,'var(--m-ue)','1 kg')}
+ 
+ <text class="tech-label" x="760" y="232">Résidu : ≈ 7 kg à 0,25 %</text>${R}
+ <text class="tech-strong" x="60" y="300">L’uranium 235 se conserve</text>
+ ${bar(80,114,'var(--m-uf6)','au départ','≈ 57 g')}
+ <rect x="240" y="${480-80}" width="70" height="80" rx="4" fill="var(--m-ue)" class="tz-bar"/><rect x="240" y="${480-80-35}" width="70" height="35" rx="4" fill="var(--m-uapp)" class="tz-bar"/>
+ <text class="tech-small" x="275" y="${480-80-42}" text-anchor="middle">40 g + ≈ 17 g</text><text class="tech-small" x="275" y="505" text-anchor="middle">à l’arrivée</text>
+ <text class="tech-small" x="340" y="420">8 × 0,71 % ≈ 57 g d’²³⁵U</text>
+ <text class="tech-small" x="340" y="440">1 × 4 % = 40 g dans le produit</text>
+ <text class="tech-small" x="340" y="460">7 × 0,25 % ≈ 17 g dans le résidu</text>
+ </svg>`;}
+function pastilleTechSVG(){
+ const dots=Array.from({length:40},(_,i)=>`<circle cx="${540+(i*37)%70}" cy="${300+(i*53)%60}" r="3" fill="var(--m-uo2)" opacity=".8"/>`).join('');
+ return `<svg class="tech-svg" viewBox="0 0 1100 520" role="img" aria-label="De la poudre d’UO₂ à la pastille frittée">
+ <text class="tech-strong" x="60" y="56">Presse à pastilles</text>
+ <rect x="150" y="300" width="200" height="90" rx="6" fill="var(--eq-stroke)" opacity=".55"/><rect x="230" y="300" width="40" height="90" fill="var(--canvas)"/>
+ <rect class="tz-fill" x="232" y="330" width="36" height="58" fill="var(--m-uo2)" opacity=".55"/>
+ <g class="tz-punch"><rect x="232" y="110" width="36" height="150" rx="3" fill="var(--m-coq)"/><rect x="200" y="90" width="100" height="24" rx="4" fill="var(--eq-stroke)"/></g>
+ <rect x="232" y="390" width="36" height="70" rx="3" fill="var(--m-coq)"/>
+ <text class="tech-small" x="310" y="140">poinçon supérieur</text><text class="tech-small" x="360" y="345">matrice</text><text class="tech-small" x="280" y="440">poinçon inférieur</text>
+ <text class="tech-strong" x="500" y="56">Évolution de la pastille</text>
+ ${dots}<text class="tech-label" x="575" y="400" text-anchor="middle">poudre d’UO₂</text>
+ ${F('M630 330 H690','uo2','',{w:4,noCase:true,lab:[660,318,'pressage','middle']})}
+ <rect x="705" y="295" width="52" height="64" rx="6" fill="var(--m-uo2)" opacity=".45" stroke="var(--m-uo2)" stroke-dasharray="4 3" stroke-width="2"/><text class="tech-label" x="731" y="400" text-anchor="middle">pastille crue</text><text class="tech-small" x="731" y="420" text-anchor="middle">fragile</text>
+ ${F('M770 330 H830','uo2','',{w:4,noCase:true,lab:[800,318,'frittage','middle']})}
+ <rect class="glow" x="842" y="296" width="52" height="66" rx="8" fill="var(--glow)" opacity=".3"/>
+ <rect x="848" y="303" width="40" height="52" rx="5" fill="var(--m-uo2)"/><text class="tech-label" x="868" y="400" text-anchor="middle">frittée</text><text class="tech-small" x="868" y="420" text-anchor="middle">≈ 1 700 °C, H₂</text>
+ ${F('M905 330 H955','uo2','',{w:4,noCase:true,lab:[930,318,'meulage','middle']})}
+ <rect x="968" y="304" width="38" height="50" rx="2" fill="var(--m-uo2)"/><path d="M968 368 H1006 M968 362 V374 M1006 362 V374" stroke="var(--label)"/><text class="tech-small" x="987" y="386" text-anchor="middle">≈ 8 mm</text><text class="tech-label" x="987" y="410" text-anchor="middle">rectifiée</text><text class="tech-small" x="987" y="430" text-anchor="middle">≈ 7 g</text>
+ <text class="tech-label" x="500" y="120">Au frittage, les grains se soudent : la pastille</text>
+ <text class="tech-label" x="500" y="144">se rétracte et devient une céramique dense</text>
+ <text class="tech-label" x="500" y="168">(environ 95 % de la densité théorique de l’UO₂).</text>
+ <text class="tech-small" x="500" y="204">La céramique retient des produits de fission ; la gaine est la rétention par la céramique.</text>
+ </svg>`;}
+const TECH={
+ gb2:{title:'Gros plans · Georges Besse II',tabs:[['c3d','Centrifugeuse 3D',c3dMarkup],['centri','Coupe de principe',centriTechSVG],['bilan','Bilan matière',bilanTechSVG]],foot:'Modèle pédagogique : faites glisser la vue 3D pour tourner autour du rotor. L’écart de comportement entre les deux molécules et la proportion d’uranium 235 sont très exagérés pour être visibles : en réalité, ²³⁵UF₆ (349 g/mol) et ²³⁸UF₆ (352 g/mol) diffèrent de moins de 1 % en masse, la vitesse périphérique du rotor atteint plusieurs centaines de m/s et chaque machine n’enrichit que très peu. La conception détaillée des centrifugeuses est confidentielle.'},
+ romans:{title:'Gros plan · Framatome Romans',tabs:[['pastille','De la poudre à la pastille',pastilleTechSVG]],foot:'Schéma de principe. Valeurs d’ordre de grandeur (Framatome).'}
+};
+function renderTechZoom(){if(C3D){C3D.stop();C3D=null;}const box=$('techZoom');if(!box)return;const T=TECH[cur];box.classList.toggle('hidden',!T);if(!T){box.innerHTML='';return;}
+ const mode=techMode[cur],tab=T.tabs.find(t=>t[0]===mode)||T.tabs[0];
+ box.innerHTML=`<div class="tech-head"><strong>${T.title} — animations schématiques</strong><div class="tech-tabs">${T.tabs.map(t=>`<button type="button" data-tech="${t[0]}" class="${t[0]===tab[0]?'active':''}">${t[1]}</button>`).join('')}</div></div>${tab[2]()}<div class="tech-foot">${T.foot}</div>`;
+ box.querySelectorAll('[data-tech]').forEach(b=>b.onclick=()=>{techMode[cur]=b.dataset.tech;renderTechZoom();});
+ if(tab[0]==='c3d')C3D=initC3D();
+}
+
+/* =====================================================================
+   8. INITIALISATION
+   ===================================================================== */
+
+FICHE.risques.role="La criticité est une réaction en chaîne accidentelle dans une configuration contenant des matières fissiles. Sa prévention concerne plusieurs étapes du cycle et prend notamment en compte masse, géométrie, concentration, modération et réflexion. Les risques chimiques et radiologiques dépendent des matières et opérations.";
+VIEWS.risques.steps[1].d="<p>La criticité est une réaction en chaîne accidentelle. Des limites validées de masse, de géométrie et de modération contribuent à la prévenir. L’enrichissement n’est pas l’unique situation à considérer : les matières fissiles du cycle doivent rester dans les conditions autorisées.</p>";
+FICHE.mine.keys=[];
+FICHE.malv.keys=[];
+FICHE.gb2.keys=[];
+FICHE.stock.keys=[];
+FICHE.romans.keys=[];
+FICHE.mine.does=["Extraction à ciel ouvert, souterraine ou par lixiviation in situ selon le gisement.", "Ventilation, maîtrise des poussières et surveillance des eaux sont nécessaires.", "Après fermeture : réaménagement et surveillance du site."];
+VIEWS.mine.steps[3].d="<p>Dans un gisement adapté, une solution circule par des puits, dissout l’uranium et est récupérée en surface. L’uranium est extrait de cette solution. La maîtrise de la circulation des eaux et la surveillance du milieu sont indispensables.</p>";
+VIEWS.mine.steps[4].d="<p>Les descendants de l’uranium comprennent le radon, gaz radioactif susceptible de s’accumuler en galerie. Ventilation, surveillance de l’exposition et maîtrise des poussières sont nécessaires : la teneur du minerai ne suffit pas à évaluer le risque.</p>";
+FICHE.gb2.does=["Centrifugeuses montées en cascades.", "Séparation partielle des molécules d’UF6 selon leur masse.", "Deux flux : uranium enrichi et uranium appauvri."];
+FICHE.melox.does=["Le plutonium apporte une partie des noyaux fissiles du MOX.", "Fabrication sous confinement adapté aux poudres contenant du plutonium.", "Le chargement dépend de l’autorisation et de la gestion du réacteur."];
+FICHE.stock.does=["L’uranium appauvri peut servir de support au MOX.", "Sa valorisation dépend de choix industriels et des caractéristiques des matières.", "L’entreposage conserve les exigences de surveillance."];
+FICHE.stock.keys=[["352 000 t", "uranium appauvri à fin 2024 — Andra, Essentiels 2026, p. 14"]];
+VIEWS.defl.steps[4].d="<p>L’oxyde d’uranium appauvri est entreposé dans des contenants adaptés. L’Inventaire national recense 352 000 tonnes d’uranium appauvri à fin 2024 (Andra, Les Essentiels 2026, p. 14). Ce stock de matière n’est pas un volume de déchets stockés.</p>";
+VIEWS.gb2.sub="Tricastin · séparation isotopique en cascades de centrifugeuses";
+FICHE.romans.does=["Conversion de l’UF6 enrichi en poudre d’UO2.", "Pressage de pastilles, frittage, rectification et contrôles.", "Les dimensions et caractéristiques doivent satisfaire la spécification du combustible."];
+VIEWS.gb2.steps[5].d="<p>La centrifugation sépare les isotopes par une succession d’étages. La capacité industrielle s’exprime en unités de travail de séparation (UTS). Elle ne se confond ni avec une masse d’uranium ni avec la teneur du produit.</p>";
+buildSyn();buildNav();
+$('syn').addEventListener('click',e=>{const n=e.target.closest('.node');if(n){stopTour();selectNode(n.dataset.node);}});
+$('syn').addEventListener('dblclick',e=>{const n=e.target.closest('.node');if(n&&FICHE[n.dataset.node].view)openView(FICHE[n.dataset.node].view);});
+$('syn').addEventListener('keydown',e=>{const n=e.target.closest('.node');if(n&&(e.key==='Enter'||e.key===' ')){e.preventDefault();stopTour();selectNode(n.dataset.node);}});
+$('filters').addEventListener('click',e=>{const c=e.target.closest('.chip');if(!c)return;filter=c.dataset.f;selNode=null;markFilters();applySyn();asideHome();});
+showSyn();
+</script>
+
+
+</body></html>

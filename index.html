@@ -1,0 +1,157 @@
+<!doctype html><html lang="fr"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<link rel="manifest" href="manifest.json">
+<meta name="theme-color" content="#0d1b2e">
+<link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Sûreté &amp; Cycle">
+<script>/* Hors ligne : enregistrement du service worker et proposition de mise à jour */
+if('serviceWorker' in navigator&&location.protocol.startsWith('http')){addEventListener('load',()=>{
+ let accepted=false;navigator.serviceWorker.addEventListener('controllerchange',()=>{if(accepted)location.reload()});
+ navigator.serviceWorker.register('./service-worker.js').then(reg=>{
+  const offer=()=>{if(reg.waiting&&navigator.serviceWorker.controller){const bar=document.getElementById('updateBar');bar.hidden=false;document.getElementById('updateBtn').onclick=()=>{accepted=true;reg.waiting.postMessage({type:'ACTIVATE_UPDATE'})}}};
+  offer();reg.addEventListener('updatefound',()=>{const w=reg.installing;w&&w.addEventListener('statechange',()=>{if(w.state==='installed')offer()})});
+ }).catch(console.warn);});}
+</script>
+
+<title>Sûreté &amp; Cycle TIIN</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<style>
+/* Coquille de navigation : bandeau fixe + iframe plein écran. Reprend la palette des parcours (marine, accent bleu acier). */
+:root{color-scheme:dark;
+ --bg:#0a121c;--panel:#0d1724;--panel2:#162436;--border:#26394d;--text:#e6eef6;--muted:#97abbd;--accent:#5cb3e6;--btn-active:#1f4f6e;
+ --c-amont:#ffd43b;--c-rep:#ff9b4f;--c-hague:#f783ac;--c-andra:#63e6be;--c-surete:#b197fc;--c-acc:#ff6b6b;
+ --font:system-ui,"Segoe UI",Arial,sans-serif;--mono:ui-monospace,"Cascadia Mono",Consolas,monospace}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;--btn-active:#d6e8f5;
+ --c-amont:#b08900;--c-rep:#d9480f;--c-hague:#d6336c;--c-andra:#099268;--c-surete:#7048e8;--c-acc:#e03131}}
+:root[data-theme="light"]{color-scheme:light;
+ --bg:#eef2f6;--panel:#ffffff;--panel2:#f4f7fa;--border:#cdd7e1;--text:#13202d;--muted:#52667a;--accent:#1f6fa8;--btn-active:#d6e8f5;
+ --c-amont:#b08900;--c-rep:#d9480f;--c-hague:#d6336c;--c-andra:#099268;--c-surete:#7048e8;--c-acc:#e03131}
+html,body{height:100%}
+body{background:var(--bg);color:var(--text);font:14px/1.5 var(--font);display:flex;flex-direction:column;overflow:hidden}
+*{box-sizing:border-box}
+button,a{font:inherit;color:inherit}
+.bar{display:flex;align-items:center;gap:14px;flex-wrap:wrap;background:var(--panel);border-bottom:1px solid var(--border);
+ padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.brand{display:flex;align-items:center;gap:8px;background:none;border:0;cursor:pointer;padding:4px 6px;border-radius:8px;font-weight:700;font-size:15px;white-space:nowrap}
+.brand svg{width:22px;height:22px;color:var(--accent)}
+.brand:hover,.brand:focus-visible{background:var(--panel2)}
+.chain{display:flex;align-items:center;gap:4px;flex-wrap:wrap;flex:1;min-width:0}
+.chain .arr{color:var(--muted);font-size:12px}
+.tab{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);background:var(--panel2);border-radius:999px;padding:6px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.tab i{width:9px;height:9px;border-radius:50%;background:var(--c)}
+.tab:hover{border-color:var(--c)}
+.tab[aria-current="page"]{background:var(--btn-active);border-color:var(--c);font-weight:600}
+.tab:focus-visible,.brand:focus-visible,.card:focus-visible,.solo:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
+.solo{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--border);border-radius:8px;padding:5px 9px;white-space:nowrap}
+.solo:hover{color:var(--text)}
+main{flex:1;min-height:0;position:relative}
+iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg)}
+/* Accueil */
+#home{position:absolute;inset:0;overflow:auto;padding-block:28px 40px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1080px;margin:0 auto;display:flex;flex-direction:column;gap:22px}
+.kicker{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+h1{margin:4px 0 6px;font-size:clamp(22px,3vw,30px);text-wrap:balance}
+.lead{margin:0;color:var(--muted);max-width:65ch}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:12px;position:relative}
+.cards.two{grid-template-columns:repeat(2,minmax(0,1fr))}
+.group{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 -10px}
+.chain .sep{width:1px;align-self:stretch;background:var(--border);margin:0 6px}
+@media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
+@media(max-width:520px){.cards,.cards.two{grid-template-columns:1fr}.chain .arr,.chain .sep{display:none}}
+.card{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--c);border-radius:12px;padding:14px 14px 12px;cursor:pointer;min-width:0}
+.card:hover{border-color:var(--c)}
+.card .step{font:600 11px var(--mono);color:var(--c);letter-spacing:.06em}
+.card h2{margin:0;font-size:17px}
+.card p{margin:0;color:var(--muted);font-size:13px;flex:1}
+.card .matter{font:12px var(--mono);color:var(--text);border-top:1px dashed var(--border);padding-top:8px}
+.card .meta{font-size:11.5px;color:var(--muted)}
+.flow{font:12px var(--mono);color:var(--muted);background:var(--panel2);border:1px solid var(--border);border-radius:10px;padding:10px 12px;overflow-x:auto;white-space:nowrap}
+.flow b{font-weight:600}
+.note{font-size:12px;color:var(--muted);max-width:75ch}
+[hidden]{display:none!important}
+.updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px));z-index:20;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:calc(100% - 32px);background:var(--panel);color:var(--text);border:1px solid var(--accent);border-radius:12px;padding:10px 14px;box-shadow:0 10px 30px rgba(0,0,0,.35);font-size:13px}
+.updbar button{font:inherit;font-weight:600;cursor:pointer;border:1px solid var(--accent);background:var(--btn-active);color:var(--text);border-radius:999px;padding:6px 12px}
+</style>
+
+</head><body>
+<header class="bar">
+ <button class="brand" id="homeBtn" type="button" aria-label="Retour à l’accueil">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="12" r="2.2"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="9.5" ry="3.8" transform="rotate(-60 12 12)"/></svg>
+  Sûreté &amp; Cycle TIIN
+ </button>
+ <nav class="chain" id="chain" aria-label="Étapes du cycle"></nav>
+ <a class="solo" id="solo" href="#" target="_blank" rel="noopener" hidden>Ouvrir seule ↗</a>
+</header>
+
+<main id="main">
+ <section id="home">
+  <div class="wrap">
+   <div>
+    <div class="kicker">Parcours pédagogiques · Bac Pro TIIN · BTS EN</div>
+    <h1>Cycle du combustible, sûreté et accidents</h1>
+    <p class="lead">Quatre parcours suivent la matière de la mine au stockage ; deux parcours transversaux expliquent la sûreté et les accidents. Tous partagent la même présentation : synoptique cliquable, vues détaillées par étapes et fiche latérale.</p>
+   </div>
+   <p class="group">Le cycle, de la mine au stockage</p>
+   <div class="cards" id="cards"></div>
+   <p class="group">Sûreté et retour d’expérience · S7</p>
+   <div class="cards two" id="cards2"></div>
+   <div class="flow" aria-label="Fil des matières">
+    <b style="color:var(--c-amont)">minerai → yellow cake → UF₆ → UO₂</b> → <b style="color:var(--c-rep)">assemblages en cœur (3 à 5 ans)</b> → <b style="color:var(--c-hague)">combustible usé → U, Pu, PF</b> → <b style="color:var(--c-andra)">colis CSD-V, CSD-C → entreposage, Cigéo</b>
+   </div>
+   <p class="note">Schémas fonctionnels et valeurs d’ordre de grandeur, sans valeur d’exploitation. Les exercices sont fictifs et ne remplacent aucune procédure d’installation. Raccourcis : Alt+1 à Alt+6 pour changer de parcours, Alt+0 pour revenir ici.</p>
+  </div>
+ </section>
+</main>
+<div class="updbar" id="updateBar" role="status" hidden>Une nouvelle version des parcours est disponible. <button type="button" id="updateBtn">Mettre à jour</button></div>
+
+<script>
+"use strict";
+const PAGES=[
+ {id:'amont',file:'amont.html',c:'--c-amont',step:'1 · AMONT',name:'Cycle amont',sub:'De la mine à l’assemblage',
+  desc:'Mines, concentration, conversion Malvési et Philippe Coste, enrichissement Georges Besse II, fabrication à Romans.',
+  matter:'U nat. 0,7 % → UF₆ → 3 à 5 %',meta:'Centrifugeuse 3D · bilan matière'},
+ {id:'rep',file:'rep1300.html',c:'--c-rep',step:'2 · RÉACTEUR',name:'REP 1300 MWe',sub:'Simulateur pédagogique',
+  desc:'Circuits primaire et secondaire, pressuriseur, GSS, cycle T-s, scénarios de défauts et défi diagnostic.',
+  matter:'155 bar · 293 → 329 °C · 3 817 MWth',meta:'Simulation dynamique'},
+ {id:'hague',file:'lahague.html',c:'--c-hague',step:'3 · AVAL',name:'La Hague',sub:'Traitement du combustible usé',
+  desc:'Réception et piscines, cisaillage et dissolution, extraction, purification U et Pu, vitrification, compactage.',
+  matter:'≈ 95 % U · ≈ 1 % Pu · ≈ 4 % PF',meta:'Roue de dissolution · cisaille'},
+ {id:'andra',file:'andra.html',c:'--c-andra',step:'4 · DÉCHETS',name:'Andra',sub:'Gestion des déchets radioactifs',
+  desc:'Classement VTC à HA, colis, Cires, CSA, CSM, FA-VL, Cigéo et laboratoire de Bure, surveillance.',
+  matter:'Trier · contrôler · conditionner',meta:'Atelier déchets · recherche · stockage'}
+,{id:'surete',file:'surete.html',c:'--c-surete',step:'S7 · SÛRETÉ',name:'Sûreté nucléaire',sub:'Acteurs, règles et protections',desc:'Qui fait quoi, trois fonctions de sûreté, trois barrières, défense en profondeur, RGE, zonages, PUI et PPI, autorisation d’une INB, transport.',matter:'Prévenir · surveiller · protéger',meta:'8 vues schématisées · 3 mises en situation',x:1}
+,{id:'accidents',file:'accidents.html',c:'--c-acc',step:'S7 · ACCIDENTS',name:'Accidents nucléaires',sub:'Comprendre pour progresser',desc:'Échelle INES ; Three Mile Island, Tchernobyl, Fukushima et Blayais étape par étape, avec l’état des fonctions de sûreté et des barrières ; retour d’expérience.',matter:'INES 2 · 5 · 7',meta:'4 chronologies animées · 3 mises en situation',x:1}
+];
+const $=id=>document.getElementById(id),main=$('main'),frames={};
+$('chain').innerHTML=PAGES.map((p,i)=>`${i===4?'<span class="sep" aria-hidden="true"></span>':i===5?'':i?'<span class="arr" aria-hidden="true">→</span>':''}<button class="tab" type="button" data-go="${p.id}" style="--c:var(${p.c})"><i></i>${p.name}</button>`).join('');
+const card=p=>`<button class="card" type="button" data-go="${p.id}" style="--c:var(${p.c})"><span class="step">${p.step}</span><h2>${p.name}</h2><span class="meta">${p.sub}</span><p>${p.desc}</p><span class="matter">${p.matter}</span><span class="meta">${p.meta}</span></button>`;
+$('cards').innerHTML=PAGES.filter(p=>!p.x).map(card).join('');$('cards2').innerHTML=PAGES.filter(p=>p.x).map(card).join('');
+
+const STANDALONE=(()=>{try{return matchMedia('(display-mode: standalone)').matches||navigator.standalone===true}catch(e){return false}})();
+const FILE2ID=Object.fromEntries(PAGES.map(p=>[p.file,p.id]));
+/* Un lien vers un autre parcours, cliqué dans une page, ouvre ce parcours dans la page maître. */
+function hookLinks(f){try{const d=f.contentDocument;if(!d||d.__hooked)return;d.__hooked=true;
+ d.addEventListener('click',e=>{const a=e.target.closest&&e.target.closest('a[href]');if(!a)return;const file=(a.getAttribute('href')||'').split('#')[0].split('/').pop();
+  if(file==='index.html'){e.preventDefault();show(null);return;}if(FILE2ID[file]){e.preventDefault();show(FILE2ID[file]);}});}catch(e){}}
+addEventListener('hashchange',()=>{const h=(location.hash||'').slice(1);show(PAGES.some(p=>p.id===h)?h:null);});
+function show(id){
+ const p=PAGES.find(x=>x.id===id);
+ $('home').hidden=!!p;
+ for(const k in frames)frames[k].hidden=k!==id;
+ if(p&&!frames[id]){const f=document.createElement('iframe');f.src=p.file;f.title=p.name+' — '+p.sub;f.addEventListener('load',()=>hookLinks(f));main.appendChild(f);frames[id]=f;}
+ document.querySelectorAll('.tab').forEach(t=>t.toggleAttribute('aria-current',false));
+ if(p){const t=document.querySelector(`.tab[data-go="${id}"]`);t.setAttribute('aria-current','page');$('solo').href=p.file;document.title=p.name+' · Sûreté & Cycle TIIN';}
+ else document.title='Sûreté & Cycle TIIN';
+ $('solo').hidden=!p||STANDALONE;
+ try{history.replaceState(null,'',p?'#'+id:location.pathname);}catch(e){}
+}
+document.addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(b)show(b.dataset.go);});
+$('homeBtn').onclick=()=>show(null);
+addEventListener('keydown',e=>{if(!e.altKey)return;const n=+e.key;if(n>=1&&n<=6){e.preventDefault();show(PAGES[n-1].id);}if(e.key==='0')show(null);});
+const start=(location.hash||'').slice(1);show(PAGES.some(p=>p.id===start)?start:null);
+</script>
+
+</body></html>
