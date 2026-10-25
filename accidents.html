@@ -337,7 +337,7 @@ bla:{t:'Blayais',full:'Centrale EDF · Gironde · nuit du 27 au 28 décembre 199
  keys:[['INES 2','incident'],['> 10 h','marge estimée par l’IPSN avant fusion en cas de perte de l’ASG'],['≈ 90 000 m³','d’eau pompée et rejetée après contrôle']]},
 reb:{t:'Réacteur à eau bouillante',full:'REB · technologie de Fukushima Daiichi',view:'reb',
  role:'Un seul circuit : l’eau bout dans la cuve et la vapeur va directement à la turbine. L’enceinte Mark I associe une enceinte sèche compacte et un tore de condensation.',
- does:['≈ 70 bar dans la cuve, contre 155 bar dans un REP.','Barres de commande insérées par le bas.','Piscine du combustible en haut du bâtiment réacteur.','Aucun REB en France.'],
+ does:['70 à 80 bar dans la cuve, contre 155 bar dans un REP.','Débit dans le cœur ≈ 7 fois le débit de vapeur ; puissance réglée par la recirculation.','Barres de commande insérées par le bas, hydrauliquement.','Turbine en zone contrôlée : la vapeur vient du cœur.','Piscine du combustible en haut du bâtiment réacteur.','Aucun REB en France.'],
  keys:[['6 REB','à Fukushima Daiichi'],['≈ 70 bar','pression de la cuve']]},
 sla:{t:'Saint-Laurent-des-Eaux',full:'Réacteur A2, filière UNGG · Loir-et-Cher · 13 mars 1980',view:'rex',
  role:'Repère français : la fusion de deux éléments combustibles dans un réacteur uranium naturel graphite gaz, à la suite d’un défaut de refroidissement local. Événement classé 4, sans conséquence à l’extérieur comparable aux accidents étudiés.',
@@ -477,48 +477,93 @@ tch:{t:'Tchernobyl · 26 avril 1986',sub:'Réacteur n° 4, RBMK-1000 · 3 200 MW
   return s;}},
 
 /* =============== RÉACTEUR À EAU BOUILLANTE =============== */
-reb:{t:'Le réacteur à eau bouillante (REB)',sub:'Technologie des réacteurs de Fukushima Daiichi · schéma de principe d’une unité de type Mark I',fiche:'reb',
- intro:'Avant de suivre l’accident, il faut comprendre la machine. Les réacteurs de Fukushima Daiichi sont des réacteurs à eau bouillante (REB) : un seul circuit, une eau qui bout directement dans la cuve, une enceinte compacte associée à un tore de condensation. Il n’y a pas de REB en France : le parc français est composé de REP.',
+reb:{t:'Le réacteur à eau bouillante (REB)',sub:'Technologie des réacteurs de Fukushima Daiichi · schéma de principe de l’architecture, d’après Wikipédia',fiche:'reb',vb:'0 0 1100 540',
+ intro:'Avant de suivre l’accident, il faut comprendre la machine. Dans un réacteur à eau bouillante (REB), l’eau bout directement dans la cuve et la vapeur part sans intermédiaire vers la turbine : il n’y a qu’un seul circuit. Le cadre gris délimite la zone contrôlée, qui englobe ici la salle des machines. Il n’y a pas de REB en France : le parc français est composé de REP.',
  steps:[
- {t:'Un seul circuit : l’eau bout dans la cuve',d:'<p>Dans un REB, l’eau traverse le cœur et <b>bout dans la cuve</b>, à environ <b>70 bar</b> et 285 °C. Des séparateurs et sécheurs en haut de la cuve retiennent l’eau ; la <b>vapeur part directement vers la turbine</b>. Il n’y a ni générateur de vapeur ni pressuriseur.</p><p class="note">Dans un REP, l’eau reste liquide à 155 bar et cède sa chaleur à un second circuit par les générateurs de vapeur.</p>'},
- {t:'Turbine, condenseur, pompes alimentaires',d:'<p>La vapeur fait tourner la turbine puis se condense au contact de l’eau de mer. Les <b>pompes alimentaires</b> la renvoient en permanence dans la cuve. La vapeur qui sort du bâtiment réacteur est <b>légèrement radioactive</b> (azote 16, de période 7 secondes) : la turbine fait partie de la zone à protéger.</p><p>Des <b>vannes d’isolement</b>, de part et d’autre de l’enceinte, ferment la ligne vapeur en cas d’incident.</p>'},
- {t:'Piloter la réaction',d:'<p>Les barres de commande, en croix, entrent dans le cœur <b>par le bas</b>, poussées hydrauliquement : le haut de la cuve est occupé par la vapeur. Les <b>pompes de recirculation</b> règlent le débit dans le cœur : plus de débit, moins de bulles de vapeur, donc plus de modération et plus de puissance. Le bore n’est pas utilisé en fonctionnement normal ; un système d’injection de bore existe en secours.</p>'},
- {t:'Les barrières et l’enceinte Mark I',d:'<p>Trois barrières, comme sur un REP : <b>gaine</b>, <b>cuve et circuit</b>, <b>enceinte</b>. L’enceinte Mark I comprend une enceinte sèche en acier en forme de « poire » et un <b>tore de condensation</b> rempli d’eau, qui condense la vapeur en cas de brèche. Ce volume est petit : la pression y monte vite si la chaleur n’est plus évacuée.</p><p>Autour, le <b>bâtiment réacteur</b> abrite la <b>piscine du combustible</b> en hauteur. Il n’est pas conçu comme une enceinte : c’est là que l’hydrogène s’est accumulé.</p>'},
- {t:'Refroidir sans électricité',d:'<p>Deux systèmes peuvent refroidir le cœur sans le réseau :</p><ul><li><b>Condenseur d’isolement</b> (unité 1) : la vapeur se condense dans un réservoir d’eau placé en hauteur et revient par gravité.</li><li><b>RCIC</b> (unités 2 et 3) : une turbopompe entraînée par la vapeur du réacteur aspire l’eau du tore et la renvoie dans la cuve.</li></ul><p>Mais leurs vannes et leur contrôle dépendent des batteries, et leur réserve d’eau est limitée. Après la perte des batteries, le condenseur de l’unité 1 est resté pratiquement inopérant ; le RCIC de l’unité 2 a fonctionné près de trois jours.</p>'},
- {t:'REB et REP : ce qui change',d:'<p>Le tableau résume les différences. Pour l’accident, retenez surtout : un <b>seul circuit</b>, une <b>enceinte de petit volume</b> avec tore, une <b>piscine</b> en haut du bâtiment réacteur et des moyens de refroidissement de secours qui dépendent, à un moment, de l’électricité.</p>'}],
- svg:()=>{let s='';
-  /* bâtiment réacteur */
-  s+=PT('4 6',`<path d="M30 470 V52 H560 V470" fill="var(--eq)" fill-opacity=".18" stroke="var(--eq-stroke)" stroke-width="3"/>`+TX(40,44,'bâtiment réacteur','lbl'));
-  s+=PT('4',`<rect x="48" y="70" width="110" height="50" rx="4" fill="var(--water)" opacity=".65" stroke="var(--eq-stroke)"/>`+[0,1,2,3,4].map(i=>`<rect x="${58+i*20}" y="88" width="12" height="28" fill="var(--m-comb)" opacity=".6"/>`).join('')+TX(103,136,'piscine du combustible','lbl-s','mid'));
-  /* enceinte sèche et tore */
-  s+=PT('4 6',`<path d="M232 122 Q222 92 262 88 H338 Q378 92 368 122 V200 Q440 250 412 332 H188 Q160 250 232 200 Z" fill="var(--panel2)" fill-opacity=".6" stroke="var(--m-pu)" stroke-width="5"/><path d="M228 332 V386 M372 332 V386" stroke="var(--m-pu)" stroke-width="5"/><ellipse cx="300" cy="404" rx="205" ry="26" fill="var(--water)" opacity=".55" stroke="var(--m-pu)" stroke-width="4"/>`+TX(300,446,'tore de condensation (eau)','lbl-s','mid')+TX(176,174,'enceinte sèche','lbl-s','end')+TX(176,188,'« poire » en acier','lbl-s','end'));
-  /* cuve */
-  s+=PT('1 3 6',`<rect x="262" y="118" width="76" height="204" rx="30" fill="var(--eq)" stroke="var(--hot)" stroke-width="4"/><rect x="266" y="200" width="68" height="118" rx="20" fill="var(--water)" opacity=".7"/><rect x="268" y="180" width="64" height="16" fill="url(#sep)" stroke="var(--eq-stroke)"/><rect x="274" y="238" width="52" height="56" rx="4" fill="var(--hot)" opacity=".45" class="glow"/>`+bubbles([280,292,304,316],236,'var(--steam)','rise',3)+TX(300,112,'cuve','lbl','mid'));
-  s+=`<defs><pattern id="sep" width="6" height="6" patternUnits="userSpaceOnUse"><path d="M0 6 L6 0" stroke="var(--eq-stroke)" stroke-width="1.2"/></pattern></defs>`;
-  s+=PT('1',TX(348,170,'vapeur ≈ 70 bar','lbl')+TX(348,192,'séparateurs, sécheurs','lbl-s')+TX(348,250,'l’eau bout dans le cœur','lbl-s'));
-  /* barres par le bas */
-  s+=PT('3',`<rect x="270" y="324" width="60" height="12" rx="3" fill="var(--eq-stroke)"/>`+[282,294,306,318].map(x=>`<rect x="${x-2}" y="268" width="4" height="58" fill="var(--m-comb)"/>`).join('')+TX(300,352,'barres insérées par le bas','lbl-s','mid'));
-  /* recirculation */
-  s+=PT('3',`<path d="M262 300 H214 V246 H262" fill="none" stroke="var(--m-eau)" stroke-width="5"/><path class="flowdash" d="M262 300 H214 V246 H262"/><circle cx="214" cy="274" r="13" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(200,278,'recirculation','lbl-s','end'));
-  /* ligne vapeur et vannes */
-  s+=PT('1 2',`<path d="M338 150 H600" fill="none" stroke="var(--steam)" stroke-width="7"/><path class="flowdash" d="M338 150 H600"/>`);
-  s+=PT('2',valve(398,150,'var(--ok)')+valve(470,150,'var(--ok)')+TX(434,134,'vannes d’isolement','lbl-s','mid'));
-  s+=B(600,118,150,64,'Turbine','vapeur légèrement active',2);
-  s+=PT('2',`<path class="pipe-sec" d="M675 182 V220"/>`);
-  s+=B(600,220,150,50,'Condenseur','',2);
-  s+=B(810,220,120,50,'Mer','source froide',2);
-  s+=PT('2',`<path class="pipe-cold" d="M750 245 H810" style="stroke-width:5"/><path class="pipe-sec" d="M675 270 V306"/>`);
-  s+=B(600,306,150,46,'Pompes alimentaires','retour en continu',2);
-  s+=PT('1 2',`<path d="M600 329 H500 V214 H338" fill="none" stroke="var(--m-eau)" stroke-width="5"/><path class="flowdash" d="M600 329 H500 V214 H338"/>`);
+ {t:'L’eau bout dans le cœur',d:'<p>L’eau légère est à la fois <b>modérateur</b> et <b>caloporteur</b>. Elle traverse le cœur de bas en haut et s’y vaporise en partie : le mélange eau-vapeur sort du cœur vers 70 à 80 bar et environ 285 °C, soit la moitié de la pression d’un REP.</p><p>Le débit d’eau qui circule dans le cœur est environ <b>7 fois</b> plus grand que le débit de vapeur produit : seule une petite partie de l’eau se vaporise à chaque passage.</p>'},
+ {t:'Séparer, sécher, envoyer la vapeur',d:'<p>Au-dessus du cœur, des <b>séparateurs</b> centrifuges séparent la vapeur de l’eau, puis des <b>sécheurs</b> retirent les dernières gouttelettes. La vapeur sèche sort par le haut de la cuve.</p><p>L’eau séparée redescend par l’<b>espace annulaire</b>, entre le cœur et la paroi de la cuve, où elle se mélange avec l’eau alimentaire plus froide.</p>'},
+ {t:'Recirculation et pompes à jet',d:'<p>Les <b>pompes de recirculation</b> aspirent une partie de l’eau de l’espace annulaire et la renvoient sous pression dans des <b>pompes à jet</b> (éjecteurs) placées autour du cœur. Chaque jet entraîne l’eau environnante et augmente le débit dans le cœur.</p><p>C’est le réglage normal de la puissance : <b>plus de débit</b>, moins de bulles, plus de modération, donc <b>plus de puissance</b>. Les réacteurs récents utilisent des pompes à rotor noyé fixées au fond de la cuve.</p>'},
+ {t:'Les barres entrent par le bas',d:'<p>Le haut de la cuve est occupé par les séparateurs et les sécheurs : les <b>barres de commande</b> en carbure de bore entrent donc <b>par le bas</b>, poussées par un système <b>hydraulique</b>. Elles se glissent entre les assemblages, rangés dans des boîtiers carrés.</p><p>Il n’y a <b>pas de bore dissous</b> dans l’eau en fonctionnement normal. Un système d’injection de bore existe en secours.</p>'},
+ {t:'La vapeur va directement à la turbine',d:'<p>La vapeur produite dans la cuve passe les <b>vannes d’isolement</b> et entre dans la turbine haute pression puis dans les turbines basse pression, qui entraînent l’<b>alternateur</b>. Le <b>condenseur</b>, refroidi par l’eau de mer ou de rivière, la retransforme en eau, que les <b>pompes alimentaires</b> renvoient dans la cuve après passage dans les réchauffeurs.</p><p>Cette vapeur vient du cœur : elle est <b>légèrement radioactive</b> (azote 16, de période 7 secondes). La salle des machines fait donc partie de la <b>zone contrôlée</b>, ce qui n’est pas le cas dans un REP.</p>'},
+ {t:'Enceinte et refroidissement de secours',d:'<p>La cuve est enfermée dans une <b>enceinte sèche</b> en acier, en forme de poire sur le modèle Mark I de Fukushima, reliée à un <b>tore de condensation</b> rempli d’eau. En cas de brèche, la vapeur est envoyée barboter dans le tore, où elle se condense : c’est la <b>suppression de pression</b>. L’enceinte est remplie d’azote.</p><p>Sans le réseau, deux systèmes peuvent refroidir le cœur : le <b>condenseur d’isolement</b> (unité 1), où la vapeur se condense dans un réservoir d’eau en hauteur, et le <b>RCIC</b> (unités 2 et 3), une turbopompe entraînée par la vapeur du réacteur. Leurs vannes et leur contrôle dépendent des batteries.</p>'},
+ {t:'REB et REP : ce qui change',d:'<p>Le REB n’a ni générateurs de vapeur ni pressuriseur : un seul gros composant sous pression, une pression moitié moindre, un meilleur rendement net. En contrepartie, la turbine est contaminée, les barres sont manœuvrées hydrauliquement, les internes de cuve sont plus complexes et la réactivité dépend fortement du taux de vapeur dans le cœur.</p><p class="note">Environ un réacteur sur cinq dans le monde est un REB, surtout aux États-Unis, au Japon et en Suède.</p>'}],
+ svg:()=>{let s='';const VX=168,VY=96,VW=128,VH=318;/* cuve */
+  const A=(dur,ex='')=>`dur="${dur}s" repeatCount="indefinite" ${ex}`;
+  s+=`<defs>
+   <linearGradient id="rbCore" x1="0" y1="1" x2="0" y2="0"><stop offset="0" stop-color="var(--m-eau)" stop-opacity=".75"/><stop offset=".55" stop-color="var(--hot)" stop-opacity=".55"/><stop offset="1" stop-color="var(--steam)" stop-opacity=".55"/></linearGradient>
+   <linearGradient id="rbSteam" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="var(--steam)" stop-opacity=".55"/><stop offset="1" stop-color="var(--steam)" stop-opacity=".15"/></linearGradient>
+   <pattern id="rbZone" width="12" height="12" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V12" stroke="var(--eq-stroke)" stroke-width="1" opacity=".12"/></pattern>
+   <path id="rbSteamL" d="M${VX+VW} 128 H480 V112 H560"/>
+   <path id="rbFeedL" d="M856 452 H500 V214 H${VX+VW}"/>
+  </defs>`;
+  /* zone contrôlée (cadre gris, comme sur le schéma de Wikipédia) */
+  s+=PT('5',`<rect x="10" y="40" width="1080" height="440" rx="14" fill="url(#rbZone)" stroke="var(--eq-stroke)" stroke-width="2.5" stroke-dasharray="10 6"/>`+TX(24,60,'ZONE CONTRÔLÉE · réacteur et salle des machines','zt'));
+  /* bâtiment réacteur et enceinte */
+  s+=PT('6',`<path d="M30 470 V78 H440 V470" fill="none" stroke="var(--eq-stroke)" stroke-width="2"/>`+TX(40,92,'bâtiment réacteur','lbl-s'));
+  s+=PT('6',`<path d="M${VX-34} 96 Q${VX-50} 74 ${VX-10} 70 H${VX+VW+10} Q${VX+VW+50} 74 ${VX+VW+34} 96 V250 Q${VX+VW+110} 330 ${VX+VW+70} 430 H${VX-70} Q${VX-110} 330 ${VX-34} 250 Z" fill="var(--panel2)" fill-opacity=".55" stroke="var(--m-pu)" stroke-width="4"/>
+   <ellipse cx="${VX+VW/2}" cy="452" rx="190" ry="16" fill="var(--water)" opacity=".55" stroke="var(--m-pu)" stroke-width="3"/>
+   ${[0,1,2].map(i=>`<circle cx="${VX+VW/2-60+i*60}" cy="458" r="3" fill="var(--steam)"><animate attributeName="cy" values="460;446" ${A(1.6,`begin="${i*.5}s"`)}/><animate attributeName="opacity" values="1;0" ${A(1.6,`begin="${i*.5}s"`)}/></circle>`).join('')}`
+   +TX(VX+VW/2+196,474,'tore de condensation','lbl-s')+TX(VX-60,236,'enceinte sèche','lbl-s','end')+TX(VX-60,250,'(sous azote)','lbl-s','end'));
+  /* piscine combustible */
+  s+=PT('6',`<rect x="36" y="100" width="76" height="40" rx="4" fill="var(--water)" opacity=".6" stroke="var(--eq-stroke)"/>${[0,1,2,3].map(i=>`<rect x="${44+i*16}" y="114" width="10" height="22" fill="var(--m-comb)" opacity=".6"/>`).join('')}`+TX(74,154,'piscine','lbl-s','mid'));
+  /* ---- cuve ---- */
+  s+=`<rect x="${VX}" y="${VY}" width="${VW}" height="${VH}" rx="52" fill="var(--eq)" stroke="var(--hot)" stroke-width="4"/>`;
+  /* dôme vapeur, sécheurs, séparateurs */
+  s+=PT('2',`<rect x="${VX+6}" y="${VY+6}" width="${VW-12}" height="64" rx="46" fill="url(#rbSteam)"/>
+   <rect x="${VX+16}" y="${VY+40}" width="${VW-32}" height="18" rx="3" fill="var(--panel)" stroke="var(--eq-stroke)"/>${Array.from({length:9},(_,i)=>`<path d="M${VX+22+i*10} ${VY+42} l5 7 l-5 7" fill="none" stroke="var(--eq-stroke)" stroke-width="1.2"/>`).join('')}
+   ${[0,1,2,3].map(i=>`<g transform="translate(${VX+28+i*24} ${VY+74})"><rect x="-7" y="0" width="14" height="40" rx="3" fill="var(--panel)" stroke="var(--eq-stroke)"/><path d="M-5 32 Q0 24 5 32 M-5 22 Q0 14 5 22 M-5 12 Q0 4 5 12" fill="none" stroke="var(--steam)" stroke-width="1.6"><animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" ${A(.9,`begin="${i*.2}s"`)}/></path></g>`).join('')}`
+   +TX(VX+VW+12,VY+58,'sécheurs','lbl-s')+TX(VX+VW+12,VY+98,'séparateurs','lbl-s'));
+  /* cœur : mélange eau-vapeur */
+  s+=PT('1 4',`<rect x="${VX+18}" y="${VY+150}" width="${VW-36}" height="110" rx="4" fill="url(#rbCore)" stroke="var(--eq-stroke)"/>
+   ${Array.from({length:6},(_,i)=>`<rect x="${VX+22+i*15}" y="${VY+154}" width="12" height="102" rx="2" fill="none" stroke="var(--m-comb)" stroke-width="1.4"/>`).join('')}
+   ${Array.from({length:14},(_,i)=>`<circle cx="${VX+26+(i*13)%84}" cy="${VY+250}" r="${2+i%3}" fill="var(--steam)" opacity=".9"><animate attributeName="cy" values="${VY+256};${VY+120}" ${A(2.4+(i%4)*.3,`begin="${(i*.27).toFixed(2)}s"`)}/><animate attributeName="opacity" values="0;.95;.95;0" keyTimes="0;.15;.8;1" ${A(2.4+(i%4)*.3,`begin="${(i*.27).toFixed(2)}s"`)}/></circle>`).join('')}`
+   );
+  s+=PT('1',`<rect x="${VX+VW+14}" y="${VY+160}" width="130" height="60" rx="8" fill="var(--panel)" stroke="var(--hot)"/>`+TX(VX+VW+22,VY+178,'cœur : eau + vapeur','lbl').replace('class="lbl"','class="lbl" style="font-weight:700"')+TX(VX+VW+22,VY+194,'≈ 70 à 80 bar','lbl')+TX(VX+VW+22,VY+210,'≈ 285 °C','lbl'));
+  /* espace annulaire, pompes à jet, recirculation */
+  s+=PT('2 3',`${[VX+8,VX+VW-8].map((x,k)=>`<path d="M${x} ${VY+70} V${VY+262}" stroke="var(--m-eau)" stroke-width="5" opacity=".6"/><path d="M${x} ${VY+70} V${VY+262}" stroke="var(--panel)" stroke-width="1.6" stroke-dasharray="4 8"><animate attributeName="stroke-dashoffset" values="0;-24" ${A(1)}/></path>`).join('')}`
+   +TX(VX+VW+12,VY+148,'espace annulaire','lbl-s'));
+  s+=PT('3',`${[VX+12,VX+VW-12].map(x=>`<path d="M${x-3} ${VY+226} L${x} ${VY+272} L${x+3} ${VY+226} Z" fill="var(--m-eau)" stroke="var(--eq-stroke)"/>`).join('')}
+   <path d="M${VX} ${VY+200} H${VX-34} V${VY+300} M${VX-34} ${VY+300} V${VY+316} H${VX+6}" fill="none" stroke="var(--m-eau)" stroke-width="5"/>
+   <path d="M${VX} ${VY+200} H${VX-34} V${VY+316} H${VX+6}" fill="none" stroke="var(--panel)" stroke-width="1.6" stroke-dasharray="4 8"><animate attributeName="stroke-dashoffset" values="0;-24" ${A(.8)}/></path>
+   <g transform="translate(${VX-34} ${VY+262})"><circle r="13" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="2"/><g><animateTransform attributeName="transform" type="rotate" values="0;360" ${A(.8)}/><path d="M0 0 L9 -3 L9 3 Z M0 0 L-9 3 L-9 -3 Z" fill="var(--m-eau)"/></g></g>`
+   +TX(VX-52,VY+266,'pompe de','lbl-s','end')+TX(VX-52,VY+279,'recirculation','lbl-s','end')+TX(VX+VW+12,VY+250,'pompes à jet','lbl-s'));
+  /* barres de commande par le bas */
+  s+=PT('4',`<g><animateTransform attributeName="transform" type="translate" values="0 0;0 -62;0 -62;0 0" keyTimes="0;.35;.65;1" ${A(6)}/>${[VX+37,VX+64,VX+91].map(x=>`<rect x="${x-3}" y="${VY+262}" width="6" height="62" rx="1.5" fill="var(--label)"/>`).join('')}</g>
+   ${[VX+37,VX+64,VX+91].map(x=>`<rect x="${x-6}" y="${VY+VH-6}" width="12" height="34" rx="2" fill="var(--panel)" stroke="var(--eq-stroke)"/>`).join('')}
+   <path d="M${VX+20} ${VY+VH+30} H${VX+VW-20}" stroke="var(--m-eau)" stroke-width="3"/>`
+   +TX(VX+VW+12,VY+VH-4,'mécanismes de barres','lbl-s')+TX(VX+VW+12,VY+VH+9,'(hydrauliques, sous la cuve)','lbl-s'));
+  s+=PT('1 2 3 4',TX(VX+VW/2,VY-8,'cuve','lbl','mid'));
+  /* ---- vapeur vers la turbine ---- */
+  s+=PT('2 5',`<use href="#rbSteamL" fill="none" stroke="var(--steam)" stroke-width="9" opacity=".75"/><use href="#rbSteamL" fill="none" stroke="var(--hot)" stroke-width="2" stroke-dasharray="6 9"><animate attributeName="stroke-dashoffset" values="0;-30" ${A(.7)}/></use>`
+   +valve(VX+VW+44,128,'var(--ok)')+valve(400,128,'var(--ok)')+TX(372,118,'vannes d’isolement','lbl-s','mid')+TX(520,104,'vapeur','lbl','mid'));
+  /* turbines HP / BP, alternateur */
+  const tb=(x,w,h,lab)=>`<path d="M${x} ${112-h/4} L${x+w} ${112-h/2} V${112+h/2} L${x} ${112+h/4} Z" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>${TX(x+w/2,112+h/2+16,lab,'lbl-s','mid')}`;
+  s+=PT('5',tb(560,70,60,'turbine HP')+tb(660,90,90,'turbine BP')+tb(770,90,90,'turbine BP')
+   +`<path d="M630 112 H660 M750 112 H770 M860 112 H900" stroke="var(--eq-stroke)" stroke-width="7"/>
+   <circle cx="940" cy="112" r="38" fill="var(--panel)" stroke="var(--m-u)" stroke-width="3"/><g transform="translate(940 112)"><g><animateTransform attributeName="transform" type="rotate" values="0;360" ${A(1.6)}/><path d="M0 -28 V28 M-28 0 H28 M-20 -20 L20 20 M20 -20 L-20 20" stroke="var(--m-u)" stroke-width="2"/></g></g>`
+   +TX(940,166,'alternateur','lbl','mid')+`<path d="M978 112 H1040 L1050 92 M1040 112 L1050 132" fill="none" stroke="var(--m-u)" stroke-width="3"/>`+TX(1050,84,'réseau','lbl-s','mid'));
+  s+=PT('5',`<g opacity=".9">${[0,1,2].map(i=>`<circle cx="${600+i*90}" cy="112" r="3" fill="var(--m-pu)"><animate attributeName="opacity" values="0;1;0" ${A(1.4,`begin="${i*.4}s"`)}/></circle>`).join('')}</g>`+TX(700,196,'vapeur légèrement active (azote 16)','lbl-s','mid').replace('class="lbl-s mid"','class="lbl-s mid" style="fill:var(--m-pu);font-weight:700"'));
+  /* condenseur, source froide */
+  s+=PT('5',`<path d="M700 160 V250 M810 160 V250" stroke="var(--steam)" stroke-width="7" opacity=".6"/>
+   <rect x="660" y="250" width="200" height="86" rx="10" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="2"/>
+   ${[272,290,308].map(y=>`<path d="M672 ${y} H848" stroke="var(--m-eau)" stroke-width="3"/>`).join('')}
+   <rect x="666" y="318" width="188" height="14" rx="4" fill="var(--water)" opacity=".8"/>`
+   +TX(760,262,'condenseur','lbl','mid'));
+  s+=PT('5',`<path d="M1080 290 H860" stroke="var(--m-eau)" stroke-width="6"/><path d="M860 304 H1080" stroke="var(--hot)" stroke-width="6" opacity=".6"/>
+   <path d="M1080 290 H860" stroke="var(--panel)" stroke-width="1.6" stroke-dasharray="4 8"><animate attributeName="stroke-dashoffset" values="0;24" ${A(1)}/></path>`
+   +TX(1072,282,'eau de mer / rivière','lbl-s','end'));
+  /* pompes alimentaires, réchauffeurs, retour cuve */
+  s+=PT('5 1',`<path d="M760 336 V452 H856" fill="none" stroke="var(--m-eau)" stroke-width="5"/><use href="#rbFeedL" fill="none" stroke="var(--m-eau)" stroke-width="6"/><use href="#rbFeedL" fill="none" stroke="var(--panel)" stroke-width="1.8" stroke-dasharray="4 9"><animate attributeName="stroke-dashoffset" values="0;-26" ${A(.9)}/></use>`);
+  s+=PT('5',`<g transform="translate(856 452)"><circle r="14" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="2"/><g><animateTransform attributeName="transform" type="rotate" values="0;360" ${A(.7)}/><path d="M0 0 L10 -3 L10 3 Z M0 0 L-10 3 L-10 -3 Z" fill="var(--m-eau)"/></g></g>`
+   +TX(856,478,'pompes alimentaires','lbl-s','mid')
+   +`<rect x="590" y="440" width="70" height="24" rx="12" fill="var(--panel)" stroke="var(--hot)" stroke-width="2"/>`+TX(625,456,'réchauffeurs','lbl-s','mid')+TX(520,240,'eau alimentaire','lbl-s'));
   /* secours sans électricité */
-  s+=PT('5',`<rect x="420" y="66" width="120" height="52" rx="5" fill="var(--water)" opacity=".6" stroke="var(--eq-stroke)"/><path d="M440 82 h80 v20 h-80" fill="none" stroke="var(--hot)" stroke-width="2.5"/><path d="M318 118 V60 H430 V82" fill="none" stroke="var(--steam)" stroke-width="4" stroke-dasharray="7 4"/><path d="M440 102 H410 V200 H338" fill="none" stroke="var(--m-eau)" stroke-width="4" stroke-dasharray="7 4"/>`+TX(480,48,'condenseur d’isolement (unité 1)','lbl','mid'));
-  s+=B(452,350,96,44,'RCIC','turbopompe',5,{rx:8});
-  s+=PT('5',`<path d="M520 150 V350" fill="none" stroke="var(--steam)" stroke-width="3.5" stroke-dasharray="6 4"/><path d="M500 394 V404 H470" fill="none" stroke="var(--m-eau)" stroke-width="3.5" stroke-dasharray="6 4"/><path d="M452 372 H430 V232 H338" fill="none" stroke="var(--m-eau)" stroke-width="3.5" stroke-dasharray="6 4"/>`+TX(500,416,'aspire l’eau du tore','lbl-s','mid'));
-  s+=K('5',`<rect x="600" y="372" width="330" height="70" rx="10" fill="var(--panel)" stroke="var(--deg)" stroke-width="2"/>`+TX(614,394,'Point faible','hd')+TX(614,414,'vannes et contrôle alimentés par batteries','lbl')+TX(614,432,'réserve d’eau limitée','lbl'));
-  /* tableau REB / REP */
-  const rows=[['Circuits','1 seul','2 (primaire, secondaire)'],['Pression','≈ 70 bar','155 bar'],['Ébullition','dans la cuve','non (GV)'],['Barres','par le bas','par le haut'],['Réglage fin','débit de recirculation','bore + grappes'],['Vapeur turbine','légèrement active','non active']];
-  s+=K('6',`<rect x="600" y="360" width="480" height="148" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(726,382,'REB','hd','mid')+TX(930,382,'REP (France)','hd','mid')+rows.map((r,i)=>`<path d="M612 ${390+i*19} H1068" stroke="var(--border)"/>`+TX(614,404+i*19,r[0],'lbl-s')+TX(726,404+i*19,r[1],'lbl','mid')+TX(930,404+i*19,r[2],'lbl','mid')).join(''));
-  s+=K('0 1 2 3 4',`<rect x="600" y="372" width="480" height="70" rx="10" fill="var(--panel)" stroke="var(--border)"/>`+TX(614,394,'Fukushima Daiichi : 6 REB','hd')+TX(614,414,'unité 1 : 460 MWe · unités 2 à 5 : 784 MWe','lbl')+TX(614,432,'unité 6 : 1 100 MWe','lbl'));
+  s+=K('6',`<rect x="300" y="84" width="76" height="34" rx="4" fill="var(--water)" opacity=".7" stroke="var(--eq-stroke)"/><path d="M310 96 h56 v12 h-56" fill="none" stroke="var(--hot)" stroke-width="2"/>`+TX(338,80,'condenseur d’isolement','lbl-s','mid')
+   +`<rect x="350" y="330" width="62" height="34" rx="6" fill="var(--panel)" stroke="var(--deg)" stroke-width="2"/>`+TX(381,351,'RCIC','lbl','mid')+`<path d="M381 364 V436" stroke="var(--m-eau)" stroke-width="3" stroke-dasharray="5 4"/><path d="M350 347 H${VX+VW+6}" stroke="var(--m-eau)" stroke-width="3" stroke-dasharray="5 4"/>`
+   +`<rect x="560" y="352" width="300" height="60" rx="10" fill="var(--panel)" stroke="var(--deg)" stroke-width="2"/>`+TX(574,374,'Point faible','hd')+TX(574,392,'vannes et contrôle sur batteries ; réserve d’eau limitée','lbl-s'));
+  /* comparaison REB / REP */
+  const rows=[['Circuits','1 seul','2 (primaire, secondaire)'],['Pression','70 à 80 bar','155 bar'],['Vapeur','dans la cuve','dans les GV'],['Barres','par le bas, hydrauliques','par le haut, par gravité'],['Puissance réglée par','débit de recirculation','bore + grappes'],['Turbine','en zone contrôlée','hors zone contrôlée']];
+  s+=K('7',`<rect x="540" y="200" width="540" height="200" rx="12" fill="var(--panel)" stroke="var(--accent)" stroke-width="2"/>`+TX(740,224,'REB','hd','mid')+TX(960,224,'REP (France)','hd','mid')+rows.map((r,i)=>`<path d="M552 ${234+i*27} H1068" stroke="var(--border)"/>`+TX(556,252+i*27,r[0],'lbl-s')+TX(740,252+i*27,r[1],'lbl','mid')+TX(960,252+i*27,r[2],'lbl','mid')).join(''));
   return s;}},
 
 /* =============== FUKUSHIMA =============== */
