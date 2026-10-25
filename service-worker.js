@@ -2,7 +2,7 @@
    Projet indépendant de Nucléa TIIN : préfixe de cache propre, portée limitée au dossier du site.
    VERSION est calculée par « python tools/version.py » à partir du contenu des fichiers :
    la lancer avant chaque publication (le test « python tests/test_site.py » le vérifie). */
-const VERSION = '3ec7200b18';
+const VERSION = 'b848afb8df';
 const PREFIX = 'surete-cycle-tiin-';
 const CACHE = PREFIX + VERSION;
 const ASSETS = [
