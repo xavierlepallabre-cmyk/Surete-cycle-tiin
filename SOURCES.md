@@ -50,6 +50,8 @@ Distinguer **texte réglementaire** (fait foi), **autorité ou organisme public*
 | Besoins en uranium des réacteurs 2025 par pays (monde ≈ 68 920 tU) | WNA, tableau de décembre 2025 — https://world-nuclear.org/information-library/facts-and-figures/world-nuclear-power-reactors-archive/reactor-archive-december-2025 | association industrielle |
 | Niger : nationalisation de la Somaïr (juin 2025) | Al Jazeera, 20 juin 2025 — https://www.aljazeera.com/news/2025/6/20/niger-nationalises-uranium-mine-as-spat-with-french-nuclear-giant-worsens | presse |
 | États-Unis : interdiction de l’uranium enrichi russe (2024, dérogations jusqu’à fin 2027) | NRC — https://www.nrc.gov/reading-rm/doc-collections/fact-sheets/uranium-import-ban.html | autorité |
+| Uranium de retraitement : ≈ 34 000 t à Tricastin, ≈ 4 000 t recyclées à Cruas (1994-2013), reprise 2023, 1 300 MW en 2027, 1 150 t envoyées en Russie (2021-2022), conversion uniquement à Seversk | Orano — https://www.orano.group/en/unpacking-nuclear/recycled-uranium-an-energy-source-for-low-carbon-electricity | exploitant |
+| Envoi d’URT vers Tomsk en novembre 2025 | Greenpeace France, janvier 2026 — https://cdn.greenpeace.fr/site/uploads/2026/01/Investigation-Greenpeace-France-Russie-le-trafic-radioactif-se-poursuit-2026.pdf | ONG (constat) |
 | Fond de carte | Natural Earth via johan/world.geo.json (domaine public) | données |
 | Conversion et enrichissement | Orano, rapport annuel 2024 — https://www.orano.group/finance-raa2024/en/39/ | communication industrielle |
 | Anciens sites miniers d’uranium (≈ 250) | ASNR — https://regulation-oversight.asnr.fr/information/news-archives/asn-issues-its-opinion-on-the-management-of-the-former-uranium-mining-sites | autorité |
