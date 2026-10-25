@@ -276,6 +276,9 @@ dialog h2{margin:0 0 6px;font-size:19px}
 #s7launch button{border-color:var(--accent)}
 @media(max-width:700px){#s7dialog{width:98vw;height:96vh;max-height:96vh}.s7head{align-items:flex-start;flex-direction:column}.s7cards,.s7layout,.s7fields{grid-template-columns:1fr}.s7menu{display:grid;grid-template-columns:1fr 1fr}.s7stages{grid-template-columns:1fr 1fr}}
 @media(prefers-reduced-motion:reduce){#s7host *{scroll-behavior:auto!important}}
+
+/* Mobile étroit : le sélecteur de scénario reste dans la largeur de l’écran */
+@media(max-width:520px){.sb-group{max-width:100%;min-width:0}.sb-group select{min-width:0;width:100%;flex:1 1 100%}}
 </style></head>
 <body>
 <header class="top">
