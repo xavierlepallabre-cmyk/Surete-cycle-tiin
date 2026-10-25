@@ -97,7 +97,7 @@ async def main():
         amont = next(f for f in page.frames if f.url.endswith('amont.html'))
         await amont.evaluate("document.querySelector('a[href=\"lahague.html\"]').click()")
         await page.wait_for_timeout(400)
-        tab = await page.evaluate("document.querySelector('.tab[aria-current]').textContent")
+        tab = await page.evaluate("document.querySelector('#switch [aria-current]').textContent")
         check(tab.strip() == 'La Hague', f'le lien Cycle amont → La Hague reste dans l’application ({tab.strip()})')
 
         print('6. Hors ligne')
