@@ -1125,7 +1125,7 @@ showSyn();
 
 
 <script>
-/* ===== Prototype : vue « Mines » enrichie (remplace VIEWS.mine.svg) ===== */
+/* ===== Vue « Mines » enrichie (remplace VIEWS.mine.svg) ===== */
 (function(){
 const G=170;                       /* niveau du sol */
 const L=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
@@ -1152,12 +1152,12 @@ VIEWS.mine.svg=()=>{let s='';
  strata.forEach(([y,h,c,o,p])=>{s+=`<rect x="0" y="${y}" width="1100" height="${h}" fill="${c}" opacity="${o}"/>`+(p?`<rect x="0" y="${y}" width="1100" height="${h}" fill="url(#${p})"/>`:'');});
  s+=`<path d="M0 ${G} H1100" stroke="var(--eq-stroke)" stroke-width="2"/>`;
  /* ---------- Titres cliquables ---------- */
- s+=B(20,22,330,50,'Mine à ciel ouvert',['fosse en gradins · pelles · camions'],'2');
- s+=B(400,22,300,50,'Mine souterraine',['puits · galeries · ventilation forcée'],'3');
- s+=B(745,22,335,50,'Lixiviation in situ (ISR)',['puits d’injection et de production'],'4');
+ s+=B(20,22,330,50,'Mine à ciel ouvert',['fosse en gradins · pelles · camions'],'1');
+ s+=B(400,22,300,50,'Mine souterraine',['puits · galeries · ventilation forcée'],'2');
+ s+=B(745,22,335,50,'Lixiviation in situ (ISR)',['puits d’injection et de production'],'3');
 
  /* ======================= CIEL OUVERT ======================= */
- s+=PT('2',`
+ s+=PT('1',`
   <ellipse cx="200" cy="318" rx="92" ry="28" fill="url(#mnOre)"/>
   <path d="M20 ${G} L42 202 L62 202 L84 234 L104 234 L126 266 L140 266 L160 298 L240 298 L260 266 L274 266 L296 234 L316 234 L338 202 L338 200 L358 ${G} Z" fill="url(#mnPit)" stroke="var(--eq-stroke)" stroke-width="2"/>
   <path d="M42 202 H62 M84 234 H104 M126 266 H140 M260 266 H274 M296 234 H316" stroke="var(--eq-stroke)" stroke-width="3" opacity=".45"/>
@@ -1166,28 +1166,28 @@ VIEWS.mine.svg=()=>{let s='';
   <path d="M362 ${G} Q378 140 394 ${G}" fill="none" stroke="var(--m-dech)" stroke-width="1" stroke-dasharray="2 3"/>
   ${L(380,112,'stériles','lbl-s','mid')}`);
  /* pelle hydraulique */
- s+=PT('2',`<g transform="translate(150 298)">
+ s+=PT('1',`<g transform="translate(150 298)">
   <rect x="-22" y="-6" width="34" height="6" rx="3" fill="var(--eq-stroke)"/>
   <rect x="-18" y="-20" width="26" height="14" rx="3" fill="var(--m-u)"/><rect x="-4" y="-26" width="10" height="8" rx="2" fill="var(--eq-stroke)"/>
   <g><animateTransform attributeName="transform" type="rotate" values="0 6 -16;-24 6 -16;-24 6 -16;0 6 -16;0 6 -16" keyTimes="0;.25;.5;.75;1" ${anim(5)}/>
    <path d="M6 -16 L30 -36 L44 -18" fill="none" stroke="var(--m-u)" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
    <path d="M40 -22 L52 -16 L44 -8 Z" fill="var(--eq-stroke)"/></g></g>`);
  /* foreuse sur gradin */
- s+=PT('2',`<g transform="translate(92 234)">
+ s+=PT('1',`<g transform="translate(92 234)">
   <rect x="-12" y="-8" width="24" height="8" rx="2" fill="var(--eq-stroke)"/><path d="M0 -8 V-44" stroke="var(--m-u)" stroke-width="3"/><path d="M-6 -44 H6" stroke="var(--m-u)" stroke-width="3"/>
   <g><animateTransform attributeName="transform" type="translate" values="0 0;0 2;0 0" ${anim(.25)}/><path d="M0 0 V10" stroke="var(--label)" stroke-width="2"/></g>
   ${[0,1,2].map(i=>`<circle cx="${-4+i*4}" cy="2" r="2.5" fill="var(--m-dech)" opacity="0"><animate attributeName="cy" values="2;-10" ${anim(1.2,`begin="${i*.4}s"`)}/><animate attributeName="opacity" values=".7;0" ${anim(1.2,`begin="${i*.4}s"`)}/></circle>`).join('')}</g>
   ${L(92,178+6,'forage de tir','lbl-s','mid')}`);
  /* tir de mine périodique */
- s+=PT('2',`<g transform="translate(222 290)">${[0,1,2,3].map(i=>`<circle cx="${(i-1.5)*9}" cy="0" r="4" fill="var(--m-dech)" opacity="0"><animate attributeName="r" values="3;3;16" keyTimes="0;.82;1" ${anim(9,`begin="${i*.06}s"`)}/><animate attributeName="opacity" values="0;0;.75;0" keyTimes="0;.8;.86;1" ${anim(9,`begin="${i*.06}s"`)}/><animate attributeName="cy" values="0;0;-26" keyTimes="0;.82;1" ${anim(9,`begin="${i*.06}s"`)}/></circle>`).join('')}</g>`);
+ s+=PT('1',`<g transform="translate(222 290)">${[0,1,2,3].map(i=>`<circle cx="${(i-1.5)*9}" cy="0" r="4" fill="var(--m-dech)" opacity="0"><animate attributeName="r" values="3;3;16" keyTimes="0;.82;1" ${anim(9,`begin="${i*.06}s"`)}/><animate attributeName="opacity" values="0;0;.75;0" keyTimes="0;.8;.86;1" ${anim(9,`begin="${i*.06}s"`)}/><animate attributeName="cy" values="0;0;-26" keyTimes="0;.82;1" ${anim(9,`begin="${i*.06}s"`)}/></circle>`).join('')}</g>`);
  /* camion de roulage qui monte la piste */
- s+=PT('2',`<use href="#mnRoad" fill="none" stroke="var(--m-dech)" stroke-width="4" stroke-dasharray="2 5" opacity=".7"/>
+ s+=PT('1',`<use href="#mnRoad" fill="none" stroke="var(--m-dech)" stroke-width="4" stroke-dasharray="2 5" opacity=".7"/>
   <g><animateMotion ${anim(11)} keyPoints="0;0;1;1;0" keyTimes="0;.12;.5;.62;1" calcMode="linear" rotate="auto"><mpath href="#mnRoad"/></animateMotion>
    <g transform="translate(-14 -14)"><rect x="0" y="2" width="18" height="9" rx="1.5" fill="var(--m-sol)"/><path d="M1 2 Q9 -4 17 2 Z" fill="var(--m-min)"/><rect x="18" y="4" width="8" height="7" rx="1.5" fill="var(--eq-stroke)"/><circle cx="5" cy="13" r="3" fill="var(--label)"/><circle cx="21" cy="13" r="3" fill="var(--label)"/></g></g>`);
 
  /* ======================= SOUTERRAIN ======================= */
  /* chevalement : molettes, câbles, machine d’extraction */
- s+=PT('3 5',`
+ s+=PT('2 4',`
   <path d="M452 ${G} L470 92 L488 ${G} M458 140 H482 M462 116 H478" fill="none" stroke="var(--eq-stroke)" stroke-width="3"/>
   <path d="M470 92 L516 ${G-12}" stroke="var(--eq-stroke)" stroke-width="3"/>
   ${[[466,90],[476,98]].map(([x,y],i)=>`<g transform="translate(${x} ${y})"><circle r="9" fill="var(--panel)" stroke="var(--m-u)" stroke-width="2.5"/><path d="M-9 0 H9 M0 -9 V9" stroke="var(--m-u)" stroke-width="1.5"><animateTransform attributeName="transform" type="rotate" values="${i?'360 0 0;0 0 0':'0 0 0;360 0 0'}" ${anim(2.4)}/></path></g>`).join('')}
@@ -1195,7 +1195,7 @@ VIEWS.mine.svg=()=>{let s='';
   <rect x="500" y="146" width="44" height="24" rx="3" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="1.5"/>${L(522,162,'treuil','lbl-s','mid')}
   ${L(432,98,'chevalement','lbl-s','end')}`);
  /* puits, niveaux, chantier */
- s+=PT('3 5',`
+ s+=PT('2 4',`
   <ellipse cx="610" cy="320" rx="74" ry="34" fill="url(#mnOre)"/>
   <rect x="462" y="${G}" width="16" height="232" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="1.5"/>
   <rect x="478" y="268" width="216" height="18" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="1.5"/>
@@ -1204,54 +1204,47 @@ VIEWS.mine.svg=()=>{let s='';
   ${L(556,262,'niveau −250 m','lbl-s')}${L(556,382,'niveau −400 m','lbl-s')}
   ${L(456,214,'puits','lbl-s','end')}`);
  /* cage d’extraction */
- s+=PT('3',`<g><animateTransform attributeName="transform" type="translate" values="0 0;0 176;0 176;0 0;0 0" keyTimes="0;.4;.5;.9;1" ${anim(8)}/><rect x="464" y="176" width="12" height="18" rx="1.5" fill="var(--m-u)"/><path d="M470 176 V${G-6}" stroke="var(--label)" stroke-width=".8"/></g>`);
+ s+=PT('2',`<g><animateTransform attributeName="transform" type="translate" values="0 0;0 176;0 176;0 0;0 0" keyTimes="0;.4;.5;.9;1" ${anim(8)}/><rect x="464" y="176" width="12" height="18" rx="1.5" fill="var(--m-u)"/><path d="M470 176 V${G-6}" stroke="var(--label)" stroke-width=".8"/></g>`);
  /* chargeuse en galerie basse */
- s+=PT('3',`<g><animateTransform attributeName="transform" type="translate" values="0 0;120 0;120 0;0 0;0 0" keyTimes="0;.4;.5;.9;1" ${anim(9)}/>
+ s+=PT('2',`<g><animateTransform attributeName="transform" type="translate" values="0 0;120 0;120 0;0 0;0 0" keyTimes="0;.4;.5;.9;1" ${anim(9)}/>
   <g transform="translate(486 352)"><rect x="0" y="4" width="24" height="9" rx="2" fill="var(--m-sol)"/><path d="M24 6 L32 4 L33 12 L24 12 Z" fill="var(--eq-stroke)"/><circle cx="6" cy="14" r="3" fill="var(--label)"/><circle cx="19" cy="14" r="3" fill="var(--label)"/><circle cx="2" cy="6" r="1.6" fill="var(--m-u)"/></g></g>`);
  /* mineur avec lampe frontale et dosimètre */
- s+=PT('3 5',`<g transform="translate(520 270)">
+ s+=PT('2 4',`<g transform="translate(520 270)">
   <path d="M6 6 L60 -2 L60 18 Z" fill="url(#mnLamp)"/>
   <circle cx="4" cy="4" r="3.6" fill="var(--label)"/><path d="M0 2 Q4 -3 8 2" fill="var(--m-u)"/><circle cx="7.5" cy="3" r="1.4" fill="var(--m-u)"/>
   <path d="M4 8 V15 M4 15 L1 18 M4 15 L7 18 M4 10 L0 13 M4 10 L8 12" stroke="var(--label)" stroke-width="1.8" stroke-linecap="round"/>
   <rect x="5.5" y="9" width="3" height="3.4" rx=".6" fill="var(--m-rea)"/></g>`);
  /* ventilation : air frais par le puits, air vicié par la cheminée */
- s+=PT('3 5',`
+ s+=PT('2 4',`
   <rect x="684" y="${G}" width="12" height="198" fill="var(--canvas)" stroke="var(--eq-stroke)" stroke-width="1.5"/>
   <path d="M672 ${G} V146 H708 V${G}" fill="var(--eq)" stroke="var(--eq-stroke)" stroke-width="1.5"/>
   <g transform="translate(690 132)"><circle r="12" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="1.5"/><g><animateTransform attributeName="transform" type="rotate" values="0;360" ${anim(1)}/>${[0,120,240].map(a=>`<path d="M0 0 L10 -3 L10 3 Z" fill="var(--m-air)" transform="rotate(${a})"/>`).join('')}</g></g>
   ${L(672,128,'ventilateur','lbl-s','end')}`);
- s+=F(`M440 142 V${G+6} H458 V262`,'air','3 5',{w:3,lab:[436,140,'air frais','end']});
- s+=F(`M690 268 V118`,'air','3 5',{w:3,noCase:true});
+ s+=F(`M440 142 V${G+6} H458 V262`,'air','2 4',{w:3,lab:[436,140,'air frais','end']});
+ s+=F(`M690 268 V118`,'air','2 4',{w:3,noCase:true});
  /* radon entraîné vers la cheminée */
- s+=PT('5',`${[0,1,2,3,4,5].map(i=>`<circle r="2.8" fill="var(--m-gaz)"><animateMotion ${anim(6,`begin="${(i*1).toFixed(1)}s"`)}><mpath href="#${i%2?'mnRadon2':'mnRadon'}"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" ${anim(6,`begin="${(i*1).toFixed(1)}s"`)}/></circle>`).join('')}
+ s+=PT('4',`${[0,1,2,3,4,5].map(i=>`<circle r="2.8" fill="var(--m-gaz)"><animateMotion ${anim(6,`begin="${(i*1).toFixed(1)}s"`)}><mpath href="#${i%2?'mnRadon2':'mnRadon'}"/></animateMotion><animate attributeName="opacity" values="0;1;1;0" keyTimes="0;.1;.85;1" ${anim(6,`begin="${(i*1).toFixed(1)}s"`)}/></circle>`).join('')}
   ${L(616,312,'radon','lbl','mid').replace('class="lbl mid"','class="lbl mid" style="fill:var(--m-gaz);font-weight:700"')}`);
 
- /* ======================= EXPLORATION ======================= */
- s+=PT('1',`<g transform="translate(735 ${G})">
-  <path d="M-12 0 L0 -52 L12 0 M-8 -18 H8 M-5 -34 H5" fill="none" stroke="var(--accent)" stroke-width="2.5"/>
-  <path d="M0 0 V230" stroke="var(--accent)" stroke-width="2" stroke-dasharray="6 4"><animate attributeName="stroke-dashoffset" values="0;-20" ${anim(1)}/></path>
-  ${[70,130,190].map(y=>`<rect x="-4" y="${y}" width="8" height="20" rx="2" fill="var(--m-min)" stroke="var(--accent)" stroke-width="1"/>`).join('')}
-  </g>${L(735,110,'forage carotté','lbl-s','mid')}`);
-
  /* ======================= ISR ======================= */
- s+=PT('4',`<rect x="760" y="${G+110}" width="340" height="85" fill="var(--m-min)" opacity=".18"/>
+ s+=PT('3',`<rect x="760" y="${G+110}" width="340" height="85" fill="var(--m-min)" opacity=".18"/>
   ${L(1074,G+104,'argile imperméable','lbl-s','end')}${L(1074,G+190,'grès minéralisé · aquifère','lbl-s','end')}${L(1074,G+256,'socle imperméable','lbl-s','end')}`);
  const inj=[800,900,1000],prod=[850,950];
- s+=PT('4',[...inj,...prod].map(x=>`<path d="M${x} ${G} V${G+178}" stroke="var(--eq-stroke)" stroke-width="5"/><path d="M${x-4} ${G+118} V${G+178} M${x+4} ${G+118} V${G+178}" stroke="var(--panel)" stroke-width="1" stroke-dasharray="2 3"/>`).join(''));
+ s+=PT('3',[...inj,...prod].map(x=>`<path d="M${x} ${G} V${G+178}" stroke="var(--eq-stroke)" stroke-width="5"/><path d="M${x-4} ${G+118} V${G+178} M${x+4} ${G+118} V${G+178}" stroke="var(--panel)" stroke-width="1" stroke-dasharray="2 3"/>`).join(''));
  /* écoulement dans l’aquifère : de l’injection vers la production */
  inj.forEach(xi=>prod.forEach(xp=>{if(Math.abs(xi-xp)>60)return;const id=`mnF${xi}_${xp}`;
-  s+=PT('4',`<path id="${id}" d="M${xi} ${G+150} C${(xi+xp)/2} ${G+176} ${(xi+xp)/2} ${G+124} ${xp} ${G+150}" fill="none" stroke="var(--m-rea)" stroke-width="1.2" stroke-dasharray="3 4" opacity=".7"/>`+[0,1,2].map(i=>`<circle r="2.6" fill="var(--m-sol)"><animateMotion ${anim(3.6,`begin="${(i*1.2).toFixed(1)}s"`)}><mpath href="#${id}"/></animateMotion><animate attributeName="fill" values="var(--m-rea);var(--m-sol)" ${anim(3.6,`begin="${(i*1.2).toFixed(1)}s"`)}/></circle>`).join(''));}));
+  s+=PT('3',`<path id="${id}" d="M${xi} ${G+150} C${(xi+xp)/2} ${G+176} ${(xi+xp)/2} ${G+124} ${xp} ${G+150}" fill="none" stroke="var(--m-rea)" stroke-width="1.2" stroke-dasharray="3 4" opacity=".7"/>`+[0,1,2].map(i=>`<circle r="2.6" fill="var(--m-sol)"><animateMotion ${anim(3.6,`begin="${(i*1.2).toFixed(1)}s"`)}><mpath href="#${id}"/></animateMotion><animate attributeName="fill" values="var(--m-rea);var(--m-sol)" ${anim(3.6,`begin="${(i*1.2).toFixed(1)}s"`)}/></circle>`).join(''));}));
  /* têtes de puits : injection (vert) et production (orange, pompe) */
- s+=PT('4',inj.map(x=>`<rect x="${x-7}" y="${G-16}" width="14" height="16" rx="2" fill="var(--m-rea)"/><path d="M${x} ${G-30} V${G-16}" stroke="var(--m-rea)" stroke-width="3"/>`).join('')+
+ s+=PT('3',inj.map(x=>`<rect x="${x-7}" y="${G-16}" width="14" height="16" rx="2" fill="var(--m-rea)"/><path d="M${x} ${G-30} V${G-16}" stroke="var(--m-rea)" stroke-width="3"/>`).join('')+
   prod.map(x=>`<rect x="${x-8}" y="${G-18}" width="16" height="18" rx="2" fill="var(--m-sol)"/><g><animateTransform attributeName="transform" type="translate" values="0 0;0 -4;0 0" ${anim(1.4)}/><rect x="${x-3}" y="${G-28}" width="6" height="10" fill="var(--eq-stroke)"/></g>`).join(''));
- s+=F(`M800 ${G-34} H1000`,'rea','4',{w:3,noCase:true,noArrow:true,lab:[800,G-40,'injection : eau + oxydant']});
- s+=F(`M850 ${G-44} V${G-62} H1080`,'sol','4',{w:3,noCase:true,lab:[1076,G-68,'solution uranifère → usine de traitement','end']});
+ s+=F(`M800 ${G-34} H1000`,'rea','3',{w:3,noCase:true,noArrow:true,lab:[800,G-40,'injection : eau + oxydant']});
+ s+=F(`M850 ${G-44} V${G-62} H1080`,'sol','3',{w:3,noCase:true,lab:[1076,G-68,'solution uranifère → usine de traitement','end']});
  
  /* puits de surveillance */
- s+=PT('4 5',[775,1080].map(x=>`<path d="M${x} ${G} V${G+190}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/><circle cx="${x}" cy="${G-5}" r="4" fill="var(--accent)"/>`).join('')+L(775,G+214,'surveillance','lbl-s','mid'));
+ s+=PT('3 4',[775,1080].map(x=>`<path d="M${x} ${G} V${G+190}" stroke="var(--accent)" stroke-width="2" stroke-dasharray="3 3"/><circle cx="${x}" cy="${G-5}" r="4" fill="var(--accent)"/>`).join('')+L(775,G+214,'surveillance','lbl-s','mid'));
 
  /* ======================= APRÈS-MINE (étape 6 uniquement) ======================= */
- s+=`<g data-only="6">
+ s+=`<g data-only="5">
   <path d="M20 ${G} L42 202 L62 202 L84 234 L104 234 L126 266 L140 266 L160 298 L240 298 L260 266 L274 266 L296 234 L316 234 L338 202 L338 200 L358 ${G} Z" fill="var(--m-dt)" opacity=".85"/>
   <path d="M20 ${G-4} Q190 ${G-14} 358 ${G-4}" fill="none" stroke="var(--m-rea)" stroke-width="5"/>
   ${[60,120,180,240,300].map((x,i)=>`<g transform="translate(${x} ${G-6})"><path d="M0 0 V-12" stroke="var(--m-dt)" stroke-width="2"/><circle cy="-18" r="${7+i%2*2}" fill="var(--m-rea)" opacity=".85"/></g>`).join('')}
@@ -1261,10 +1254,9 @@ VIEWS.mine.svg=()=>{let s='';
  </g>`;
 
  /* ---------- Bandeau bas ---------- */
- s+=B(20,436,250,62,'Exploration',['géophysique · forages carottés'],'1');
- s+=B(290,436,250,62,'Radioprotection',['radon · ventilation · dosimètres'],'5');
- s+=B(560,436,250,62,'Après-mine',['réaménagement · surveillance'],'6');
- s+=B(830,436,250,62,'Minerai',['0,1 % à quelques % d’uranium'],'2 3');
+ s+=B(20,436,340,62,'Radioprotection',['radon · ventilation · dosimètres'],'4');
+ s+=B(380,436,340,62,'Après-mine',['réaménagement · surveillance'],'5');
+ s+=B(740,436,340,62,'Minerai',['0,1 % à quelques % d’uranium'],'1 2');
  return s;};
 
 /* Éléments visibles à une seule étape, et pause des animations SVG */
@@ -1272,6 +1264,138 @@ const _setStep=setStep;
 setStep=function(n){_setStep(n);document.querySelectorAll('#det [data-only]').forEach(e=>{e.style.display=e.dataset.only.split(' ').includes(String(n))?'':'none';});};
 const _setPaused=setPaused;
 setPaused=function(p){_setPaused(p);const d=document.getElementById('det');if(d&&d.pauseAnimations)p?d.pauseAnimations():d.unpauseAnimations();};
+})();
+
+</script>
+<script>
+/* ===== Vue « Prospection » : avant la mine (cours Le cycle du combustible, § II ; AIEA) ===== */
+(function(){
+const L=(x,y,t,c='lbl',a='')=>`<text class="${c}${a?' '+a:''}" x="${x}" y="${y}">${t}</text>`;
+const anim=(dur,extra='')=>`dur="${dur}s" repeatCount="indefinite" ${extra}`;
+const G=230;   /* sol de la coupe */
+
+FICHE.prosp={t:'Prospection',full:'Trouver et évaluer un gisement avant toute extraction',m:'min',view:'prosp',
+ role:'Avant toute extraction, il faut connaître la zone de travail : où se trouve l’uranium, en quelle quantité, à quelle teneur et à quelle profondeur. La prospection procède du large au précis, et seuls les gisements rentables deviennent des mines.',
+ does:['Prospection large maille : radiométrie aéroportée sur de grandes surfaces.','Prospection détaillée : mesures autoportées (véhicule) et à pied sur une zone restreinte.','Sondages par carottage pour connaître l’épaisseur et la teneur de la couche minéralisée.','Évaluation du gisement, puis choix de la méthode d’exploitation.'],
+ keys:[['> 5 000 km²','reconnaissance régionale (AIEA)'],['2 à 20 km²','zone de prospection détaillée (AIEA)'],['50 à 80 %','du coût de la prospection consacré aux sondages (AIEA)']],
+ io:[['Entrée','Cartes géologiques, zones aux formations favorables'],['Sortie','Gisement délimité : teneur, tonnage, profondeur → mine']]};
+
+VIEW_ORDER.unshift('prosp');
+NAV_LABEL.prosp='Prospection';
+
+VIEWS.prosp={t:'Prospection — trouver le gisement',sub:'Du large au précis : avion, véhicule, à pied, puis sondages',fiche:'prosp',
+ intro:'Avant toute extraction, il faut connaître la zone de travail. La prospection procède par étapes de plus en plus précises : une carte à large maille repère les zones favorables, une prospection détaillée les resserre, puis des sondages vont chercher la roche en profondeur. À gauche, la zone vue de dessus ; à droite, une coupe du terrain.',
+ steps:[
+ {t:'Préparer',d:'<p>Les géologues partent des <b>cartes géologiques</b> et des photographies aériennes. Ils recherchent des <b>formations favorables</b>, semblables à celles où des gisements ont déjà été trouvés : granites, grès, zones de failles.</p>'},
+ {t:'Prospection large maille',d:'<p>Un avion ou un hélicoptère survole la région en <b>lignes parallèles</b>, à une centaine de mètres d’altitude, avec un détecteur de rayonnement gamma : c’est la <b>radiométrie aéroportée</b>. On obtient une carte des <b>zones favorables</b>, sans information précise sur les quantités ni sur l’accessibilité.</p><p class="note">Le rayonnement gamma ne traverse qu’environ 50 cm de terrain : seule la surface est « vue ».</p>'},
+ {t:'Prospection détaillée',d:'<p>Même principe, mais sur une <b>zone beaucoup plus restreinte</b> : mesures <b>autoportées</b> depuis un véhicule, puis <b>à pied</b> avec un scintillomètre. On établit une carte du même type, à plus petite échelle.</p><p>Des prélèvements de sols, d’eaux ou de gaz du sol (radon) complètent les mesures.</p>'},
+ {t:'Sondages par carottage',d:'<p>Une fois les zones favorables détectées, on effectue des <b>sondages</b> : un tube creux retire du sol un <b>cylindre de roche</b> dans le sens de la profondeur, la <b>carotte</b>. Elle montre la succession des couches et l’épaisseur de la couche minéralisée.</p><p>Une sonde gamma descendue dans le trou mesure la radioactivité à chaque profondeur.</p><p class="note">Les sondages représentent souvent 50 à 80 % du coût de la prospection (AIEA).</p>'},
+ {t:'Évaluer le gisement',d:'<p>Les sondages sont <b>resserrés</b> pour délimiter le gisement : <b>teneur</b>, <b>tonnage</b>, <b>profondeur</b>, accès. Beaucoup d’anomalies ne donnent pas de gisement rentable.</p><p>Si le gisement est exploitable, on choisit la méthode : <b>ciel ouvert</b>, <b>souterraine</b> ou <b>lixiviation in situ</b>. C’est la vue suivante.</p>'}],
+ svg:()=>{let s='';
+  s+=`<defs>
+   <radialGradient id="pAnom" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="var(--m-pf)" stop-opacity=".85"/><stop offset=".5" stop-color="var(--m-sol)" stop-opacity=".55"/><stop offset="1" stop-color="var(--m-u)" stop-opacity="0"/></radialGradient>
+   <radialGradient id="pAnomS" cx=".5" cy=".5" r=".5"><stop offset="0" stop-color="var(--m-pf)" stop-opacity=".95"/><stop offset=".6" stop-color="var(--m-sol)" stop-opacity=".5"/><stop offset="1" stop-color="var(--m-sol)" stop-opacity="0"/></radialGradient>
+   <pattern id="pGrid" width="40" height="40" patternUnits="userSpaceOnUse"><path d="M40 0 H0 V40" fill="none" stroke="var(--eq-stroke)" stroke-width=".6" opacity=".35"/></pattern>
+   <pattern id="pGridF" width="10" height="10" patternUnits="userSpaceOnUse"><path d="M10 0 H0 V10" fill="none" stroke="var(--accent)" stroke-width=".5" opacity=".45"/></pattern>
+   <pattern id="pFav" width="8" height="8" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><path d="M0 0 V8" stroke="var(--m-min)" stroke-width="2" opacity=".5"/></pattern>
+   <clipPath id="pMap"><rect x="30" y="92" width="480" height="330" rx="10"/></clipPath>
+   <path id="pFly" d="M50 122 H490 V162 H50 V202 H490 V242 H50 V282 H490 V322 H50 V362 H490 V402 H50"/>
+   <path id="pWalk" d="M318 214 L350 226 L332 246 L366 256 L348 278 L380 286"/>
+  </defs>`;
+  /* ---------------- Vue de dessus ---------------- */
+  s+=L(30,80,'VUE DE DESSUS · zone prospectée','zt');
+  s+=`<g clip-path="url(#pMap)"><rect x="30" y="92" width="480" height="330" fill="var(--m-dt)" opacity=".16"/>
+   <path d="M30 300 C120 270 160 330 250 300 S420 250 510 280" fill="none" stroke="var(--water2)" stroke-width="7" opacity=".5"/>
+   <path d="M30 150 C90 170 140 130 200 160" fill="none" stroke="var(--water2)" stroke-width="3" opacity=".4"/>
+   ${[[90,360],[140,120],[420,390],[460,140],[200,400]].map(([x,y])=>`<circle cx="${x}" cy="${y}" r="16" fill="var(--m-rea)" opacity=".18"/>`).join('')}
+   <rect x="30" y="92" width="480" height="330" fill="url(#pGrid)"/></g>`;
+  s+=`<rect x="30" y="92" width="480" height="330" rx="10" fill="none" stroke="var(--eq-stroke)" stroke-width="1.5"/>`;
+  /* étape 1 : formations favorables */
+  s+=PT('1',`<g clip-path="url(#pMap)"><path d="M150 180 C210 150 330 170 380 210 C420 250 390 320 320 330 C240 340 170 300 150 250 Z" fill="url(#pFav)" stroke="var(--m-min)" stroke-width="2" stroke-dasharray="6 4"/></g>`+L(265,176,'formation favorable','lbl','mid'));
+  /* étape 2 : vol en lignes parallèles, anomalies à large maille */
+  s+=PT('2',`<use href="#pFly" fill="none" stroke="var(--accent)" stroke-width="1.2" stroke-dasharray="5 6" opacity=".55"/>
+   <g clip-path="url(#pMap)">${[[260,240,95],[355,300,60],[170,330,45]].map(([x,y,r])=>`<circle cx="${x}" cy="${y}" r="${r}" fill="url(#pAnom)"><animate attributeName="opacity" values=".55;.9;.55" ${anim(3)}/></circle>`).join('')}</g>
+   <g><animateMotion ${anim(16)} rotate="auto"><mpath href="#pFly"/></animateMotion>
+    <path d="M0 0 L-24 -18 L-24 18 Z" fill="var(--accent)" opacity=".18"/>
+    <g transform="scale(1.1)"><path d="M10 0 L-10 -2 L-10 2 Z" fill="var(--label)"/><path d="M2 0 L-4 -11 L-7 -11 L-3 0 L-7 11 L-4 11 Z" fill="var(--label)"/><path d="M-9 0 L-13 -5 L-14 -5 L-12 0 L-14 5 L-13 5 Z" fill="var(--label)"/></g></g>
+`);
+  s+=`<g data-only="2">${L(270,442,'carte large maille : zones favorables, sans quantité','lbl-s','mid')}</g>`;
+  /* étape 3 : zone restreinte, véhicule et marcheur */
+  s+=PT('3 4 5',`<rect x="296" y="200" width="104" height="96" fill="url(#pGridF)" stroke="var(--accent)" stroke-width="2"/>${L(348,194,'zone détaillée','lbl','mid')}`);
+  s+=PT('3',`<g clip-path="url(#pMap)"><circle cx="352" cy="252" r="30" fill="url(#pAnomS)"><animate attributeName="r" values="26;32;26" ${anim(3)}/></circle><circle cx="330" cy="272" r="14" fill="url(#pAnomS)"/></g>
+   <path d="M260 410 C290 360 280 320 300 290" fill="none" stroke="var(--eq-stroke)" stroke-width="4" stroke-dasharray="2 4"/>
+   <g><animateMotion ${anim(9)} path="M260 410 C290 360 280 320 300 290" rotate="auto" keyPoints="0;1;1;0" keyTimes="0;.45;.55;1" calcMode="linear"/><rect x="-9" y="-5" width="18" height="10" rx="3" fill="var(--m-u)"/><rect x="2" y="-4" width="5" height="8" rx="1" fill="var(--label)" opacity=".7"/></g>
+   <use href="#pWalk" fill="none" stroke="var(--m-pf)" stroke-width="1.5" stroke-dasharray="2 3"/>
+   <g><animateMotion ${anim(10)} keyPoints="0;1;1;0" keyTimes="0;.45;.55;1" calcMode="linear"><mpath href="#pWalk"/></animateMotion><circle r="4.5" fill="var(--m-pf)"/><circle r="9" fill="none" stroke="var(--m-pf)" stroke-width="1.5"><animate attributeName="r" values="5;14" ${anim(1.2)}/><animate attributeName="opacity" values=".9;0" ${anim(1.2)}/></circle></g>
+`);
+  s+=`<g data-only="3">${L(270,442,'carte détaillée : véhicule (autoportée) puis à pied','lbl-s','mid')}</g>`;
+  /* étapes 4-5 : sondages en grille */
+  s+=s4grid();
+  function s4grid(){let g='';
+   const h4=[[320,220],[348,240],[376,262],[334,268],[366,226]];
+   g+=PT('4',h4.map(([x,y])=>`<circle cx="${x}" cy="${y}" r="5" fill="var(--panel)" stroke="var(--m-min)" stroke-width="2.5"/>`).join('')+`<g data-only="4">${L(270,442,'sondages sur les anomalies','lbl-s','mid')}</g>`);
+   let pts='';for(let x=308;x<=392;x+=14)for(let y=208;y<=288;y+=14){const inside=((x-350)**2/40**2+(y-250)**2/30**2)<1;pts+=`<circle cx="${x}" cy="${y}" r="3" fill="${inside?'var(--m-min)':'var(--panel)'}" stroke="var(--m-min)" stroke-width="1.2"/>`;}
+   g+=`<g data-only="5">${pts}<ellipse cx="350" cy="250" rx="42" ry="32" fill="none" stroke="var(--m-pf)" stroke-width="2.5" stroke-dasharray="6 4"/>${L(270,442,'maillage resserré : contour du gisement','lbl-s','mid')}</g>`;
+   return g;}
+
+  /* ---------------- Coupe du terrain ---------------- */
+  s+=L(560,80,'COUPE · ce que la surface ne montre pas','zt');
+  s+=`<rect x="560" y="92" width="520" height="330" rx="10" fill="none" stroke="var(--eq-stroke)" stroke-width="1.5"/>`;
+  const lay=[[G,16,'var(--m-dt)','.45','recouvrement'],[G+16,70,'var(--m-dt)','.18','grès'],[G+86,24,'var(--eq-stroke)','.18','argile'],[G+110,0,'','','']];
+  s+=`<rect x="561" y="93" width="518" height="${G-93}" fill="var(--accent)" opacity=".05"/>`;
+  s+=`<rect x="561" y="${G}" width="518" height="16" fill="var(--m-dt)" opacity=".45"/><rect x="561" y="${G+16}" width="518" height="70" fill="var(--m-dt)" opacity=".18"/><rect x="561" y="${G+86}" width="518" height="20" fill="var(--eq-stroke)" opacity=".2"/><rect x="561" y="${G+106}" width="518" height="85" fill="var(--m-min)" opacity=".14"/>`;
+  s+=`<path d="M560 ${G} H1080" stroke="var(--eq-stroke)" stroke-width="2"/>`;
+  s+=L(1072,G+12,'recouvrement','lbl-s','end')+L(1072,G+56,'grès','lbl-s','end')+L(1072,G+100,'argile','lbl-s','end')+L(1072,G+186,'socle','lbl-s','end');
+  /* gisement caché */
+  s+=PT('1 2 3 4 5',`<ellipse cx="820" cy="${G+140}" rx="110" ry="22" fill="var(--m-u)" opacity=".55"/><ellipse cx="820" cy="${G+140}" rx="70" ry="12" fill="var(--m-min)" opacity=".7"/>`+L(820,G+178,'couche minéralisée','lbl','mid'));
+  s+=PT('1',`<text class="lbl mid" x="820" y="${G+125}" style="font-size:22px;font-weight:800;fill:var(--muted)">?</text>`);
+  /* étape 2 : avion, gamma de surface seulement */
+  s+=PT('2',`<g><animateTransform attributeName="transform" type="translate" values="-60 0;440 0" ${anim(7)}/>
+    <g transform="translate(640 132)"><path d="M14 0 L-14 -3 L-14 3 Z" fill="var(--label)"/><path d="M2 0 L-6 -14 L-10 -14 L-4 0 L-10 14 L-6 14 Z" fill="var(--label)" transform="scale(1 .45)"/><path d="M-4 6 L-42 ${G-132} L34 ${G-132} Z" fill="var(--accent)" opacity=".12"/></g></g>
+`);
+  s+=`<g data-only="2">${L(575,110,'≈ 100 m d’altitude · lignes parallèles','lbl-s')}<rect x="561" y="${G}" width="518" height="6" fill="var(--m-pf)" opacity=".35"/>${L(570,G-8,'le gamma ne « voit » que ≈ 50 cm de terrain','lbl-s')}</g>`;
+  /* étape 3 : véhicule et marcheur au sol */
+  s+=PT('3',`<g><animateTransform attributeName="transform" type="translate" values="0 0;150 0;150 0;0 0" keyTimes="0;.45;.55;1" ${anim(9)}/>
+    <g transform="translate(620 ${G})"><rect x="0" y="-18" width="44" height="13" rx="3" fill="var(--m-u)"/><path d="M8 -18 L14 -28 H32 L38 -18 Z" fill="var(--m-u)"/><rect x="16" y="-26" width="8" height="7" fill="var(--panel)" opacity=".8"/><circle cx="10" cy="-4" r="5" fill="var(--label)"/><circle cx="34" cy="-4" r="5" fill="var(--label)"/><rect x="-10" y="-14" width="10" height="6" rx="1" fill="var(--accent)"/></g></g>
+   <g transform="translate(900 ${G})"><g><animateTransform attributeName="transform" type="translate" values="0 0;40 0;0 0" ${anim(8)}/>
+    <circle cx="0" cy="-36" r="5" fill="var(--label)"/><path d="M0 -31 V-16 M0 -16 L-5 0 M0 -16 L5 0 M0 -27 L10 -20 L16 -12" stroke="var(--label)" stroke-width="2.4" stroke-linecap="round" fill="none"/>
+    <rect x="14" y="-14" width="12" height="7" rx="2" fill="var(--m-pf)"/>
+    <circle cx="20" cy="-4" r="4" fill="none" stroke="var(--m-pf)" stroke-width="1.5"><animate attributeName="r" values="3;14" ${anim(.9)}/><animate attributeName="opacity" values="1;0" ${anim(.9)}/></circle></g></g>
+   ${L(642,G-42,'mesure autoportée','lbl','mid')}${L(920,G-52,'à pied, scintillomètre','lbl','mid')}`);
+  /* étape 4 : sondeuse, carotte, sonde gamma */
+  s+=PT('4 5',`<g transform="translate(780 ${G})">
+    <rect x="-26" y="-12" width="52" height="12" rx="2" fill="var(--eq-stroke)"/><path d="M-6 -12 L0 -92 L6 -12 M-4 -40 H4 M-3 -66 H3" fill="none" stroke="var(--m-u)" stroke-width="3"/>
+    <rect x="-3" y="-92" width="6" height="8" fill="var(--label)"/>
+    <rect x="-3" y="0" width="6" height="168" fill="var(--panel)" stroke="var(--eq-stroke)" stroke-width="1"/>
+    <g><animateTransform attributeName="transform" type="translate" values="0 0;0 150;0 150;0 0" keyTimes="0;.6;.7;1" ${anim(8)}/><rect x="-2.5" y="0" width="5" height="16" fill="var(--accent)"/></g>
+   </g>${L(780,G-100,'sondeuse','lbl','mid')}`);
+  s+=PT('4',`<g transform="translate(920 128)">${L(-20,-8,'carotte extraite','lbl')}
+    ${[['var(--m-dt)',.7,12],['var(--m-dt)',.4,40],['var(--eq-stroke)',.45,16],['var(--m-u)',.8,22],['var(--m-min)',.5,14]].reduce((a,[c,o,w])=>{a.h+=`<rect x="${a.x}" y="0" width="${w*1.6}" height="16" fill="${c}" opacity="${o}"/>`;a.x+=w*1.6;return a;},{x:-20,h:''}).h}
+    <rect x="-20" y="0" width="166.4" height="16" rx="8" fill="none" stroke="var(--eq-stroke)" stroke-width="1.2"/>
+    ${L(66,32,'minerai','lbl-s','mid')}</g>
+   <path d="M790 ${G+2} V${G+168}" stroke="var(--border)" stroke-width="1"/>
+   <path d="M795 ${G+4} L798 ${G+40} L796 ${G+80} L799 ${G+100} L800 ${G+118} L832 ${G+134} L850 ${G+142} L828 ${G+150} L800 ${G+160} L798 ${G+166}" fill="none" stroke="var(--m-pf)" stroke-width="2"/>
+   ${L(856,G+146,'pic gamma','lbl')}`);
+  /* étape 5 : maillage resserré et choix de la méthode */
+  s+=`<g data-only="5">${[690,730,760,800,840,870,910].map(x=>`<path d="M${x} ${G} V${G+165}" stroke="var(--m-min)" stroke-width="2" stroke-dasharray="4 3"/>`).join('')}
+   <ellipse cx="820" cy="${G+140}" rx="112" ry="24" fill="none" stroke="var(--m-pf)" stroke-width="2.5" stroke-dasharray="6 4"/>
+   <rect x="940" y="${G-120}" width="130" height="92" rx="10" fill="var(--panel)" stroke="var(--accent)" stroke-width="1.5"/>
+   ${L(952,G-98,'Gisement','lbl')}${['teneur','tonnage','profondeur','accès, coût'].map((t,i)=>L(952,G-80+i*15,'✓ '+t,'lbl-s')).join('')}</g>`;
+  /* lien vers la vue Mines */
+  /* ---------------- Bandeau bas ---------------- */
+  s+=B(20,446,250,56,'Large maille',['avion · radiométrie'],'2');
+  s+=B(290,446,250,56,'Détaillée',['véhicule · à pied'],'3');
+  s+=B(560,446,250,56,'Sondages',['carottes · sonde gamma'],'4');
+  s+=B(830,446,250,56,'Évaluation → mine',['teneur · tonnage · méthode'],'5');
+  return s;}};
+
+/* La vue Mines suit désormais la prospection */
+VIEWS.mine.steps=VIEWS.mine.steps.filter(st=>!/^Exploration/.test(st.t));
+VIEWS.mine.intro='Le gisement a été localisé et évalué par la prospection (vue précédente). Selon sa profondeur et sa géologie, on creuse une fosse, on descend sous terre, ou l’on dissout l’uranium directement dans la roche.';
+FICHE.mine.does=['Le gisement a d’abord été trouvé et évalué par la prospection.',...FICHE.mine.does];
+
+buildNav();
+if(typeof cur!=='undefined'&&cur!=='syn')markNav();
 })();
 
 </script>

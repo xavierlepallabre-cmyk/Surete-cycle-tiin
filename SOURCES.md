@@ -42,6 +42,9 @@ Distinguer **texte réglementaire** (fait foi), **autorité ou organisme public*
 | CSM : exploitation 1969-1994, 527 225 m³ | Andra — https://www.andra.fr/sites/default/files/2022-09/Andra-Plaquette_CSM-MAJ-22_09Sep-V3-PAGES_BD-ALR.pdf | exploitant public |
 | Classification des déchets | Andra — https://inventaire.andra.fr/les-matieres-et-dechets-radioactifs/classification-des-dechets-radioactifs-et-filieres-de-gestion | organisme public |
 | Traitement, vitrification, compactage (La Hague) | Orano, dossier de presse 2024 — https://cdn.orano.group/orano/docs/default-source/orano-doc/presse/dossiers-presse/dossier-recyclage-la-hague/dossier-de-presse-2024-lh.pdf | communication industrielle |
+| Prospection : large maille aéroportée, prospection détaillée autoportée et à pied, sondages par carottage | Cours « Le cycle du combustible », Bac Pro TIIN, § II (X. Le Pallabre) | cours |
+| Phases de prospection (reconnaissance > 5 000 km², détaillée 2 à 20 km², sondages 50 à 80 % du coût, radiocarottage) | AIEA, Bulletin vol. 23 n° 2 — https://iaea.org/sites/default/files/23204881520_fr.pdf | organisme international |
+| Survol à ≈ 120 m en lignes parallèles ; gamma masqué par ≈ 50 cm de terrain | Goldstick (1980), « Progression of Uranium Exploration Activities » — https://www.nonuclear.se/en/node/1601 | publication |
 | Conversion et enrichissement | Orano, rapport annuel 2024 — https://www.orano.group/finance-raa2024/en/39/ | communication industrielle |
 | Anciens sites miniers d’uranium (≈ 250) | ASNR — https://regulation-oversight.asnr.fr/information/news-archives/asn-issues-its-opinion-on-the-management-of-the-former-uranium-mining-sites | autorité |
 
