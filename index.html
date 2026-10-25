@@ -60,7 +60,7 @@ h1{margin:4px 0 6px;font-size:clamp(22px,3vw,30px);text-wrap:balance}
 .group{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:0 0 -10px}
 .chain .sep{width:1px;align-self:stretch;background:var(--border);margin:0 6px}
 @media(max-width:900px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:520px){.cards,.cards.two{grid-template-columns:1fr}.chain .arr,.chain .sep{display:none}}
+@media(max-width:520px){.chain{flex-basis:100%}.cards,.cards.two{grid-template-columns:1fr}.chain .arr,.chain .sep{display:none}}
 .card{display:flex;flex-direction:column;gap:8px;text-align:left;background:var(--panel);border:1px solid var(--border);border-top:3px solid var(--c);border-radius:12px;padding:14px 14px 12px;cursor:pointer;min-width:0}
 .card:hover{border-color:var(--c)}
 .card .step{font:600 11px var(--mono);color:var(--c);letter-spacing:.06em}
