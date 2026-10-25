@@ -45,6 +45,12 @@ Distinguer **texte réglementaire** (fait foi), **autorité ou organisme public*
 | Prospection : large maille aéroportée, prospection détaillée autoportée et à pied, sondages par carottage | Cours « Le cycle du combustible », Bac Pro TIIN, § II (X. Le Pallabre) | cours |
 | Phases de prospection (reconnaissance > 5 000 km², détaillée 2 à 20 km², sondages 50 à 80 % du coût, radiocarottage) | AIEA, Bulletin vol. 23 n° 2 — https://iaea.org/sites/default/files/23204881520_fr.pdf | organisme international |
 | Survol à ≈ 120 m en lignes parallèles ; gamma masqué par ≈ 50 cm de terrain | Goldstick (1980), « Progression of Uranium Exploration Activities » — https://www.nonuclear.se/en/node/1601 | publication |
+| Ressources en uranium par pays (< 130 $/kg, au 1er janvier 2025 ; monde ≈ 5 864 500 tU) | OCDE-AEN / AIEA, Uranium 2026 « Red Book », repris par la WNA — https://world-nuclear.org/information-library/nuclear-fuel-cycle/uranium-resources/supply-of-uranium | organisme international |
+| Production minière 2024 par pays (monde ≈ 60 213 tU) | WNA — https://world-nuclear.org/information-library/nuclear-fuel-cycle/mining-of-uranium/world-uranium-mining-production | association industrielle |
+| Besoins en uranium des réacteurs 2025 par pays (monde ≈ 68 920 tU) | WNA, tableau de décembre 2025 — https://world-nuclear.org/information-library/facts-and-figures/world-nuclear-power-reactors-archive/reactor-archive-december-2025 | association industrielle |
+| Niger : nationalisation de la Somaïr (juin 2025) | Al Jazeera, 20 juin 2025 — https://www.aljazeera.com/news/2025/6/20/niger-nationalises-uranium-mine-as-spat-with-french-nuclear-giant-worsens | presse |
+| États-Unis : interdiction de l’uranium enrichi russe (2024, dérogations jusqu’à fin 2027) | NRC — https://www.nrc.gov/reading-rm/doc-collections/fact-sheets/uranium-import-ban.html | autorité |
+| Fond de carte | Natural Earth via johan/world.geo.json (domaine public) | données |
 | Conversion et enrichissement | Orano, rapport annuel 2024 — https://www.orano.group/finance-raa2024/en/39/ | communication industrielle |
 | Anciens sites miniers d’uranium (≈ 250) | ASNR — https://regulation-oversight.asnr.fr/information/news-archives/asn-issues-its-opinion-on-the-management-of-the-former-uranium-mining-sites | autorité |
 
