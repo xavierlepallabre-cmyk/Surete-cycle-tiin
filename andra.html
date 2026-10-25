@@ -852,4 +852,173 @@ window.S7open=open;
 document.querySelectorAll('[data-s7open]').forEach(b=>b.onclick=()=>open(b.dataset.s7open));
 if(standalone)open(standalone);
 })();
-</script></body></html>
+</script><script>
+/* Chapitres du parcours */
+window.CHAPTERS=[{t:'Classer et conditionner',vues:['classif','colis']},{t:'Stocker en surface',vues:['cires','csa','csm']},{t:'Vie longue',vues:['favl','cigeo','labo']},{t:'Surveiller',vues:['surv']}];
+window.CHAPTER_KEY='andra';
+</script>
+<script>
+/* ===== Navigation par chapitres (commune aux parcours) =====
+   Remplace le menu à plat des vues, les boutons Vue précédente/suivante, la lecture guidée
+   et la rangée de pastilles d’étapes par : un fil de chapitres, les vues du chapitre,
+   un sommaire complet et une barre de lecture unique sous le schéma. */
+(function(){
+const CH=window.CHAPTERS;if(!CH||typeof VIEW_ORDER==='undefined')return;
+const KEY='sct-vus-'+(window.CHAPTER_KEY||location.pathname.split('/').pop());
+const $$=id=>document.getElementById(id);
+let vus=new Set();try{vus=new Set(JSON.parse(localStorage.getItem(KEY)||'[]'))}catch(e){}
+const save=()=>{try{localStorage.setItem(KEY,JSON.stringify([...vus]))}catch(e){}};
+const chOf=v=>CH.findIndex(c=>c.vues.includes(v));
+const flat=CH.flatMap(c=>c.vues);
+const esc=s=>String(s).replace(/</g,'&lt;');
+const nSt=v=>(VIEWS[v].steps||[]).length;
+function go(v,last){openView(v);const n=nSt(v);if(n)setStep(last?n:1);}
+
+/* ---------- Styles ---------- */
+const css=document.createElement('style');css.textContent=`
+.nav{display:none!important}
+#detSec>.bar,#steps,#playBtn{display:none!important}
+.chx{border-bottom:1px solid var(--border);background:var(--panel)}
+.chx-row{display:flex;align-items:stretch;gap:0;padding:0 max(16px,env(safe-area-inset-left,0px));overflow-x:auto;scrollbar-width:none}
+.chx-row::-webkit-scrollbar{display:none}
+.chx-som{flex:none;display:flex;align-items:center;gap:8px;margin:8px 10px 8px 0;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:7px 12px;font-weight:600;font-size:13px}
+.chx-som svg{width:18px;height:18px}
+.chx-ch{position:relative;flex:1 1 0;min-width:150px;display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:2px;border:0;background:none;padding:10px 14px 12px;text-align:left;color:var(--muted);border-left:1px solid var(--border)}
+.chx-ch b{font-size:13px;color:var(--text);font-weight:600;white-space:nowrap}
+.chx-ch small{font-size:11px;letter-spacing:.06em;text-transform:uppercase}
+.chx-ch .bar3{position:absolute;left:14px;right:14px;bottom:6px;display:flex;gap:3px}
+.chx-ch .bar3 i{flex:1;height:3px;border-radius:2px;background:var(--border)}
+.chx-ch .bar3 i.ok{background:var(--accent);opacity:.55}
+.chx-ch .bar3 i.on{background:var(--accent);opacity:1}
+.chx-ch.on{background:var(--btn-active)}
+.chx-ch.on::after{content:"";position:absolute;left:0;right:0;top:0;height:3px;background:var(--accent)}
+.chx-ch:hover b{color:var(--accent)}
+.chx-vues{display:flex;gap:6px;align-items:center;padding:8px max(16px,env(safe-area-inset-left,0px));border-top:1px solid var(--border);background:var(--panel2);overflow-x:auto;scrollbar-width:none}
+.chx-vues::-webkit-scrollbar{display:none}
+.chx-vues .lab{font-size:12px;color:var(--muted);margin-right:4px;white-space:nowrap}
+.chx-vues button{flex:none;display:inline-flex;align-items:center;gap:7px;border:1px solid var(--border);border-radius:999px;background:var(--btn);padding:6px 13px;font-size:13px}
+.chx-vues button .n{font:600 11px ui-monospace,Consolas,monospace;color:var(--muted)}
+.chx-vues button.on{background:var(--btn-active);border-color:var(--btn-active-border);font-weight:600}
+.chx-vues button.vu:not(.on)::after{content:"✓";color:var(--accent);font-weight:700}
+.chx-vues .ens{margin-left:auto;border-style:dashed}
+/* Barre de lecture */
+.rd{display:flex;align-items:center;gap:12px;padding:10px 14px;border-top:1px solid var(--border);background:var(--panel)}
+.rd button{display:inline-flex;align-items:center;gap:6px;border:1px solid var(--border);border-radius:10px;background:var(--btn);padding:8px 12px;font-size:13px;font-weight:600;white-space:nowrap}
+.rd button:hover:not(:disabled){border-color:var(--accent)}
+.rd button:disabled{opacity:.4;cursor:default}
+.rd .nx{background:var(--btn-active);border-color:var(--btn-active-border)}
+.rd .mid{flex:1;min-width:0;display:flex;flex-direction:column;align-items:center;gap:6px}
+.rd .ttl{font-size:13px;font-weight:600;text-align:center;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;max-width:100%}
+.rd .ttl span{color:var(--muted);font-weight:500}
+.rd .dots{display:flex;gap:6px;flex-wrap:wrap;justify-content:center}
+.rd .dots button{width:26px;height:26px;padding:0;justify-content:center;border-radius:50%;font:600 11px ui-monospace,Consolas,monospace}
+.rd .dots button.on{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.rd .dots button.vu{border-color:var(--accent)}
+.rd .pl{width:38px;justify-content:center;padding:8px 0}
+/* Sommaire */
+.som{position:fixed;inset:0;z-index:60;display:flex;justify-content:flex-start;background:rgba(5,12,20,.45);opacity:0;pointer-events:none;transition:opacity .2s}
+.som.open{opacity:1;pointer-events:auto}
+.som .pan{width:min(420px,92vw);height:100%;overflow:auto;background:var(--panel);border-right:1px solid var(--border);padding:18px max(18px,env(safe-area-inset-left,0px)) 24px 18px;transform:translateX(-24px);transition:transform .25s}
+.som.open .pan{transform:none}
+.som h2{margin:0 0 4px;font-size:18px}
+.som .sub{color:var(--muted);font-size:12.5px;margin:0 0 14px}
+.som .ens{width:100%;text-align:left;border:1px dashed var(--border);border-radius:10px;background:var(--btn);padding:9px 12px;margin-bottom:12px;font-weight:600}
+.som section{margin:0 0 14px}
+.som h3{display:flex;align-items:baseline;gap:8px;margin:0 0 6px;font-size:14px}
+.som h3 small{font:600 11px ui-monospace,Consolas,monospace;color:var(--accent)}
+.som h3 em{margin-left:auto;font-style:normal;font-size:11.5px;color:var(--muted);font-weight:500}
+.som ol{list-style:none;margin:0;padding:0;border-left:2px solid var(--border);margin-left:8px}
+.som li button{width:100%;display:flex;align-items:center;gap:10px;text-align:left;border:0;background:none;padding:7px 10px;border-radius:0 8px 8px 0;font-size:13.5px}
+.som li button:hover{background:var(--btn)}
+.som li button.on{background:var(--btn-active);font-weight:600}
+.som li button .st{margin-left:auto;font-size:11.5px;color:var(--muted)}
+.som li button .ck{width:16px;height:16px;flex:none;border-radius:50%;border:1.5px solid var(--border);display:grid;place-items:center;font-size:10px}
+.som li button.vu .ck{background:var(--accent);border-color:var(--accent);color:var(--panel)}
+.som .close{float:right;border:1px solid var(--border);background:var(--btn);border-radius:8px;padding:4px 10px}
+.som .reset{margin-top:8px;border:0;background:none;color:var(--muted);text-decoration:underline;font-size:12px}
+@media(max-width:760px){
+ .chx-ch{min-width:118px;padding:8px 10px 11px}.chx-ch small{display:none}.chx-ch b{font-size:12.5px}
+ .rd{gap:8px;padding:8px 10px}.rd .lbl-txt{display:none}.rd .dots button{width:22px;height:22px}
+}`;
+document.head.appendChild(css);
+
+/* ---------- Construction ---------- */
+const IC={menu:'<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><path d="M4 6h16M4 12h16M4 18h10"/></svg>'};
+const box=document.createElement('div');box.className='chx';
+box.innerHTML=`<div class="chx-row" id="chxRow"><button class="chx-som" type="button" id="chxSom">${IC.menu}Sommaire</button>${CH.map((c,i)=>`<button class="chx-ch" type="button" data-ch="${i}"><small>Chapitre ${i+1}</small><b>${esc(c.t)}</b><span class="bar3">${c.vues.map(v=>`<i data-v="${v}"></i>`).join('')}</span></button>`).join('')}</div><div class="chx-vues" id="chxVues"></div>`;
+const nav=document.getElementById('nav');nav.after(box);
+const rd=document.createElement('div');rd.className='rd';rd.id='chxRd';
+$$('stepText').before(rd);
+const som=document.createElement('div');som.className='som';som.id='chxSomP';som.setAttribute('role','dialog');som.setAttribute('aria-label','Sommaire du parcours');
+document.body.appendChild(som);
+
+/* ---------- Navigation linéaire : vue d’ensemble → étapes de chaque vue → vue suivante ---------- */
+function position(){if(cur==='syn')return{v:'syn',i:-1};return{v:cur,i:flat.indexOf(cur)};}
+function goNext(){const p=position();if(p.v==='syn'){go(flat[0]);return;}
+ const n=nSt(cur);if(step<n){setStep(step+1);return;}
+ if(p.i<flat.length-1)go(flat[p.i+1]);}
+function goPrev(){const p=position();if(p.v==='syn')return;
+ if(step>1){setStep(step-1);return;}
+ if(step===1){setStep(0);return;}
+ if(p.i>0)go(flat[p.i-1],true);else showSyn();}
+let timer=null;
+function stopAuto(){if(timer){clearInterval(timer);timer=null;}render();}
+function toggleAuto(){if(timer){stopAuto();return;}if(document.body.classList.contains('paused')&&typeof setPaused==='function')setPaused(false);
+ goNext();timer=setInterval(()=>{const p=position();if(p.v!=='syn'&&step>=nSt(cur)&&p.i>=flat.length-1){stopAuto();return;}goNext();},9000);render();}
+
+/* ---------- Rendu ---------- */
+function render(){
+ const p=position(),ci=p.v==='syn'?-1:chOf(p.v);
+ if(p.v!=='syn'&&(step>0||!nSt(p.v))){if(step>0)vus.add(p.v+':'+step);if(step===nSt(p.v))vus.add(p.v);save();}
+ const seenSteps=v=>(VIEWS[v].steps||[]).filter((_,k)=>vus.has(v+':'+(k+1))).length;
+ /* chapitres */
+ box.querySelectorAll('.chx-ch').forEach((b,i)=>{b.classList.toggle('on',i===ci);b.setAttribute('aria-current',i===ci?'true':'false');});
+ box.querySelectorAll('.bar3 i').forEach(el=>{const v=el.dataset.v;el.classList.toggle('on',v===p.v);el.classList.toggle('ok',vus.has(v));});
+ /* vues du chapitre */
+ const c=CH[ci<0?0:ci];
+ $$('chxVues').innerHTML=ci<0?`<span class="lab">Vue d’ensemble du parcours · choisissez un chapitre ou</span><button type="button" data-go="${flat[0]}" class="on">Commencer au chapitre 1 →</button>`
+  :`<span class="lab">Chapitre ${ci+1} :</span>${c.vues.map((v,k)=>`<button type="button" data-go="${v}" class="${v===p.v?'on':''} ${vus.has(v)?'vu':''}"><span class="n">${ci+1}.${k+1}</span>${esc(NAV_LABEL[v])}</button>`).join('')}<button type="button" class="ens" data-go="syn">Vue d’ensemble</button>`;
+ $$('chxVues').querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{stopAuto();if(b.dataset.go==='syn')showSyn();else go(b.dataset.go);});
+ const on=$$('chxVues').querySelector('.on');if(on)on.scrollIntoView({block:'nearest',inline:'nearest'});
+ /* barre de lecture */
+ if(p.v==='syn'){rd.style.display='none';}
+ else{rd.style.display='';const V=VIEWS[p.v],n=nSt(p.v),last=p.i===flat.length-1&&step>=n;
+  const nextLbl=step<n?'Étape suivante':(p.i<flat.length-1?`Vue suivante : ${NAV_LABEL[flat[p.i+1]]}`:'Fin du parcours');
+  rd.innerHTML=`<button type="button" id="rdPrev" ${p.i===0&&step===0?'':''}>←<span class="lbl-txt"> Précédent</span></button>
+   <div class="mid"><div class="ttl">${esc(NAV_LABEL[p.v])} <span>· ${!n?'activités':step===0?'présentation':'étape '+step+' / '+n}</span></div>
+   <div class="dots">${n?`<button type="button" data-st="0" class="${step===0?'on':''}" title="Présentation">i</button>`:''}${(V.steps||[]).map((s,k)=>`<button type="button" data-st="${k+1}" class="${step===k+1?'on':''} ${vus.has(p.v+':'+(k+1))?'vu':''}" title="${esc(s.t)}">${k+1}</button>`).join('')}</div></div>
+   <button type="button" class="pl" id="rdPlay" title="${timer?'Arrêter la lecture':'Lecture automatique'}" aria-label="${timer?'Arrêter la lecture':'Lecture automatique'}">${timer?'❚❚':'▶'}</button>
+   <button type="button" class="nx" id="rdNext" ${last?'disabled':''}><span class="lbl-txt">${esc(nextLbl)} </span>→</button>`;
+  $$('rdPrev').onclick=()=>{stopAuto();goPrev();};$$('rdNext').onclick=()=>{stopAuto();goNext();};$$('rdPlay').onclick=toggleAuto;
+  rd.querySelectorAll('[data-st]').forEach(b=>b.onclick=()=>{stopAuto();setStep(+b.dataset.st);});}
+ /* sommaire */
+ som.innerHTML=`<div class="pan"><button class="close" type="button" id="somX">Fermer</button><h2>Sommaire</h2><p class="sub">${CH.length} chapitres · ${flat.length} vues · ${flat.reduce((a,v)=>a+nSt(v),0)} étapes</p>
+  <button class="ens" type="button" data-go="syn">Vue d’ensemble du parcours (synoptique)</button>
+  ${CH.map((c,i)=>{const done=c.vues.filter(v=>vus.has(v)).length;return `<section><h3><small>${i+1}</small>${esc(c.t)}<em>${done}/${c.vues.length}</em></h3><ol>${c.vues.map((v,k)=>`<li><button type="button" data-go="${v}" class="${v===p.v?'on':''} ${vus.has(v)?'vu':''}"><span class="ck">${vus.has(v)?'✓':''}</span>${i+1}.${k+1} · ${esc(NAV_LABEL[v])}<span class="st">${nSt(v)?seenSteps(v)+'/'+nSt(v):''}</span></button></li>`).join('')}</ol></section>`;}).join('')}
+  <button class="reset" type="button" id="somR">Effacer ma progression sur cet appareil</button></div>`;
+ som.querySelectorAll('[data-go]').forEach(b=>b.onclick=()=>{closeSom();stopAuto();if(b.dataset.go==='syn')showSyn();else go(b.dataset.go);});
+ $$('somX').onclick=closeSom;$$('somR').onclick=()=>{vus.clear();save();render();};
+}
+function openSom(){som.classList.add('open');setTimeout(()=>{const b=som.querySelector('[data-go].on')||som.querySelector('[data-go]');b&&b.focus();},50);}
+function closeSom(){som.classList.remove('open');$$('chxSom').focus();}
+$$('chxSom').onclick=openSom;
+som.addEventListener('click',e=>{if(e.target===som)closeSom();});
+addEventListener('keydown',e=>{if(e.key==='Escape'&&som.classList.contains('open'))closeSom();
+ if(som.classList.contains('open')||/INPUT|TEXTAREA|SELECT/.test(document.activeElement.tagName))return;
+ if(cur!=='syn'&&e.key==='ArrowRight'){goNext();}if(cur!=='syn'&&e.key==='ArrowLeft'){goPrev();}});
+box.querySelectorAll('.chx-ch').forEach(b=>b.onclick=()=>{stopAuto();go(CH[+b.dataset.ch].vues[0]);});
+/* Balayage sur téléphone */
+let sx=null;const stage=document.querySelector('#detSec .stage');
+stage&&stage.addEventListener('touchstart',e=>{sx=e.touches[0].clientX;},{passive:true});
+stage&&stage.addEventListener('touchend',e=>{if(sx===null)return;const dx=e.changedTouches[0].clientX-sx;sx=null;if(Math.abs(dx)>70&&!e.target.closest('svg')){dx<0?goNext():goPrev();}},{passive:true});
+
+/* Se brancher sur le moteur existant */
+const _open=openView,_step=setStep,_syn=showSyn;
+openView=function(v){_open(v);render();};
+setStep=function(n){_step(n);render();};
+showSyn=function(){_syn();render();};
+render();
+})();
+
+</script>
+</body></html>
