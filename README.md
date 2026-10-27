@@ -50,4 +50,16 @@ puis ouvrir http://localhost:8000.
 
 Conception originale : Xavier Le Pallabre  
 Ressource pédagogique développée à titre personnel, avec l’assistance d’outils d’intelligence artificielle.  
-© 2026 Xavier Le Pallabre — Attribution de l’auteur original à conserver lors des réutilisations et adaptations, conformément à la licence applicable.
+© 2026 Xavier Le Pallabre — Attribution de l’auteur original à conserver lors des réutilisations et adaptations, conformément à la licence applicable : [CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr).
+
+## Licence
+
+Sauf mention contraire, le contenu de ce dépôt (code, textes, schémas, illustrations) est mis à disposition selon les termes de la licence **Creative Commons Attribution – Pas d'utilisation commerciale – Partage dans les mêmes conditions 4.0 International** ([CC BY-NC-SA 4.0](https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr)). Texte complet : fichier `LICENSE`.
+
+Tu peux le réutiliser, le copier et l'adapter, à trois conditions :
+- **Attribution** : citer l'auteur original (Xavier Le Pallabre), indiquer la licence et signaler les modifications ;
+- **Pas d'utilisation commerciale** : pas de vente ni d'usage dans un service payant ;
+- **Partage dans les mêmes conditions** : diffuser les adaptations sous la même licence.
+
+Ne sont pas couverts par cette licence :
+- les noms, marques et documents des organismes cités (Orano, EDF, Framatome, Andra, ASNR, AIEA…), qui restent leur propriété : les parcours en donnent des schémas fonctionnels et des résumés, avec leurs sources (voir `SOURCES.md`).
