@@ -151,6 +151,22 @@ h1 em{font-style:normal;background:linear-gradient(90deg,var(--c-amont),var(--c-
 .foot-note{padding-block:26px 40px;color:var(--faint);font-size:12.5px}
 .foot-note p{margin:4px 0;max-width:90ch}
 .foot-note .credit{margin-top:12px;line-height:1.5}
+/* Logo Bac Pro TIIN (variante D, l’atome dans le sas) */
+:root{--tiin-blue:#1F3F8F;--tiin-orange:#F08A50;--tiin-brown:#A9501F}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tiin-blue:#ffffff;--tiin-brown:#F08A50}}
+:root[data-theme="dark"]{--tiin-blue:#ffffff;--tiin-brown:#F08A50}
+.tiin-lock{display:inline-flex;align-items:center;gap:12px;line-height:1}
+.tiin-ico{width:52px;height:52px;flex:none}
+.tiin-word{height:46px;width:auto;flex:none;overflow:visible}
+.tiin-word .bp{font:800 14px/1 var(--font);letter-spacing:.32em;color:var(--tiin-brown)}
+.tiin-word .tn{font:900 30px/.9 "Arial Black","Segoe UI Black",var(--font);letter-spacing:.06em;color:var(--tiin-blue)}
+.hero-id{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
+
+.tiin-lock.lg .tiin-ico{width:66px;height:66px}.tiin-lock.lg .tiin-word{height:58px}
+.foot-id{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:20px;margin-bottom:10px}
+.foot-id p{margin:0;color:var(--muted);font-size:13px;max-width:52ch}
+@media(max-width:560px){.tiin-lock.lg .tiin-ico{width:54px;height:54px}.tiin-lock.lg .tiin-word{height:48px}}
+
 kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--muted)}
 
 /* ---------- Barre d’onglets mobile ---------- */
@@ -222,7 +238,12 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
   <div class="hero">
    <div class="wrap">
     <div>
-     <span class="kicker"><i></i>Bac Pro TIIN · Lycée Alexis de Tocqueville · hors connexion</span>
+     <div class="hero-id"><span class="tiin-lock lg" role="img" aria-label="Bac Pro TIIN"><svg class="tiin-ico" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke-width="18" stroke-linecap="round">
+<path d="M20 84V68A48 48 0 0 1 68 20H84" stroke="var(--tiin-blue)"/>
+<path d="M116 20H132A48 48 0 0 1 180 68V84" stroke="var(--tiin-orange)"/>
+<path d="M180 116V132A48 48 0 0 1 132 180H116" stroke="var(--tiin-blue)"/>
+<path d="M84 180H68A48 48 0 0 1 20 132V116" stroke="var(--tiin-blue)"/></g><g fill="none" stroke="var(--tiin-blue)" stroke-width="5"><ellipse cx="100" cy="100" rx="52" ry="16"/><ellipse cx="100" cy="100" rx="17" ry="51"/></g>
+<circle cx="100" cy="100" r="11.5" fill="var(--tiin-orange)"/><circle cx="126" cy="86" r="6.5" fill="var(--tiin-blue)"/><circle cx="85.5" cy="127" r="6.5" fill="var(--tiin-blue)"/></svg><svg class="tiin-word" viewBox="0 0 150 66" aria-hidden="true"><text x="0" y="17" textLength="150" lengthAdjust="spacing" style="font:800 19px var(--font);fill:var(--tiin-brown)">BAC PRO</text><text x="-1" y="64" textLength="152" lengthAdjust="spacingAndGlyphs" style="font:900 52px 'Arial Black','Segoe UI Black',var(--font);fill:var(--tiin-blue)">TIIN</text></svg></span><span class="kicker"><i></i>Lycée Alexis de Tocqueville · hors connexion</span></div>
      <h1>De la mine au stockage, <em>et tout ce qui protège.</em></h1>
      <p class="lead">Suivez l’uranium installation par installation, faites tourner un réacteur, puis comprenez comment la sûreté se construit et ce que les accidents ont appris.</p>
      <div class="cta">
@@ -286,6 +307,12 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
     </div>
    </section>
    <div class="foot-note">
+    <div class="foot-id"><span class="tiin-lock " role="img" aria-label="Bac Pro TIIN"><svg class="tiin-ico" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke-width="18" stroke-linecap="round">
+<path d="M20 84V68A48 48 0 0 1 68 20H84" stroke="var(--tiin-blue)"/>
+<path d="M116 20H132A48 48 0 0 1 180 68V84" stroke="var(--tiin-orange)"/>
+<path d="M180 116V132A48 48 0 0 1 132 180H116" stroke="var(--tiin-blue)"/>
+<path d="M84 180H68A48 48 0 0 1 20 132V116" stroke="var(--tiin-blue)"/></g><g fill="none" stroke="var(--tiin-blue)" stroke-width="5"><ellipse cx="100" cy="100" rx="52" ry="16"/><ellipse cx="100" cy="100" rx="17" ry="51"/></g>
+<circle cx="100" cy="100" r="11.5" fill="var(--tiin-orange)"/><circle cx="126" cy="86" r="6.5" fill="var(--tiin-blue)"/><circle cx="85.5" cy="127" r="6.5" fill="var(--tiin-blue)"/></svg><svg class="tiin-word" viewBox="0 0 150 66" aria-hidden="true"><text x="0" y="17" textLength="150" lengthAdjust="spacing" style="font:800 19px var(--font);fill:var(--tiin-brown)">BAC PRO</text><text x="-1" y="64" textLength="152" lengthAdjust="spacingAndGlyphs" style="font:900 52px 'Arial Black','Segoe UI Black',var(--font);fill:var(--tiin-blue)">TIIN</text></svg></span><p>Techniques d’interventions sur installations nucléaires · Lycée Alexis de Tocqueville, Cherbourg-en-Cotentin.</p></div>
     <p>Schémas fonctionnels et valeurs d’ordre de grandeur, sans valeur d’exploitation. Les exercices sont fictifs et ne remplacent aucune procédure d’installation.</p>
     <p class="credit">Conception originale : Xavier Le Pallabre<br>Ressource pédagogique développée à titre personnel, avec l’assistance d’outils d’intelligence artificielle.<br>© 2026 Xavier Le Pallabre — Attribution de l’auteur original à conserver lors des réutilisations et adaptations, conformément à la licence applicable. Licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" rel="license noopener" target="_blank">CC BY-NC-SA 4.0</a>.</p>
     <p>Raccourcis clavier : <kbd>Alt</kbd>+<kbd>1</kbd> à <kbd>6</kbd> pour changer de parcours, <kbd>Alt</kbd>+<kbd>0</kbd> pour revenir à l’accueil.</p>
