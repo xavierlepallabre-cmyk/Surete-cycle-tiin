@@ -1,0 +1,35 @@
+/* Charte commune des applications TIIN (Nucléa, Élec, Portail) appliquée aux parcours.
+   Ne change que l'habillage : fonds, panneaux, textes, boutons, police.
+   Les couleurs des matières, des zones et toutes les animations des schémas restent celles des parcours.
+   Sélecteurs doublés (:root:root) pour passer devant les thèmes des pages, quel que soit l'ordre de chargement. */
+:root:root{
+ --charte-font:Lexend,system-ui,-apple-system,"Segoe UI",sans-serif;
+ --charte-schema-font:system-ui,"Segoe UI",Arial,sans-serif;
+ --bg:#0A1430;--panel:#12204A;--panel2:#1A2C5C;--border:#2B3F72;--text:#EEF2FA;--muted:#A9B6D3;--accent:#9DB8F5;
+ --canvas:#0E1A3C;--canvas-glow:#15255A;
+ --btn:#1A2C5C;--btn-active:#24396F;--btn-active-border:#9DB8F5;--header:#12204A;--focus:#F18A52;
+ --charte-brand:#9DB8F5;--charte-accent:#F18A52;--charte-accent-text:#F6A06E}
+@media (prefers-color-scheme: light){:root:root:not([data-theme="dark"]){
+ --bg:#F4F6FA;--panel:#FFFFFF;--panel2:#EAF0F8;--border:#D5DDEA;--text:#0E1B36;--muted:#4A5A75;--accent:#1A3C89;
+ --canvas:#FBFCFE;--canvas-glow:#EEF3FA;
+ --btn:#F4F6FA;--btn-active:#DCE5F3;--btn-active-border:#1A3C89;--header:#FFFFFF;--focus:#F18A52;
+ --charte-brand:#1A3C89;--charte-accent:#F18A52;--charte-accent-text:#A8501C}}
+:root:root[data-theme="light"]{
+ --bg:#F4F6FA;--panel:#FFFFFF;--panel2:#EAF0F8;--border:#D5DDEA;--text:#0E1B36;--muted:#4A5A75;--accent:#1A3C89;
+ --canvas:#FBFCFE;--canvas-glow:#EEF3FA;
+ --btn:#F4F6FA;--btn-active:#DCE5F3;--btn-active-border:#1A3C89;--header:#FFFFFF;--focus:#F18A52;
+ --charte-brand:#1A3C89;--charte-accent:#F18A52;--charte-accent-text:#A8501C}
+:root:root[data-theme="dark"]{
+ --bg:#0A1430;--panel:#12204A;--panel2:#1A2C5C;--border:#2B3F72;--text:#EEF2FA;--muted:#A9B6D3;--accent:#9DB8F5;
+ --canvas:#0E1A3C;--canvas-glow:#15255A;
+ --btn:#1A2C5C;--btn-active:#24396F;--btn-active-border:#9DB8F5;--header:#12204A;--focus:#F18A52;
+ --charte-brand:#9DB8F5;--charte-accent:#F18A52;--charte-accent-text:#F6A06E}
+
+/* Police Lexend pour les textes et les commandes ; les schémas gardent leur police d'origine
+   pour que les étiquettes restent exactement à leur place. */
+body{font-family:var(--charte-font)}
+svg,svg text{font-family:var(--charte-schema-font)}
+h1,h2{color:var(--charte-brand)}
+h1 span{color:var(--charte-accent-text)}
+/* Filet bleu et orange sous l'en-tête, comme Nucléa et Élec */
+.top{box-shadow:inset 0 -3px 0 0 transparent;border-bottom:0!important;background-image:linear-gradient(90deg,var(--charte-accent) 0 34%,#1A3C89 34% 100%);background-size:100% 3px;background-repeat:no-repeat;background-position:bottom}
