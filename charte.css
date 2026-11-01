@@ -33,3 +33,11 @@ h1,h2{color:var(--charte-brand)}
 h1 span{color:var(--charte-accent-text)}
 /* Filet bleu et orange sous l'en-tête, comme Nucléa et Élec */
 .top{box-shadow:inset 0 -3px 0 0 transparent;border-bottom:0!important;background-image:linear-gradient(90deg,var(--charte-accent) 0 34%,#1A3C89 34% 100%);background-size:100% 3px;background-repeat:no-repeat;background-position:bottom}
+
+/* Téléphone : titres de chapitres sur deux lignes au lieu de se chevaucher,
+   bandeau des vues réduit au bouton utile. */
+@media (max-width:760px){
+ :root .chx-ch{flex:0 0 auto;min-width:0;max-width:172px;padding:8px 12px 13px}
+ :root .chx-ch b{white-space:normal;line-height:1.2;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+ :root .chx-vues .lab{display:none}
+}
