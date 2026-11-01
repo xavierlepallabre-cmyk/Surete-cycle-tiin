@@ -425,8 +425,10 @@ html.in-app .footer{opacity:.8}
  html.in-app .bar{flex-wrap:wrap}
  html.in-app .bar>.grp:first-child{flex:1 1 100%;min-width:0}
  html.in-app #filters{flex:1 1 100%}
+ html.in-app #filters>.note{flex:0 0 calc(100vw - 40px);white-space:normal}
  html.in-app .stage,html.in-app .drawing{overflow-x:auto;-webkit-overflow-scrolling:touch}
  html.in-app .stage>svg,html.in-app .drawing>svg{min-width:760px}
+ html.in-app .stage::before,html.in-app .drawing::before{content:"↔  Faites glisser pour voir tout le schéma";position:sticky;left:10px;display:block;width:max-content;margin:10px 0 2px 10px;padding:5px 12px;border-radius:999px;font:600 12px Lexend,system-ui,sans-serif;background:var(--btn-active);color:var(--text);border:1px solid var(--border);z-index:2}
  html.in-app .nav button,html.in-app .chip,html.in-app .sbtn,html.in-app .tabs button{min-height:40px}
 }`;
 function embed(f,id){try{const d=f.contentDocument;if(!d)return;const h=d.documentElement;h.classList.add('in-app','p-'+id);
