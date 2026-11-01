@@ -2,7 +2,7 @@
    Projet indépendant de Nucléa TIIN : préfixe de cache propre, portée limitée au dossier du site.
    VERSION est calculée par « python tools/version.py » à partir du contenu des fichiers :
    la lancer avant chaque publication (le test « python tests/test_site.py » le vérifie). */
-const VERSION = '57a1f5af97';
+const VERSION = 'e727311f42';
 const PREFIX = 'surete-cycle-tiin-';
 const CACHE = PREFIX + VERSION;
 const ASSETS = [
@@ -20,9 +20,15 @@ const ASSETS = [
   './icons/icon-512.png',
   './icons/icon-maskable-512.png',
   './icons/apple-touch-icon.png',
-  './icons/logo-tiin-icone.svg',
-  './icons/logo-tiin-icone-blanc.svg',
-  './icons/logo-tiin-tuile.svg'
+  './icons/logo-bac-pro-tiin.svg',
+  './icons/logo-tocqueville.png',
+  './charte.css',
+  './fonts/lexend.css',
+  './fonts/lexend-0.ttf',
+  './fonts/lexend-1.ttf',
+  './fonts/lexend-2.ttf',
+  './fonts/lexend-3.ttf',
+  './fonts/lexend-4.ttf'
 ];
 
 /* Installation : tout est téléchargé depuis le serveur (jamais depuis le cache HTTP),

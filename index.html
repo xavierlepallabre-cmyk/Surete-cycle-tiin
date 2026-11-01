@@ -2,7 +2,9 @@
 <title>Sûreté &amp; Cycle TIIN</title>
 <meta name="description" content="Parcours interactifs Bac Pro TIIN : cycle du combustible, sûreté nucléaire et accidents. Fonctionne hors connexion.">
 <link rel="manifest" href="manifest.json">
-<meta name="theme-color" content="#0d1b2e">
+<meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12204A" media="(prefers-color-scheme: dark)">
+<link rel="stylesheet" href="fonts/lexend.css">
 <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
 <meta name="apple-mobile-web-app-capable" content="yes">
@@ -22,22 +24,25 @@ try{const t=localStorage.getItem('sct-theme');if(t==='light'||t==='dark')documen
 /* Coquille d’application : barre unique en haut, barre d’onglets en bas sur mobile, accueil en orbite.
    Mêmes jetons que les parcours (marine, bleu acier) pour une continuité visuelle. */
 :root{color-scheme:dark;
- --bg:#070e17;--bg2:#0b1522;--panel:#0f1a28;--panel2:#152335;--glass:rgba(13,24,38,.72);--border:#22364b;--border2:#2d4660;
- --text:#e8f0f7;--muted:#93a8bb;--faint:#5f758a;--accent:#5cb3e6;--accent2:#8fd3ff;--btn:#122033;--btn-active:#1d4766;
+ --bg:#0A1430;--bg2:#0E1A3C;--panel:#12204A;--panel2:#1A2C5C;--glass:rgba(18,32,74,.86);--border:#2B3F72;--border2:#35508A;
+ --text:#EEF2FA;--muted:#A9B6D3;--faint:#7D8CB0;--accent:#9DB8F5;--accent2:#9DB8F5;--btn:#1A2C5C;--btn-active:#24396F;
+ --brand:#1A3C89;--brand-text:#9DB8F5;--primary:#2E5BC4;--orange:#F18A52;--orange-text:#F6A06E;--surface:#12204A;
  --c-amont:#ffd43b;--c-rep:#ff9b4f;--c-hague:#f783ac;--c-andra:#63e6be;--c-surete:#b197fc;--c-acc:#ff6b6b;--ok:#63e6be;
- --shadow:0 18px 50px rgba(0,0,0,.45);--grid:rgba(143,211,255,.06);
- --font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
+ --shadow:0 18px 50px rgba(0,0,0,.45);--grid:rgba(157,184,245,.06);
+ --font:Lexend,system-ui,-apple-system,"Segoe UI",sans-serif;--schema-font:system-ui,-apple-system,"Segoe UI",Roboto,Arial,sans-serif;--mono:ui-monospace,"Cascadia Mono",Consolas,monospace;
  --bar-h:60px;--tab-h:64px}
 @media (prefers-color-scheme: light){:root:not([data-theme="dark"]){color-scheme:light;
- --bg:#eef3f8;--bg2:#e4ecf4;--panel:#ffffff;--panel2:#f3f7fb;--glass:rgba(255,255,255,.78);--border:#d3dee8;--border2:#bccbda;
- --text:#102033;--muted:#4d6377;--faint:#7d91a4;--accent:#1f6fa8;--accent2:#1f6fa8;--btn:#f2f6fa;--btn-active:#d8e9f6;
+ --bg:#F4F6FA;--bg2:#EAF0F8;--panel:#FFFFFF;--panel2:#EAF0F8;--glass:rgba(255,255,255,.92);--border:#D5DDEA;--border2:#C3CEDF;
+ --text:#0E1B36;--muted:#4A5A75;--faint:#6B7A93;--accent:#1A3C89;--accent2:#1A3C89;--btn:#F4F6FA;--btn-active:#DCE5F3;
+ --brand:#1A3C89;--brand-text:#1A3C89;--primary:#1A3C89;--orange:#F18A52;--orange-text:#A8501C;--surface:#FFFFFF;
  --c-amont:#b08900;--c-rep:#d9480f;--c-hague:#d6336c;--c-andra:#099268;--c-surete:#7048e8;--c-acc:#e03131;--ok:#099268;
- --shadow:0 18px 50px rgba(16,32,51,.14);--grid:rgba(31,111,168,.07)}}
+ --shadow:0 1px 2px #0E1B360D,0 6px 24px #0E1B360F;--grid:rgba(26,60,137,.06)}}
 :root[data-theme="light"]{color-scheme:light;
- --bg:#eef3f8;--bg2:#e4ecf4;--panel:#ffffff;--panel2:#f3f7fb;--glass:rgba(255,255,255,.78);--border:#d3dee8;--border2:#bccbda;
- --text:#102033;--muted:#4d6377;--faint:#7d91a4;--accent:#1f6fa8;--accent2:#1f6fa8;--btn:#f2f6fa;--btn-active:#d8e9f6;
+ --bg:#F4F6FA;--bg2:#EAF0F8;--panel:#FFFFFF;--panel2:#EAF0F8;--glass:rgba(255,255,255,.92);--border:#D5DDEA;--border2:#C3CEDF;
+ --text:#0E1B36;--muted:#4A5A75;--faint:#6B7A93;--accent:#1A3C89;--accent2:#1A3C89;--btn:#F4F6FA;--btn-active:#DCE5F3;
+ --brand:#1A3C89;--brand-text:#1A3C89;--primary:#1A3C89;--orange:#F18A52;--orange-text:#A8501C;--surface:#FFFFFF;
  --c-amont:#b08900;--c-rep:#d9480f;--c-hague:#d6336c;--c-andra:#099268;--c-surete:#7048e8;--c-acc:#e03131;--ok:#099268;
- --shadow:0 18px 50px rgba(16,32,51,.14);--grid:rgba(31,111,168,.07)}
+ --shadow:0 1px 2px #0E1B360D,0 6px 24px #0E1B360F;--grid:rgba(26,60,137,.06)}
 *{box-sizing:border-box}
 html,body{height:100%}
 body{margin:0;background:var(--bg);color:var(--text);font:15px/1.55 var(--font);display:flex;flex-direction:column;overflow:hidden;-webkit-font-smoothing:antialiased}
@@ -48,16 +53,26 @@ button{cursor:pointer}
 svg.i{width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round}
 
 /* ---------- Barre d’application ---------- */
-body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--glass);z-index:30}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);background:var(--surface);z-index:30}
 .appbar{position:relative;z-index:20;display:flex;align-items:center;gap:14px;min-height:var(--bar-h);
  padding-block:8px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));
- background:var(--glass);backdrop-filter:blur(14px) saturate(1.3);-webkit-backdrop-filter:blur(14px) saturate(1.3);border-bottom:1px solid var(--border)}
-.brand{display:flex;align-items:center;gap:10px;background:none;border:0;padding:4px 8px 4px 2px;border-radius:12px;white-space:nowrap;min-width:0}
-.brand svg{width:34px;height:34px;flex:none}
-.brand .bt{display:flex;flex-direction:column;line-height:1.1;text-align:left;min-width:0}
-.brand .bt b{font-size:15.5px;letter-spacing:-.01em}
-.brand .bt small{font-size:11.5px;color:var(--muted);overflow:hidden;text-overflow:ellipsis}
-.brand:hover{background:var(--btn)}
+ background:var(--surface);border-bottom:1px solid var(--border)}
+.brand{display:flex;align-items:center;gap:14px;background:none;border:0;padding:2px 6px 2px 0;border-radius:12px;white-space:nowrap;min-width:0;text-align:left}
+.school-logo{display:block;background:#fff;border-radius:8px;padding:4px 7px;flex-shrink:0;border:1px solid var(--border);line-height:0}
+.school-logo img{height:46px;width:auto;display:block}
+.brand-sep{width:1px;height:34px;background:var(--border)}
+.brand-text{display:flex;flex-direction:column;min-width:0;line-height:1.1;overflow:hidden}
+.brand-text .eyebrow{font-size:10.5px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.brand-text strong{font-size:21px;font-weight:800;letter-spacing:-.03em;color:var(--brand-text);white-space:nowrap}
+.brand-text strong span{color:var(--orange-text)}
+.brand:hover strong{text-decoration:underline;text-decoration-thickness:2px;text-underline-offset:4px}
+.sr-only{position:absolute!important;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+.bar-accent{position:relative;z-index:20;height:3px;background:linear-gradient(90deg,var(--orange) 0 34%,var(--brand) 34% 100%)}
+@media(max-width:1180px){.brand-sep,.brand-text .eyebrow{display:none}}
+@media(max-width:900px){.brand-sep,.brand-text .eyebrow{display:block}.brand-sep{height:28px}}
+@media(max-width:560px){.school-logo img{height:36px}.school-logo{padding:3px 5px}.brand{gap:10px}.brand-text strong{font-size:18px}.brand-text .eyebrow{font-size:8.5px;letter-spacing:.06em}}
+@media(max-width:430px){.brand-sep{display:none}.brand-text strong{font-size:16.5px;letter-spacing:-.035em}}
+@media(max-width:350px){.brand-text .eyebrow{display:none}}
 .switch{position:relative;display:flex;gap:2px;padding:4px;border-radius:999px;background:var(--btn);border:1px solid var(--border);margin:0 auto;min-width:0}
 .switch .ind{position:absolute;top:4px;left:0;height:calc(100% - 8px);border-radius:999px;background:var(--panel);box-shadow:0 2px 10px rgba(0,0,0,.18),inset 0 0 0 1px var(--border2);transition:transform .35s cubic-bezier(.3,.7,.2,1),width .35s cubic-bezier(.3,.7,.2,1),opacity .2s;opacity:0}
 .switch button{position:relative;z-index:1;display:flex;align-items:center;gap:7px;border:0;background:none;border-radius:999px;padding:7px 12px;font-size:13.5px;color:var(--muted);white-space:nowrap;transition:color .2s}
@@ -86,15 +101,15 @@ main{position:relative;flex:1;min-height:0}
  background:radial-gradient(900px 500px at 78% 40%,color-mix(in srgb,var(--accent) 16%,transparent),transparent 70%),radial-gradient(600px 400px at 10% 0%,color-mix(in srgb,var(--c-surete) 12%,transparent),transparent 70%),var(--bg2)}
 .hero::before{content:"";position:absolute;inset:0;background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);background-size:44px 44px;mask-image:radial-gradient(ellipse at 70% 45%,#000 30%,transparent 75%);-webkit-mask-image:radial-gradient(ellipse at 70% 45%,#000 30%,transparent 75%);pointer-events:none}
 .hero .wrap{position:relative;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,560px);gap:28px;align-items:center;padding-block:44px 36px}
-.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
-.kicker i{width:8px;height:8px;border-radius:50%;background:var(--ok);box-shadow:0 0 0 4px color-mix(in srgb,var(--ok) 22%,transparent)}
-h1{font-size:clamp(32px,4.6vw,56px);line-height:1.04;letter-spacing:-.03em;margin:14px 0 14px;text-wrap:balance;font-weight:800}
-h1 em{font-style:normal;background:linear-gradient(90deg,var(--c-amont),var(--c-rep) 30%,var(--c-hague) 55%,var(--c-andra) 80%,var(--c-surete));-webkit-background-clip:text;background-clip:text;color:transparent}
+.kicker{display:inline-flex;align-items:center;gap:8px;font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase;color:var(--orange-text)}
+h1{font-size:clamp(30px,4.2vw,50px);line-height:1.08;letter-spacing:-.03em;margin:14px 0 14px;text-wrap:balance;font-weight:800;color:var(--brand-text)}
+h1 em{font-style:normal;color:var(--orange-text)}
 .lead{font-size:17px;color:var(--muted);max-width:52ch;margin:0}
 .cta{display:flex;gap:10px;flex-wrap:wrap;margin-top:24px}
 .btn{display:inline-flex;align-items:center;gap:9px;border-radius:14px;padding:12px 18px;font-weight:650;font-size:15px;border:1px solid var(--border2);background:var(--panel);color:var(--text);text-decoration:none;transition:transform .15s,border-color .2s,box-shadow .2s}
 .btn:hover{transform:translateY(-1px);border-color:var(--accent)}
-.btn.primary{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 55%,var(--c-surete)));border-color:transparent;color:#fff;box-shadow:0 10px 28px color-mix(in srgb,var(--accent) 35%,transparent)}
+.btn.primary{background:var(--primary);border-color:transparent;color:#fff;box-shadow:0 8px 22px color-mix(in srgb,var(--primary) 30%,transparent)}
+.btn.primary:hover{border-color:transparent;filter:brightness(1.08)}
 .btn small{font-weight:500;opacity:.85}
 .stats{display:flex;gap:26px;flex-wrap:wrap;margin-top:28px}
 .stat b{display:block;font-size:24px;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
@@ -110,8 +125,8 @@ h1 em{font-style:normal;background:linear-gradient(90deg,var(--c-amont),var(--c-
 .st .halo{fill:var(--c);opacity:.12;transition:opacity .25s,transform .25s;transform-box:fill-box;transform-origin:center}
 .st .disc{fill:var(--panel);stroke:var(--c);stroke-width:3;transition:transform .25s;transform-box:fill-box;transform-origin:center}
 .st .ico{color:var(--c);fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;pointer-events:none}
-.st text{fill:var(--text);font:700 15px var(--font);pointer-events:none}
-.st text.s{fill:var(--muted);font:500 12px var(--font)}
+.st text{fill:var(--text);font:700 15px var(--schema-font);pointer-events:none}
+.st text.s{fill:var(--muted);font:500 12px var(--schema-font)}
 .st:hover .halo,.st:focus-visible .halo,.st.hot .halo{opacity:.3;transform:scale(1.25)}
 .st:hover .disc,.st:focus-visible .disc{transform:scale(1.07)}
 .st .seen{fill:var(--ok);stroke:var(--panel);stroke-width:3}
@@ -151,21 +166,19 @@ h1 em{font-style:normal;background:linear-gradient(90deg,var(--c-amont),var(--c-
 .foot-note{padding-block:26px 40px;color:var(--faint);font-size:12.5px}
 .foot-note p{margin:4px 0;max-width:90ch}
 .foot-note .credit{margin-top:12px;line-height:1.5}
-/* Logo Bac Pro TIIN (variante D, l’atome dans le sas) */
-:root{--tiin-blue:#1F3F8F;--tiin-orange:#F08A50;--tiin-brown:#A9501F}
-@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--tiin-blue:#ffffff;--tiin-brown:#F08A50}}
-:root[data-theme="dark"]{--tiin-blue:#ffffff;--tiin-brown:#F08A50}
-.tiin-lock{display:inline-flex;align-items:center;gap:12px;line-height:1}
-.tiin-ico{width:52px;height:52px;flex:none}
-.tiin-word{height:46px;width:auto;flex:none;overflow:visible}
-.tiin-word .bp{font:800 14px/1 var(--font);letter-spacing:.32em;color:var(--tiin-brown)}
-.tiin-word .tn{font:900 30px/.9 "Arial Black","Segoe UI Black",var(--font);letter-spacing:.06em;color:var(--tiin-blue)}
+/* Logos : fichiers officiels sur plaque blanche, comme dans Nucléa */
+.logo-plate{display:inline-grid;place-items:center;background:#fff;border:1px solid var(--border);border-radius:12px;padding:8px 12px;line-height:0}
+.logo-plate img{display:block;height:44px;width:auto}
+.hero-logo img{height:52px}
 .hero-id{display:flex;flex-direction:column;align-items:flex-start;gap:14px}
-
-.tiin-lock.lg .tiin-ico{width:66px;height:66px}.tiin-lock.lg .tiin-word{height:58px}
+.bars{display:inline-flex;align-items:flex-end;gap:3px;height:16px}
+.bars i{display:block;width:4px;border-radius:2px;background:var(--orange)}
+.bars i:nth-child(1){height:10px}.bars i:nth-child(2){height:16px}.bars i:nth-child(3){height:12px}
+.tiin-logos{display:flex;gap:10px;flex-wrap:wrap}
+.tiin-logos .logo-plate img{height:48px}
 .foot-id{display:flex;align-items:center;gap:20px;flex-wrap:wrap;border-top:1px solid var(--border);padding-top:20px;margin-bottom:10px}
 .foot-id p{margin:0;color:var(--muted);font-size:13px;max-width:52ch}
-@media(max-width:560px){.tiin-lock.lg .tiin-ico{width:54px;height:54px}.tiin-lock.lg .tiin-word{height:48px}}
+@media(max-width:560px){.hero-logo img{height:44px}.tiin-logos .logo-plate img{height:40px}}
 
 kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2px;border-radius:5px;padding:0 5px;color:var(--muted)}
 
@@ -197,7 +210,7 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
 
 /* Mise à jour */
 .updbar{position:fixed;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom,0px) + var(--tabpad,0px));z-index:40;display:flex;align-items:center;gap:12px;flex-wrap:wrap;max-width:calc(100% - 32px);background:var(--panel);color:var(--text);border:1px solid var(--accent);border-radius:14px;padding:10px 14px;box-shadow:var(--shadow);font-size:13.5px}
-.updbar button{font-weight:650;border:0;background:var(--accent);color:#fff;border-radius:999px;padding:7px 14px}
+.updbar button{font-weight:650;border:0;background:var(--primary);color:#fff;border-radius:999px;padding:7px 14px}
 @media(max-width:900px){.updbar{--tabpad:var(--tab-h)}}
 </style>
 </head><body>
@@ -221,8 +234,9 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
 
 <header class="appbar">
  <button class="brand" id="homeBtn" type="button" aria-label="Accueil Sûreté et Cycle TIIN">
-  <svg viewBox="0 0 512 512" aria-hidden="true"><rect width="512" height="512" rx="120" fill="#0d1b2e"/><g fill="none" stroke-width="38" stroke-linecap="round"><path d="M256 92A164 164 0 0 1 420 256" stroke="#ffd43b"/><path d="M420 256A164 164 0 0 1 256 420" stroke="#ff9b4f"/><path d="M256 420A164 164 0 0 1 92 256" stroke="#f783ac"/><path d="M92 256A164 164 0 0 1 256 92" stroke="#63e6be"/></g><path d="M256 172 326 198v64c0 44-30 74-70 90-40-16-70-46-70-90v-64z" fill="#b197fc"/></svg>
-  <span class="bt"><b>Sûreté &amp; Cycle TIIN</b><small id="where">Accueil</small></span>
+  <span class="school-logo"><img src="icons/logo-tocqueville.png" alt="Lycée Tocqueville — Métiers de l’industrie et du nucléaire" width="541" height="465"></span>
+  <span class="brand-sep" aria-hidden="true"></span>
+  <span class="brand-text"><span class="eyebrow">Cycle du combustible · Bac Pro TIIN</span><strong>Sûreté &amp; Cycle <span>TIIN</span></strong><small class="sr-only" id="where">Accueil</small></span>
  </button>
  <nav class="switch" id="switch" aria-label="Parcours"><span class="ind" id="ind"></span></nav>
  <div class="actions">
@@ -231,6 +245,7 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
   <a class="ib" id="openBtn" href="#" target="_blank" rel="noopener" aria-label="Ouvrir ce parcours dans un onglet" title="Ouvrir dans un onglet" hidden><svg class="i"><use href="#i-open"/></svg></a>
  </div>
 </header>
+<div class="bar-accent" aria-hidden="true"></div>
 
 <main id="main">
  <div class="loader" id="loader"><span></span></div>
@@ -238,12 +253,7 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
   <div class="hero">
    <div class="wrap">
     <div>
-     <div class="hero-id"><span class="tiin-lock lg" role="img" aria-label="Bac Pro TIIN"><svg class="tiin-ico" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke-width="18" stroke-linecap="round">
-<path d="M20 84V68A48 48 0 0 1 68 20H84" stroke="var(--tiin-blue)"/>
-<path d="M116 20H132A48 48 0 0 1 180 68V84" stroke="var(--tiin-orange)"/>
-<path d="M180 116V132A48 48 0 0 1 132 180H116" stroke="var(--tiin-blue)"/>
-<path d="M84 180H68A48 48 0 0 1 20 132V116" stroke="var(--tiin-blue)"/></g><g fill="none" stroke="var(--tiin-blue)" stroke-width="5"><ellipse cx="100" cy="100" rx="52" ry="16"/><ellipse cx="100" cy="100" rx="17" ry="51"/></g>
-<circle cx="100" cy="100" r="11.5" fill="var(--tiin-orange)"/><circle cx="126" cy="86" r="6.5" fill="var(--tiin-blue)"/><circle cx="85.5" cy="127" r="6.5" fill="var(--tiin-blue)"/></svg><svg class="tiin-word" viewBox="0 0 150 66" aria-hidden="true"><text x="0" y="17" textLength="150" lengthAdjust="spacing" style="font:800 19px var(--font);fill:var(--tiin-brown)">BAC PRO</text><text x="-1" y="64" textLength="152" lengthAdjust="spacingAndGlyphs" style="font:900 52px 'Arial Black','Segoe UI Black',var(--font);fill:var(--tiin-blue)">TIIN</text></svg></span><span class="kicker"><i></i>Lycée Alexis de Tocqueville · hors connexion</span></div>
+     <div class="hero-id"><span class="logo-plate hero-logo"><img src="icons/logo-bac-pro-tiin.svg" alt="Bac Pro TIIN — Techniques d’interventions sur installations nucléaires" width="412" height="133"></span><span class="kicker"><span class="bars" aria-hidden="true"><i></i><i></i><i></i></span>Cycle du combustible · Sûreté · S7</span></div>
      <h1>De la mine au stockage, <em>et tout ce qui protège.</em></h1>
      <p class="lead">Suivez l’uranium installation par installation, faites tourner un réacteur, puis comprenez comment la sûreté se construit et ce que les accidents ont appris.</p>
      <div class="cta">
@@ -307,12 +317,7 @@ kbd{font:11px var(--mono);border:1px solid var(--border2);border-bottom-width:2p
     </div>
    </section>
    <div class="foot-note">
-    <div class="foot-id"><span class="tiin-lock " role="img" aria-label="Bac Pro TIIN"><svg class="tiin-ico" viewBox="0 0 200 200" aria-hidden="true"><g fill="none" stroke-width="18" stroke-linecap="round">
-<path d="M20 84V68A48 48 0 0 1 68 20H84" stroke="var(--tiin-blue)"/>
-<path d="M116 20H132A48 48 0 0 1 180 68V84" stroke="var(--tiin-orange)"/>
-<path d="M180 116V132A48 48 0 0 1 132 180H116" stroke="var(--tiin-blue)"/>
-<path d="M84 180H68A48 48 0 0 1 20 132V116" stroke="var(--tiin-blue)"/></g><g fill="none" stroke="var(--tiin-blue)" stroke-width="5"><ellipse cx="100" cy="100" rx="52" ry="16"/><ellipse cx="100" cy="100" rx="17" ry="51"/></g>
-<circle cx="100" cy="100" r="11.5" fill="var(--tiin-orange)"/><circle cx="126" cy="86" r="6.5" fill="var(--tiin-blue)"/><circle cx="85.5" cy="127" r="6.5" fill="var(--tiin-blue)"/></svg><svg class="tiin-word" viewBox="0 0 150 66" aria-hidden="true"><text x="0" y="17" textLength="150" lengthAdjust="spacing" style="font:800 19px var(--font);fill:var(--tiin-brown)">BAC PRO</text><text x="-1" y="64" textLength="152" lengthAdjust="spacingAndGlyphs" style="font:900 52px 'Arial Black','Segoe UI Black',var(--font);fill:var(--tiin-blue)">TIIN</text></svg></span><p>Techniques d’interventions sur installations nucléaires · Lycée Alexis de Tocqueville, Cherbourg-en-Cotentin.</p></div>
+    <div class="foot-id"><span class="tiin-logos"><span class="logo-plate"><img src="icons/logo-tocqueville.png" alt="Lycée Alexis de Tocqueville — Métiers de l’industrie et du nucléaire" width="541" height="465"></span><span class="logo-plate"><img src="icons/logo-bac-pro-tiin.svg" alt="Bac Pro TIIN" width="412" height="133"></span></span><p>Techniques d’interventions sur installations nucléaires · Lycée Alexis de Tocqueville, Cherbourg-en-Cotentin.</p></div>
     <p>Schémas fonctionnels et valeurs d’ordre de grandeur, sans valeur d’exploitation. Les exercices sont fictifs et ne remplacent aucune procédure d’installation.</p>
     <p class="credit">Conception originale : Xavier Le Pallabre<br>Ressource pédagogique développée à titre personnel, avec l’assistance d’outils d’intelligence artificielle.<br>© 2026 Xavier Le Pallabre — Attribution de l’auteur original à conserver lors des réutilisations et adaptations, conformément à la licence applicable. Licence <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/deed.fr" rel="license noopener" target="_blank">CC BY-NC-SA 4.0</a>.</p>
     <p>Raccourcis clavier : <kbd>Alt</kbd>+<kbd>1</kbd> à <kbd>6</kbd> pour changer de parcours, <kbd>Alt</kbd>+<kbd>0</kbd> pour revenir à l’accueil.</p>

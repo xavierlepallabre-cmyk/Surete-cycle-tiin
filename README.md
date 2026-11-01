@@ -14,13 +14,15 @@ Projet indépendant de Nucléa TIIN : dépôt, cache hors ligne (`surete-cycle-t
 | `surete.html`, `accidents.html` | sûreté nucléaire, accidents et retour d’expérience |
 | `manifest.json` | installation sur l’écran d’accueil |
 | `service-worker.js` | mise en cache pour l’usage hors ligne |
-| `icons/` | icônes de l’application (le dossier doit rester un dossier : le manifeste et le cache y pointent) |
+| `icons/` | icônes de l’application, logo du Bac Pro TIIN et logo du lycée (le dossier doit rester un dossier : le manifeste et le cache y pointent) |
+| `fonts/` | police Lexend embarquée (licence OFL), commune aux applications TIIN |
+| `charte.css` | charte commune des applications TIIN (couleurs, police) appliquée aux parcours, sans toucher aux schémas ni aux animations |
 | `tools/version.py` | calcule la version du cache à partir du contenu des fichiers |
 | `tests/test_site.py` | tests de non-régression dans un vrai navigateur |
 | `SOURCES.md` | sources de chaque donnée datée ou réglementaire |
 | `.nojekyll` | publication des fichiers telle quelle par GitHub Pages |
 
-Chaque page est autonome : aucun fichier externe, aucune police ni bibliothèque en ligne.
+Chaque page fonctionne hors connexion : aucune police ni bibliothèque en ligne. Les seuls fichiers partagés sont la police Lexend (`fonts/`) et la charte (`charte.css`), mis en cache avec les pages.
 
 ## Publier une mise à jour
 
@@ -61,5 +63,9 @@ Tu peux le réutiliser, le copier et l'adapter, à trois conditions :
 - **Pas d'utilisation commerciale** : pas de vente ni d'usage dans un service payant ;
 - **Partage dans les mêmes conditions** : diffuser les adaptations sous la même licence.
 
+Le logo du Bac Pro TIIN est une création de Xavier Le Pallabre : il est couvert par cette licence, comme le reste de ses contenus.
+
 Ne sont pas couverts par cette licence :
+- la police Lexend (`fonts/`), sous licence SIL Open Font License 1.1 (voir `fonts/OFL.txt`) ;
+- le logo du lycée Alexis de Tocqueville, propriété de l'établissement ;
 - les noms, marques et documents des organismes cités (Orano, EDF, Framatome, Andra, ASNR, AIEA…), qui restent leur propriété : les parcours en donnent des schémas fonctionnels et des résumés, avec leurs sources (voir `SOURCES.md`).
